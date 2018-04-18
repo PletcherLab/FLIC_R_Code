@@ -79,17 +79,22 @@ GetElapsedSeconds<-function(dfm){
   times<-dfm$Time
   ms <-dfm$MSec
   ## For US culture.
-  ## There seems to be some confusion about the nature of the time stamp
-  ## from different MCU. 
-  ## Use this one if time in AM/PM
-  ##fulltimes<-as.POSIXct(paste(dates,times),format="%m/%d/%Y %I:%M:%S %p")
-  ## Use this one if time is military time.
-  fulltimes<-as.POSIXct(paste(dates,times),format="%m/%d/%Y %H:%M:%S")  
+  tmp<-as.character(dfm$Time[1])
+  tmp2<-regexpr('.M',tmp)
+  if(tmp2[1]>-1) {
+    ## There seems to be some confusion about the nature of the time stamp
+    ## from different MCU. 
+    ## Use this one if time in AM/PM
+    fulltimes<-as.POSIXct(paste(dates,times),format="%m/%d/%Y %I:%M:%S %p")
+  }
+  else {
+    ## Use this one if time is military time.
+    fulltimes<-as.POSIXct(paste(dates,times),format="%m/%d/%Y %H:%M:%S")  
+  }
   diffs<-as.numeric(c(difftime(fulltimes,fulltimes[1],units="secs")))
   diffs<-diffs+(ms/1000)
   diffs
 }  
-
 CalculateBaseline=function(dfm){
   window.min=dfm$Parameters$Baseline.Window.Minutes
   newData<-dfm$RawData
