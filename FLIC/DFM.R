@@ -416,7 +416,7 @@ Set.Adaptive.Standard<-function(dfm){
   }
   AdaptiveStandard<-data.frame(stand)
   names(AdaptiveStandard)<-paste("W",1:12,sep="")
-  dfm$AdapativeStandard<-AdaptiveStandard
+  dfm$AdaptiveStandard<-AdaptiveStandard
   dfm
 }
 
@@ -452,12 +452,12 @@ Set.Adaptive.Standard.Well<-function(dfm,well){
   Standard.thresh
 }
 
-set.Adaptive.Threshold<-function(dfm){
+Set.Adaptive.Threshold<-function(dfm){
   if(is.null(dfm$AdaptiveStandard)) {
     stop("DFM must have standard.")
   }
   tmp<-Set.Adaptive.Threshold.Well(dfm,1)
-  Thresholds$W1<-tmp
+  Thresholds=list(W1=tmp)
   
   for(i in 2:12){
     s<-paste("W",i,sep="")
@@ -471,12 +471,12 @@ set.Adaptive.Threshold<-function(dfm){
 Set.Adaptive.Threshold.Well<-function(dfm,well){   
   cname<-paste("W",well,sep="")
   stand<-dfm$AdaptiveStandard[,cname]
-  feeding.max.thresh<-chamber$Parameters$Feeding.Threshold.Value*stand
-  feeding.min.thresh<-chamber$Parameters$Feeding.Interval.Minimum*stand
-  tasting.max.thresh<-chamber$Parameters$Tasting.Threshold.Interval.Low*stand
-  tasting.min.thresh<-chamber$Parameters$Tasting.Threshold.Interval.High*stand
+  feeding.max.thresh<-dfm$Parameters$Feeding.Threshold.Value*stand
+  feeding.min.thresh<-dfm$Parameters$Feeding.Interval.Minimum*stand
+  tasting.max.thresh<-dfm$Parameters$Tasting.Threshold.Interval.Low*stand
+  tasting.min.thresh<-dfm$Parameters$Tasting.Threshold.Interval.High*stand
   
-  min.thresh<-chamber$Parameters$Adaptive.Threshold.Minimum
+  min.thresh<-dfm$Parameters$Adaptive.Threshold.Minimum
   feeding.max.thresh[feeding.max.thresh<min.thresh]<-min.thresh
   feeding.min.thresh[feeding.min.thresh<min.thresh]<-min.thresh
   tasting.max.thresh[tasting.max.thresh<min.thresh]<-min.thresh
