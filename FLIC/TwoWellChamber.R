@@ -44,7 +44,7 @@ Feeding.FinalPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),div
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
     ## Tmp Fix
-    sumLicks<-results$LicksA+results$LickB
+    sumLicks<-results$LicksA+results$LicksB
     results<-results[sumLicks>0,]
     
     r<-paste("PI -- Range(min): (",range[1],",",range[2],")",sep="")
