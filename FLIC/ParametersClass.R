@@ -3,16 +3,16 @@
 ## It is instantiated with a set of initial values
 ParametersClass=function(){
   Baseline.Window.Minutes=3
-  Signal.Threshold = 50
-  Feeding.Threshold.Value=100
+  Signal.Threshold = 10
+  Feeding.Threshold.Value=30
   Feeding.Interval.Minimum=20
-  Tasting.Threshold.Interval=c(10,80)
+  Tasting.Threshold.Interval=c(10,20)
   Use.Adaptive.Threshold=FALSE
   Adaptive.Threshold.Minimum=8
   Adaptive.Threshold.Window.Minutes=2
   Adaptive.Threshold.Selection.Quant=0.9
   Feeding.Minevents=2
-  Tasting.Minevents=2
+  Tasting.Minevents=1
   Samples.Per.Second=5
   Chamber.Sets=matrix(1:12,ncol=2,byrow=TRUE)
   Chamber.Size=2
@@ -28,16 +28,16 @@ ParametersClass=function(){
 
 ParametersClass.SingleWell=function(){
   Baseline.Window.Minutes=3
-  Signal.Threshold = 50
-  Feeding.Threshold.Value=150
-  Feeding.Interval.Minimum=50  
-  Tasting.Threshold.Interval=c(10,50)
+  Signal.Threshold = 10
+  Feeding.Threshold.Value=30
+  Feeding.Interval.Minimum=20  
+  Tasting.Threshold.Interval=c(10,20)
   Use.Adaptive.Threshold=FALSE
   Adaptive.Threshold.Minimum=8
   Adaptive.Threshold.Window.Minutes=2
   Adaptive.Threshold.Selection.Quant=0.9
-  Feeding.Minevents=5
-  Tasting.Minevents=2
+  Feeding.Minevents=2
+  Tasting.Minevents=1
   Samples.Per.Second=5
   Chamber.Sets=matrix(1:12,ncol=1,byrow=TRUE)
   Chamber.Size=1
@@ -53,16 +53,16 @@ ParametersClass.SingleWell=function(){
 
 ParametersClass.TwoWell=function(){
   Baseline.Window.Minutes=3
-  Signal.Threshold = 50
-  Feeding.Threshold.Value=150
-  Feeding.Interval.Minimum=50
-  Tasting.Threshold.Interval=c(10,50)
+  Signal.Threshold = 20
+  Feeding.Threshold.Value=30
+  Feeding.Interval.Minimum=20
+  Tasting.Threshold.Interval=c(10,20)
   Use.Adaptive.Threshold=FALSE
   Adaptive.Threshold.Minimum=8
   Adaptive.Threshold.Window.Minutes=2
   Adaptive.Threshold.Selection.Quant=0.9
-  Feeding.Minevents=5
-  Tasting.Minevents=2
+  Feeding.Minevents=2
+  Tasting.Minevents=1
   Samples.Per.Second=5
   Chamber.Sets=matrix(1:12,ncol=2,byrow=TRUE)
   Chamber.Size=2
