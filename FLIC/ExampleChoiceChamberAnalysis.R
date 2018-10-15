@@ -76,9 +76,9 @@ p
 ## The adaptive threshold is computationally intensive and takes a good amount of time
 ## to calculate, particularly for large (e.g., over 5 hour) data sets.
 ## To change a parameter use the SetParameter function
-p<-SetParameter(p,Feeding.Threshold.Value=120)
-p<-SetParameter(p,Feeding.Interval.Minimum=40)
-p<-SetParameter(p,Tasting.Threshold.Interval=c(10,40))
+p<-SetParameter(p,Feeding.Threshold.Value=30)
+p<-SetParameter(p,Feeding.Interval.Minimum=20)
+p<-SetParameter(p,Tasting.Threshold.Interval=c(10,20))
 p
 
 ## If you have some DFM where the food choice is swapped between
