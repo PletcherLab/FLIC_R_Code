@@ -3,6 +3,7 @@
 rm(list=ls())
 source("TwoWellChamber.R")
 source("SingleWellChamber.R")
+source("MiscFunctions.R")
 save.image(file="FLICFunctions")
 
 p<-ParametersClass.SingleWell()
