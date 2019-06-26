@@ -13,18 +13,28 @@ require(ggplot2)
 ## PI because it will always start from the first point in the data set (satisfying the first
 ## range parameter).
 Feeding.FinalPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+  individ.params<-FALSE
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  
   if(SaveToFile==TRUE){
     filename<-paste("FinalPIBoxPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     pdf(file=filename)
   }
-  
   ranges<-matrix(rep(NA,divisions*2),ncol=2)
   if(divisions==1)
     ranges[1,]<-range
   else {
     if(range[2]==0){
       ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      if(individ.params==TRUE)
+        p<-parameters[[1]]
+      else
+        p<-parameters
+      dfm<-DFMClass(monitors[1],p)
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -55,12 +65,12 @@ Feeding.FinalPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),div
     p<-list()
     for(i in 1:divisions)
       local({
-      tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
-      results<-tmp$Results
-      results<-subset(results,Treatment!="None")
-      r<-paste("PI -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
-      p[[i]]<<-(ggplot(results, aes(results$Treatment, results$PI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                 ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE))
+        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
+        results<-tmp$Results
+        results<-subset(results,Treatment!="None")
+        r<-paste("PI -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        p[[i]]<<-(ggplot(results, aes(results$Treatment, results$PI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+                    ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
@@ -76,6 +86,13 @@ Feeding.FinalPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),div
     graphics.off()
 } 
 Feeding.PIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),SaveToFile=FALSE){
+  individ.params<-FALSE
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  
   if(SaveToFile==TRUE){
     filename<-paste("PIs_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     pdf(file=filename)
@@ -84,7 +101,11 @@ Feeding.PIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),SaveToF
   ## Basically plot the culuative PI plot for each chamber for each treatment
   ## Each Treatment will get a different color.
   for(i in 1:length(monitors)){
-    dfm<-DFMClass(monitors[i],parameters)
+    if(individ.params==TRUE)
+      p<-parameters[[i]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitors[i],p)
     for(j in 1:6){
       p<-PIData.Chamber(dfm,j,range)
       n<-cumsum(p$Feeding.PI)
@@ -104,17 +125,13 @@ Feeding.PIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),SaveToF
   }
   
   results<-subset(results,Treatment!="None")
-  ## Temp removal of zero licks
-  sumLicks<-results$LicksA+results$LickB
-  results<-results[sumLicks>0,]
-  
   
   ## Note that we can just average the curves here because different monitors will have slightly different
   ## values for the minutes column.  They were not all collected at exactly the same time.  So aggregating
   ## won't work.
   p<-ggplot(results, aes(Minutes, PI, group=interaction(DFM,Chamber))) + geom_line(aes(color=Treatment),size=1) +
     geom_smooth(aes(x=Minutes,y = PI,group = Treatment,color=Treatment),size=3)
-  print(p)
+  show(p)
   if(SaveToFile==TRUE){ 
     filename<-paste("PIs_TRT",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
@@ -124,6 +141,13 @@ Feeding.PIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),SaveToF
     return(results)
 }
 Feeding.FinalEventPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+  individ.params<-FALSE
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  
   if(SaveToFile==TRUE){
     filename<-paste("FinalEventPIBoxPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     pdf(file=filename)
@@ -134,7 +158,11 @@ Feeding.FinalEventPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0
   else {
     if(range[2]==0){
       ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      if(individ.params==TRUE)
+        p<-parameters[[1]]
+      else
+        p<-parameters
+      dfm<-DFMClass(monitors[1],p)
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -161,12 +189,12 @@ Feeding.FinalEventPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0
     p<-list()
     for(i in 1:divisions)
       local({
-      tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
-      results<-tmp$Results
-      results<-subset(results,Treatment!="None")
-      r<-paste("EventPI -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
-      p[[i]]<-(ggplot(results$Results, aes(results$Treatment, results$EventPI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                 ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE))
+        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
+        results<-tmp$Results
+        results<-subset(results,Treatment!="None")
+        r<-paste("EventPI -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        p[[i]]<-(ggplot(results$Results, aes(results$Treatment, results$EventPI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+                   ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
@@ -182,6 +210,12 @@ Feeding.FinalEventPIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0
   }
 } 
 Feeding.EventPIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),SaveToFile=FALSE){
+  individ.params<-FALSE
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
   if(SaveToFile==TRUE){
     filename<-paste("EventPIs_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     pdf(file=filename)
@@ -190,7 +224,11 @@ Feeding.EventPIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),Sa
   ## Basically plot the culuative PI plot for each chamber for each treatment
   ## Each Treatment will get a different color.
   for(i in 1:length(monitors)){
-    dfm<-DFMClass(monitors[i],parameters)
+    if(individ.params==TRUE)
+      p<-parameters[[i]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitors[i],p)
     for(j in 1:6){
       p<-PIData.Chamber(dfm,j,range)
       n<-cumsum(p$Feeding.EventPI)
@@ -214,7 +252,7 @@ Feeding.EventPIPlots.Trt<-function(monitors,parameters,expDesign,range=c(0,0),Sa
   ## won't work.
   p<-ggplot(results, aes(Minutes, EventPI, group=interaction(DFM,Chamber))) + geom_line(aes(color=Treatment),size=1) +
     geom_smooth(aes(x=Minutes,y = EventPI,group = Treatment,color=Treatment),size=3)
-  print(p)
+  show(p)
   if(SaveToFile==TRUE){ 
     filename<-paste("EventPIs_TRT",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)

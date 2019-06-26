@@ -12,23 +12,27 @@ GetCumLicksPlots.DFM<-function(dfm){
   Col<-rep(col,nrow(tmp))
   Well<-rep(1,nrow(tmp))
   tmp<-data.frame(tmp,SumLicks,Row,Col,Well)
-  
   for(i in 2:12){
+    print(i)
     if(i%%2==1) row<-row+1
     col<-col+1
     if(col>2) col<-1
     tmp2<-Feeding.Durations.Well(dfm,i)
-    SumLicks<-cumsum(tmp2$Licks)
-    Row<-rep(row,nrow(tmp2))
-    Col<-rep(col,nrow(tmp2))
-    Well<-rep(i,nrow(tmp2))
-    tmp2<-data.frame(tmp2,SumLicks,Row,Col,Well)
-    
-    tmp<-rbind(tmp,tmp2)
+    if(is.data.frame(tmp2)) {
+      x<-tmp2$Minutes
+      y<-cumsum(tmp2$Licks)
+      SumLicks<-y
+      Row<-rep(row,length(x))
+      Col<-rep(col,length(x))
+      Well<-rep(i,length(x))
+      tmp2<-data.frame(tmp2,SumLicks,Row,Col,Well)
+      tmp<-rbind(tmp,tmp2) 
+    }
   }
   gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point()
   gp
 }
+
 
 
 GetTotalLicksPlot.Monitors<-function(monitors, p, range=c(0,0)){
