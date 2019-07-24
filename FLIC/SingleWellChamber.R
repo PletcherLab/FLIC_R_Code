@@ -28,6 +28,10 @@ BinFeedingData.Well.Licks<-function(dfm,well,binsize.min,range=c(0,0)){
   
   results<-data.frame(r.min,r.A[,2])
   names(results)<-c("Interval","Min","SumLicks")
+  
+  #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
+  
+  
   results
 }
 

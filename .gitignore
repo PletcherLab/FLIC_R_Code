@@ -32,10 +32,7 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
-<<<<<<< HEAD
-=======
 
 # DFM data files and analysis outputs.
-/*.pdf/
-/*.csv/
->>>>>>> master
+*.pdf
+*.csv
