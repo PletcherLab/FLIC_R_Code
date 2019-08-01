@@ -29,7 +29,8 @@ GetCumLicksPlots.DFM<-function(dfm){
       tmp<-rbind(tmp,tmp2) 
     }
   }
-  gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point()
+  gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
+    ggtitle(paste("DFM",dfm$ID))
   gp
 }
 
