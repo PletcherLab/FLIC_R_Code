@@ -333,19 +333,19 @@ Set.Fixed.Threshold<-function(dfm){
 Set.Fixed.Threshold.Well<-function(dfm,well){
   n<-SampleCount(dfm)
   ## Get well specific thresholds if the values are < 0 
-  if(dfm$Parameters$Feeding.Threshold.Value<0){
+  if(dfm$Parameters$Feeding.Threshold<0){
     ## Find maximum reading
     tmp<-max(BaselinedData.Well(dfm,well))
-    tmpA <- round(tmp*abs(dfm$Parameters$Feeding.Threshold.Value),0)
-    tmpB <- round(tmp*abs(dfm$Parameters$Feeding.Interval.Minimum),0)
-    tmpC <- round(tmp*abs(dfm$Parameters$Tasting.Threshold.Interval.Low),0)
-    tmpD <-round(tmp*abs(dfm$Parameters$Tasting.Threshold.Interval.High),0)
+    tmpA <- round(tmp*abs(dfm$Parameters$Feeding.Threshold),0)
+    tmpB <- round(tmp*abs(dfm$Parameters$Feeding.Minimum),0)
+    tmpC <- round(tmp*abs(dfm$Parameters$Tasting.Minimum),0)
+    tmpD <-round(tmp*abs(dfm$Parameters$Tasting.Maximum),0)
   }
   else {
-    tmpA<-dfm$Parameters$Feeding.Threshold.Value 
-    tmpB<-dfm$Parameters$Feeding.Interval.Minimum
-    tmpC<-dfm$Parameters$Tasting.Threshold.Interval.Low
-    tmpD<-dfm$Parameters$Tasting.Threshold.Interval.High
+    tmpA<-dfm$Parameters$Feeding.Threshold 
+    tmpB<-dfm$Parameters$Feeding.Minimum
+    tmpC<-dfm$Parameters$Tasting.Minimum
+    tmpD<-dfm$Parameters$Tasting.Maximum
   }
   
   feeding.max.thresh<-rep(tmpA,n)
@@ -948,16 +948,16 @@ ChangeParameterObject<-function(dfm,newP) {
   if(p$Baseline.Window.Minutes!=newP$Baseline.Window.Minutes) {    
     baseline.flag<-TRUE
   }
-  if(p$Feeding.Threshold.Value!=newP$Feeding.Threshold.Value) {    
+  if(p$Feeding.Threshold!=newP$Feeding.Threshold) {    
     threshold.flag<-TRUE
   }
-  if(p$Feeding.Interval.Minimum!=newP$Feeding.Interval.Minimum) {    
+  if(p$Feeding.Minimum!=newP$Feeding.Minimum) {    
     threshold.flag<-TRUE
   }
-  if(p$Tasting.Threshold.Interval.Low!=newP$Tasting.Threshold.Interval.Low) {    
+  if(p$Tasting.Minimum!=newP$Tasting.Minimum) {    
     threshold.flag<-TRUE
   }
-  if(p$Tasting.Threshold.Interval.High!=newP$Tasting.Threshold.Interval.High) {    
+  if(p$Tasting.Maximum!=newP$Tasting.Maximum) {    
     threshold.flag<-TRUE
   }
   if(p$Feeding.Minevents!=newP$Feeding.Minevents){
