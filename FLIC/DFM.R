@@ -165,29 +165,17 @@ CalculateBaseline=function(dfm){
   }
   
   dfm$BaselineData=newData
-  
-  ## Now remove conflicting signals
-  dfm=CleanupChamberConflicts(dfm)  
-  
   ## Everything else must be recalculated
   dfm<-SetThreshold(dfm)
   dfm
 }
-
-
 SetThreshold = function(dfm,getStandard=TRUE) {
   ## First set the threshold...
   if(is.null(dfm$BaselineData)) {
     stop("DFM must have baseline.")
   }
   
-  if(dfm$Parameters$Use.Adaptive.Threshold)  {
-    if(getStandard==TRUE)
-      dfm<-Set.Adaptive.Standard(dfm)    
-    dfm<-Set.Adaptive.Threshold(dfm)
-  }      
-  else
-    dfm<-Set.Fixed.Threshold(dfm)    
+  dfm<-Set.Fixed.Threshold(dfm)    
   
   ## Now update the licks and PI
   dfm<-Set.Feeding.Data(dfm)
@@ -201,7 +189,6 @@ SetThreshold = function(dfm,getStandard=TRUE) {
   dfm
   
 }
-
 Set.Feeding.Data<-function(dfm){
   if(is.null(dfm$BaselineData))
     stop("Baseline must be calculated")
@@ -218,8 +205,6 @@ Set.Feeding.Data<-function(dfm){
   dfm$EventData<-newData2
   dfm  
 }
-
-
 Set.Feeding.Data.Well<-function(dfm,well){
   ## Get all possible feeding Licks
   thresh<-Thresholds.Well(dfm,well)
@@ -241,7 +226,6 @@ Set.Feeding.Data.Well<-function(dfm,well){
   
   data.frame(FeedingLicks,Events)
 }
-
 Set.Tasting.Data<-function(dfm){
   if(is.null(dfm$BaselineData))
     stop("Baseline must be calculated")
@@ -283,7 +267,6 @@ Set.Tasting.Data.Well<-function(dfm,well){
     
   data.frame(Licks,Events)
 }
-
 Set.PI.Data<-function(dfm){
   ## Get the Feeding.PI
   cnames<-paste("C",1:nrow(dfm$Parameters$Chamber.Sets),sep="")
@@ -335,218 +318,6 @@ Set.PI.Data<-function(dfm){
   dfm$PIData<-PIData
   dfm
 }
-
-## This new function uses a new parameter, Signal.Threshold,
-## to remove positive signals that conflict.  The higher signal
-## is kept.  The lower one is set to baseline.
-CleanupChamberConflicts<-function(dfm){
-  ## This function normally takes baselined data.
-  
-  if(is.null(dfm$BaselineData))
-    stop("Baseline must be calculated")
-  
-  ## Note that we don't need to do anything if the chamber size is 1
-  ## because there is no conflict by definition.
-  
-  if(dfm$Parameters$Chamber.Size==2) {
-    cat("\n")
-    flush.console()
-    for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
-      wellA<-dfm$Parameters$Chamber.Sets[i,1]
-      wellB<-dfm$Parameters$Chamber.Sets[i,2]
-      dataA<-BaselinedData.Well(dfm,wellA)
-      dataB<-BaselinedData.Well(dfm,wellB)
-      
-      signalA<-(dataA>dfm$Parameters$Signal.Threshold)
-      signalB<-(dataB>dfm$Parameters$Signal.Threshold)
-      
-      awins<-dataA>dataB
-      bwins<-dataB>dataA
-      conflicts<-0
-      
-      #Clean the feeding vectors
-      conflicts<-sum(signalA & signalB)
-      
-      ## conflict resolution involves accepting the plate with the larger value
-      ## and setting the other to baseline.
-      ## cat("DFM: ",dfm$ID," Chamber:",i," Cleaning ",conflicts," conflicts.\n")
-      flush.console()
-      
-      if(conflicts>0) {   
-        dataA[(signalA & signalB & bwins)]<-0
-        dataB[(signalA & signalB & awins)]<-0
-        
-        ## Correct the data
-        cname <-paste("W",wellA,sep="")
-        dfm$BaselineData[,cname]<-dataA
-        
-        cname <-paste("W",wellB,sep="")
-        dfm$BaselineData[,cname]<-dataB
-      }
-    }
-  }
-  if(dfm$Parameters$Chamber.Size>2) {
-    stop("Clean chambers not implemented for chamber size >2.")    
-  }
-  
-  dfm
-}
-
-## This depricated function does not change the baselined data
-## it now only alters the feeding and tasting licks 
-## to ensure that single flies can not feed from both
-## simultaneously. It will replace feeding and tasting data.
-CleanupChamberConflictsOLD<-function(dfm){
-  ## This function normally takes baselined data.
-  
-  if(is.null(dfm$LickData))
-    stop("Feeding Lick Data must be calculated")
-  
-  if(is.null(dfm$TastingData))
-    stop("TastingData must be calculated")
-  
-  ## Note that we don't need to do anything if the chamber size is 1
-  ## because there is no conflict by definition.
-  
-  if(dfm$Parameters$Chamber.Size==2) {
-    cat("\n")
-    flush.console()
-    for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
-      wellA<-dfm$Parameters$Chamber.Sets[i,1]
-      wellB<-dfm$Parameters$Chamber.Sets[i,2]
-      dataA<-BaselinedData.Well(dfm,wellA)
-      dataB<-BaselinedData.Well(dfm,wellB)
-      
-      feedingA<-FeedingData.Well.Licks(dfm,wellA)
-      feedingB<-FeedingData.Well.Licks(dfm,wellB)
-      
-      tastingA<-TastingData.Well(dfm,wellA)
-      tastingB<-TastingData.Well(dfm,wellB)
-      
-      awins<-dataA>dataB
-      bwins<-dataB>dataA
-      conflicts<-0
-      
-      #Clean the feeding vectors
-      conflicts<-conflicts+sum(feedingA & feedingB & bwins)+sum(feedingA & feedingB & awins)
-     
-      
-      #Clean the tasting vectors
-      conflicts<-conflicts+sum(feedingB & tastingA)+sum(feedingA & tastingB)
-    
-      conflicts<-conflicts+sum(tastingB & tastingA & bwins)+sum(tastingB & tastingA & awins)
-           
-      ## conflict resolution involves accepting the plate with the larger value
-      ## and setting the other to baseline.
-      cat("DFM: ",dfm$ID," Chamber:",i," Cleaning ",conflicts," conflicts.\n")
-      flush.console()
-      
-      if(conflicts>0) {   
-        feedingA[(feedingA & feedingB & bwins)]<-FALSE
-        feedingB[(feedingA & feedingB & awins)]<-FALSE
-        tastingA[(feedingB & tastingA)]<-FALSE
-        tastingB[(feedingA & tastingB)]<-FALSE
-        tastingA[(tastingB & tastingA & bwins)]<-FALSE
-        tastingB[(tastingB & tastingA & awins)]<-FALSE
-        
-        ## Correct the feeding and tasting entries
-        cname <-paste("W",wellA,sep="")
-        dfm$FeedingData[,cname]<-feedingA
-        dfm$TastingData[,cname]<-tastingA
-      
-        cname <-paste("W",wellB,sep="")
-        dfm$FeedingData[,cname]<-feedingB
-        dfm$TastingData[,cname]<-tastingB
-      }
-    }
-  }
-  if(dfm$Parameters$Chamber.Size>2) {
-    stop("Clean chambers not implements for chamber size >2.")    
-  }
-  
-  dfm
-}
-
-Set.Adaptive.Standard<-function(dfm){
-  stand<-Set.Adaptive.Standard.Well(dfm,1)
-  for(i in 2:12){
-    tmp<-Set.Adaptive.Standard.Well(dfm,i)
-    stand<-cbind(stand,tmp)
-    
-  }
-  AdaptiveStandard<-data.frame(stand)
-  names(AdaptiveStandard)<-paste("W",1:12,sep="")
-  dfm$AdaptiveStandard<-AdaptiveStandard
-  dfm
-}
-
-Set.Adaptive.Standard.Well<-function(dfm,well){ 
-  sps<-dfm$Parameters$Samples.Per.Sec
-  data<-BaselinedData.Well(dfm,well)
-  Standard.thresh<-rep(-1,length(data))
-  
-  ## Note that window.size will be the complete size
-  ## (two-sided) of the window.
-  window.size<-dfm$Parameters$Adaptive.Threshold.Window.Minutes*60*sps
-  
-  if(window.size %%2 == 0)
-    window.size<-window.size+1
-  
-  window.arm<-(window.size-1)/2
-  mA<-length(data)
-  
-  sq<-dfm$Parameters$Adaptive.Threshold.Selection.Quan
-  
-  for(i in 1:mA){
-    lindex<-max(1,(i-window.arm))
-    hindex<-min(mA,(i+window.arm))
-    
-    Standard.thresh[i]<-quantile(data[lindex:hindex],sq)        
-    
-    if(i%%10000==0) {
-      print(paste(i,"of",mA,"in well",well))
-      flush.console()
-    }
-  } 
-  
-  Standard.thresh
-}
-
-Set.Adaptive.Threshold<-function(dfm){
-  if(is.null(dfm$AdaptiveStandard)) {
-    stop("DFM must have standard.")
-  }
-  tmp<-Set.Adaptive.Threshold.Well(dfm,1)
-  Thresholds=list(W1=tmp)
-  
-  for(i in 2:12){
-    s<-paste("W",i,sep="")
-    tmp<-Set.Adaptive.Threshold.Well(dfm,i)
-    Thresholds[[s]]<-tmp    
-  }
-  dfm$Thresholds<-Thresholds
-  dfm  
-}
-
-Set.Adaptive.Threshold.Well<-function(dfm,well){   
-  cname<-paste("W",well,sep="")
-  stand<-dfm$AdaptiveStandard[,cname]
-  feeding.max.thresh<-dfm$Parameters$Feeding.Threshold.Value*stand
-  feeding.min.thresh<-dfm$Parameters$Feeding.Interval.Minimum*stand
-  tasting.max.thresh<-dfm$Parameters$Tasting.Threshold.Interval.Low*stand
-  tasting.min.thresh<-dfm$Parameters$Tasting.Threshold.Interval.High*stand
-  
-  min.thresh<-dfm$Parameters$Adaptive.Threshold.Minimum
-  feeding.max.thresh[feeding.max.thresh<min.thresh]<-min.thresh
-  feeding.min.thresh[feeding.min.thresh<min.thresh]<-min.thresh
-  tasting.max.thresh[tasting.max.thresh<min.thresh]<-min.thresh
-  tasting.min.thresh[tasting.min.thresh<min.thresh]<-min.thresh
-  
-  r.tmp<-data.frame(feeding.max.thresh,feeding.min.thresh,tasting.max.thresh,tasting.min.thresh)
-  names(r.tmp)<-c("FeedingMax","FeedingMin","TastingMax","TastingMin")                    
-  r.tmp
-}
-
 Set.Fixed.Threshold<-function(dfm){
   tmp<-Set.Fixed.Threshold.Well(dfm,1)
   Thresholds=list(W1=tmp)
@@ -559,7 +330,6 @@ Set.Fixed.Threshold<-function(dfm){
   dfm$Thresholds<-Thresholds
   dfm  
 }
-
 Set.Fixed.Threshold.Well<-function(dfm,well){
   n<-SampleCount(dfm)
   ## Get well specific thresholds if the values are < 0 
@@ -901,12 +671,10 @@ Tasting.TotalLicks<-function(dfm,range=c(0,0)){
   names(result)<-paste("W",1:12,sep="")
   result
 }
-
 Tasting.TotalLicks.Well<-function(dfm,well,range=c(0,0)){
   tmp<-Tasting.TotalLicks(dfm,range)
   tmp[well]
 }
-
 BaselineData<-function(dfm,range=c(0,0)){
   tmp<-dfm$BaselineData
   if(sum(range)!=0) {
@@ -1021,10 +789,6 @@ Feeding.IntensitySummary.Well<-function(dfm,well,range=c(0,0)){
   tmp
 }
 
-IsThresholdAdaptive<-function(dfm) {
-  dfm$Parameters$Use.Adaptive.Threshold
-}
-
 BaselinedData.Range.Well<-function(dfm,well,range=c(0,0)){
   tmp<-BaselinedData.Well(dfm,well,range)
   x1<-min(tmp)
@@ -1034,7 +798,6 @@ BaselinedData.Range.Well<-function(dfm,well,range=c(0,0)){
 Minutes<-function(dfm) {
   dfm$BaselineData$Minutes
 }
-
 
 Feeding.Durations.Well<-function(dfm,well){
   cname=paste("W",well,sep="")
@@ -1177,7 +940,6 @@ ChangeParameterObject<-function(dfm,newP) {
   p<-dfm$Parameters
   baseline.flag<-FALSE
   threshold.flag<-FALSE
-  adaptive.baseline.flag<-FALSE
   eventpi.flag<-FALSE
   tmp.O<-options()
   options(warn=-1)
@@ -1197,18 +959,6 @@ ChangeParameterObject<-function(dfm,newP) {
   }
   if(p$Tasting.Threshold.Interval.High!=newP$Tasting.Threshold.Interval.High) {    
     threshold.flag<-TRUE
-  }
-  if(p$Adaptive.Threshold.Minimum!=newP$Adaptive.Threshold.Minimum){
-    threshold.flag<-TRUE
-  }
-  if(p$Adaptive.Threshold.Window.Minutes!=newP$Adaptive.Threshold.Window.Minutes){    
-    adaptive.baseline.flag<-TRUE
-  }
-  if(p$Adaptive.Threshold.Selection.Quant!=newP$Adaptive.Threshold.Selection.Quant){    
-    adaptive.baseline.flag<-TRUE
-  }
-  if(p$Use.Adaptive.Threshold!=newP$Use.Adaptive.Threshold){    
-    adaptive.baseline.flag<-TRUE
   }
   if(p$Feeding.Minevents!=newP$Feeding.Minevents){
     eventpi.flag<-TRUE
@@ -1236,9 +986,6 @@ ChangeParameterObject<-function(dfm,newP) {
   ## Now update the stats needed
   if(baseline.flag==TRUE) {
     dfm<-CalculateBaseline(dfm)
-  }
-  else if(adaptive.baseline.flag==TRUE){
-    dfm<-SetThreshold(dfm)
   }
   else if(threshold.flag==TRUE) {
     dfm<-SetThreshold(dfm,getStandard=FALSE)

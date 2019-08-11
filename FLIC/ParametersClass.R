@@ -7,10 +7,6 @@ ParametersClass=function(){
   Feeding.Threshold.Value=20
   Feeding.Interval.Minimum=10
   Tasting.Threshold.Interval=c(10,20)
-  Use.Adaptive.Threshold=FALSE
-  Adaptive.Threshold.Minimum=8
-  Adaptive.Threshold.Window.Minutes=2
-  Adaptive.Threshold.Selection.Quant=0.9
   Feeding.Minevents=2
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -20,8 +16,6 @@ ParametersClass=function(){
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Signal.Threshold=Signal.Threshold,Feeding.Threshold.Value=Feeding.Threshold.Value,
        Feeding.Interval.Minimum=Feeding.Interval.Minimum,Tasting.Threshold.Interval.Low=Tasting.Threshold.Interval[1],
        Tasting.Threshold.Interval.High=Tasting.Threshold.Interval[2],
-       Use.Adaptive.Threshold=Use.Adaptive.Threshold,Adaptive.Threshold.Minimum=Adaptive.Threshold.Minimum,       
-       Adaptive.Threshold.Window.Minutes=Adaptive.Threshold.Window.Minutes,Adaptive.Threshold.Selection.Quant=Adaptive.Threshold.Selection.Quant,
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
@@ -32,10 +26,6 @@ ParametersClass.SingleWell=function(){
   Feeding.Threshold.Value=20
   Feeding.Interval.Minimum=10  
   Tasting.Threshold.Interval=c(10,20)
-  Use.Adaptive.Threshold=FALSE
-  Adaptive.Threshold.Minimum=8
-  Adaptive.Threshold.Window.Minutes=2
-  Adaptive.Threshold.Selection.Quant=0.9
   Feeding.Minevents=2
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -45,8 +35,6 @@ ParametersClass.SingleWell=function(){
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Signal.Threshold=Signal.Threshold,Feeding.Threshold.Value=Feeding.Threshold.Value,
        Feeding.Interval.Minimum=Feeding.Interval.Minimum,Tasting.Threshold.Interval.Low=Tasting.Threshold.Interval[1],
        Tasting.Threshold.Interval.High=Tasting.Threshold.Interval[2],
-       Use.Adaptive.Threshold=Use.Adaptive.Threshold,Adaptive.Threshold.Minimum=Adaptive.Threshold.Minimum,       
-       Adaptive.Threshold.Window.Minutes=Adaptive.Threshold.Window.Minutes,Adaptive.Threshold.Selection.Quant=Adaptive.Threshold.Selection.Quant,
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
@@ -57,10 +45,6 @@ ParametersClass.TwoWell=function(){
   Feeding.Threshold.Value=20
   Feeding.Interval.Minimum=10
   Tasting.Threshold.Interval=c(10,20)
-  Use.Adaptive.Threshold=FALSE
-  Adaptive.Threshold.Minimum=8
-  Adaptive.Threshold.Window.Minutes=2
-  Adaptive.Threshold.Selection.Quant=0.9
   Feeding.Minevents=2
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -70,15 +54,13 @@ ParametersClass.TwoWell=function(){
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Signal.Threshold=Signal.Threshold,Feeding.Threshold.Value=Feeding.Threshold.Value,
        Feeding.Interval.Minimum=Feeding.Interval.Minimum,Tasting.Threshold.Interval.Low=Tasting.Threshold.Interval[1],
        Tasting.Threshold.Interval.High=Tasting.Threshold.Interval[2],
-       Use.Adaptive.Threshold=Use.Adaptive.Threshold,Adaptive.Threshold.Minimum=Adaptive.Threshold.Minimum,       
-       Adaptive.Threshold.Window.Minutes=Adaptive.Threshold.Window.Minutes,Adaptive.Threshold.Selection.Quant=Adaptive.Threshold.Selection.Quant,
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
 
 ## change the initial values using this function
-SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold.Value=NA, Feeding.Interval.Minimum=NA, Tasting.Threshold.Interval=NA,Use.Adaptive.Threshold=NA, 
-                       Adaptive.Threshold.Minimum=NA, Adaptive.Threshold.Window.Minutes=NA, Adaptive.Threshold.Selection.Quant=NA,Feeding.Minevents=NA,Tasting.Minevents=NA,
+SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold.Value=NA, Feeding.Interval.Minimum=NA, Tasting.Threshold.Interval=NA,
+                       Feeding.Minevents=NA,Tasting.Minevents=NA,
                        Samples.Per.Sec=NA, Chamber.Size=NA, Signal.Threshold=NA, PI.Multiplier=NA){
   tmp.O<-options()
   options(warn=-1)
@@ -95,18 +77,6 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold.Value=NA, 
   if(!is.na(Tasting.Threshold.Interval)) {
     p$Tasting.Threshold.Interval.Low=Tasting.Threshold.Interval[1]
     p$Tasting.Threshold.Interval.High=Tasting.Threshold.Interval[2]
-  }
-  if(!is.na(Adaptive.Threshold.Minimum)){
-    p$Adaptive.Threshold.Minimum=Adaptive.Threshold.Minimum
-  }
-  if(!is.na(Adaptive.Threshold.Window.Minutes)){
-    p$Adaptive.Threshold.Window.Minutes=Adaptive.Threshold.Window.Minutes
-  }
-  if(!is.na(Adaptive.Threshold.Selection.Quant)){
-    p$Adaptive.Threshold.Selection.Quant=Adaptive.Threshold.Selection.Quant
-  }
-  if(!is.na(Use.Adaptive.Threshold)){
-    p$Use.Adaptive.Threshold=Use.Adaptive.Threshold
   }
   if(!is.na(Feeding.Minevents)){
     p$Feeding.Minevents=Feeding.Minevents
@@ -134,7 +104,6 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold.Value=NA, 
 Get.Parameter.Names<-function(parameters){
   chambernames<-paste("Ch",1:length(parameters$Chamber.Sets),sep="")
   result<-c("BaselineWindowMin","SignalThreshold","FeedingThreshold","FeedingMinimum","TastingLow","TastingHigh",
-            "UseAdaptiveThresh","AdapThreshMin","AdapThreshWinMin","AdapThreshSelQuant",
             "FeedingMinEvents","TastingMinEvents","SamplesSec","ChamberSize",chambernames,"PI.Multiplier")
   result
 }
@@ -160,18 +129,6 @@ AreParametersEqual<-function(p1,p2){
     result<-FALSE
   }
   if(p1$Tasting.Threshold.Interval.High!=p2$Tasting.Threshold.Interval.High) {
-    result<-FALSE
-  }
-  if(p1$Use.Adaptive.Threshold!=p2$Use.Adaptive.Threshold) {
-    result<-FALSE
-  }
-  if(p1$Adaptive.Threshold.Minimum!=p2$Adaptive.Threshold.Minimum){
-    result<-FALSE
-  }
-  if(p1$Adaptive.Threshold.Window.Minutes!=p2$Adaptive.Threshold.Window.Minutes){
-    result<-FALSE
-  }
-  if(p1$Adaptive.Threshold.Selection.Quant!=p2$Adaptive.Threshold.Selection.Quant){
     result<-FALSE
   }
   if(p1$Feeding.Minevents!=p2$Feeding.Minevents){
