@@ -3,7 +3,6 @@
 ## It is instantiated with a set of initial values
 ParametersClass=function(){
   Baseline.Window.Minutes=3
-  Signal.Threshold = 10
   Feeding.Threshold=20
   Feeding.Minimum=10
   Tasting.Threshold.Interval=c(10,20)
@@ -13,7 +12,7 @@ ParametersClass=function(){
   Chamber.Sets=matrix(1:12,ncol=2,byrow=TRUE)
   Chamber.Size=2
   PI.Multiplier=1
-  list(Baseline.Window.Minutes=Baseline.Window.Minutes,Signal.Threshold=Signal.Threshold,Feeding.Threshold=Feeding.Threshold,
+  list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
        Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Threshold.Interval[1],
        Tasting.Maximum=Tasting.Threshold.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
@@ -21,7 +20,6 @@ ParametersClass=function(){
 }
 ParametersClass.SingleWell=function(){
   Baseline.Window.Minutes=3
-  Signal.Threshold = 10
   Feeding.Threshold=20
   Feeding.Minimum=10  
   Tasting.Threshold.Interval=c(10,20)
@@ -31,7 +29,7 @@ ParametersClass.SingleWell=function(){
   Chamber.Sets=matrix(1:12,ncol=1,byrow=TRUE)
   Chamber.Size=1
   PI.Multiplier=0
-  list(Baseline.Window.Minutes=Baseline.Window.Minutes,Signal.Threshold=Signal.Threshold,Feeding.Threshold=Feeding.Threshold,
+  list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
        Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Threshold.Interval[1],
        Tasting.Maximum=Tasting.Threshold.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
@@ -39,7 +37,6 @@ ParametersClass.SingleWell=function(){
 }
 ParametersClass.TwoWell=function(){
   Baseline.Window.Minutes=3
-  Signal.Threshold = 20
   Feeding.Threshold=20
   Feeding.Minimum=10
   Tasting.Threshold.Interval=c(10,20)
@@ -49,7 +46,7 @@ ParametersClass.TwoWell=function(){
   Chamber.Sets=matrix(1:12,ncol=2,byrow=TRUE)
   Chamber.Size=2
   PI.Multiplier=1
-  list(Baseline.Window.Minutes=Baseline.Window.Minutes,Signal.Threshold=Signal.Threshold,Feeding.Threshold=Feeding.Threshold,
+  list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
        Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Threshold.Interval[1],
        Tasting.Maximum=Tasting.Threshold.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
@@ -59,7 +56,7 @@ ParametersClass.TwoWell=function(){
 ## change the initial values using this function
 SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feeding.Minimum=NA, Tasting.Threshold.Interval=NA,
                        Feeding.Minevents=NA,Tasting.Minevents=NA,
-                       Samples.Per.Sec=NA, Chamber.Size=NA, Signal.Threshold=NA, PI.Multiplier=NA){
+                       Samples.Per.Sec=NA, Chamber.Size=NA, PI.Multiplier=NA){
   tmp.O<-options()
   options(warn=-1)
   ## Change only those that are listed
@@ -88,9 +85,6 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feedin
   if(!is.na(Chamber.Size)){
     p$Chamber.Size=Chamber.Size
   }
-  if(!is.na(Signal.Threshold)){
-    p$Signal.Threshold=Signal.Threshold
-  }
   if(!is.na(PI.Multiplier)){
     p$PI.Multiplier=PI.Multiplier
   }
@@ -101,7 +95,7 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feedin
 
 Get.Parameter.Names<-function(parameters){
   chambernames<-paste("Ch",1:length(parameters$Chamber.Sets),sep="")
-  result<-c("BaselineWindowMin","SignalThreshold","FeedingThreshold","FeedingMinimum","TastingLow","TastingHigh",
+  result<-c("BaselineWindowMin","FeedingThreshold","FeedingMinimum","TastingLow","TastingHigh",
             "FeedingMinEvents","TastingMinEvents","SamplesSec","ChamberSize",chambernames,"PI.Multiplier")
   result
 }
@@ -135,9 +129,6 @@ AreParametersEqual<-function(p1,p2){
     result<-FALSE
   }
   if(p1$Chamber.Size!=p2$Chamber.Size) {
-    result<-FALSE
-  }
-  if(p1$Signal.Threshold!=p2$Signal.Threshold) {
     result<-FALSE
   }
   if(p1$PI.Multiplier!=p2$PI.Multiplier) {

@@ -517,7 +517,7 @@ Feeding.ThresholdPlots.TwoWell<-function(dfm,chamber,range=c(0,0)){
   plot(newData$x,newData$a,xlab = "Minutes", ylab="Signal",ylim=c(ymin,ymax),type="l")
   lines(newData$x,newData$ta,col=2,lty=2)    
   lines(newData$x,newData$tb,col=2,lty=2)  
-  title(paste("DFM:",dfm$ID," C:",chamber,"Threshold Plate A"))
+  title(paste("DFM:",dfm$ID," C:",chamber,"A",sep=""))
   
   
   newData<-data.frame(x,dB,tB$FeedingMin,tB$FeedingMax)
@@ -532,7 +532,7 @@ Feeding.ThresholdPlots.TwoWell<-function(dfm,chamber,range=c(0,0)){
   plot(newData$x,newData$b,xlab = "Minutes", ylab="Signal",ylim=c(ymin,ymax),type="l")
   lines(newData$x,newData$tb,col=2,lty=2)  
   lines(newData$x,newData$ta,col=2,lty=2)  
-  title(paste("DFM:",dfm$ID," C:",chamber,"Threshold Plate B"))
+  title(paste("DFM:",dfm$ID," C:",chamber,"B",sep=""))
 }
 Tasting.ThresholdPlots<-function(dfm,chamber,range=c(0,0)){ 
   if(dfm$Parameters$Chamber.Size!=2)

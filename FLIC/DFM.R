@@ -192,9 +192,6 @@ ChangeParameterObject<-function(dfm,newP) {
   if(sum(c(p$Chamber.Sets)!=c(newP$Chamber.Sets))!=0){
     baseline.flag<-TRUE
   }
-  if(p$Signal.Threshold!=newP$Signal.Threshold){
-    baseline.flag<-TRUE
-  }
   
   if(p$PI.Multiplier!=newP$PI.Multiplier){
     eventpi.flag<-TRUE
