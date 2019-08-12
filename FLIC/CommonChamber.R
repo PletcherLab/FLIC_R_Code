@@ -1,5 +1,6 @@
 source("ExpDesignFunctions.R")
 require(ggplot2)
+require(reshape2)
 
 #####Treatment based functions######
 ## Treatment based functions
@@ -286,58 +287,40 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   write.csv(result,file=filename,row.names=FALSE)  
 }
 
-RawDataPlot.DFM<-function(dfm,range=c(0,0)) {
+RawDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE) {
   ##windows(record=FALSE,width=8,height=12) # opens a window and starts recording
-  op <- par(ask=FALSE)
-  on.exit(par(op))
-  par(mfrow=c(3,2))
-  if(dfm$Parameters$Chamber.Size==1) {
-    for(i in c(1,3,5,7,9,11)){
-      RawDataPlot.SingleWell(dfm,i,range)    
-    }
-  }
-  else if(dfm$Parameters$Chamber.Size==2) {
-    for(i in 1:6){
-      RawDataPlot.TwoWell(dfm,i,range)    
-      }
-  }
-  ##windows.options(record=FALSE) #stops recording.
+  tmp<-RawData(dfm,range)
+  tmp<-tmp[,c(1,7,8,9,10,11,12,13,14,15,16,17,18)]
+  thresh.high<-dfm$Parameters$Feeding.Threshold
+  thresh.low<-dfm$Parameters$Feeding.Minimum
+  tmp.m<-melt(tmp, id="Minutes")
+  gp<-ggplot(data = tmp.m, aes(x = Minutes, y = value)) +
+    geom_line() + facet_grid(variable ~ .) + ggtitle(paste("DFM:",dfm$ID))
+  fn<-paste("RawDataPlot_DFM",dfm$ID,".png",sep="")
+  if(OutputPNGFile==TRUE)
+    ggsave(filename = fn)
+  else
+    show(gp)
 }
-BaselineDataPlot.DFM<-function(dfm,range=c(0,0)) {
+BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThresholds=FALSE) {
   ##windows(record=FALSE,width=8,height=12) # opens a window and starts recording
-  op <- par(ask=FALSE)
-  on.exit(par(op))
-  par(mfrow=c(3,2))
-  if(dfm$Parameters$Chamber.Size==1) {
-    for(i in c(1,3,5,7,9,11)){
-      BaselineDataPlot.SingleWell(dfm,i,range)    
-    }
-  }
-  else if(dfm$Parameters$Chamber.Size==2) {
-    for(i in 1:6){
-      BaselineDataPlot.TwoWell(dfm,i,range)
-    }
-  }
-  ##windows.options(record=FALSE) #stops recording.
+  tmp<-BaselineData(dfm,range)
+  tmp<-tmp[,c(1,7,8,9,10,11,12,13,14,15,16,17,18)]
+  thresh.high<-dfm$Parameters$Feeding.Threshold
+  thresh.low<-dfm$Parameters$Feeding.Minimum
+  tmp.m<-melt(tmp, id="Minutes")
+  gp<-ggplot(data = tmp.m, aes(x = Minutes, y = value)) +
+    geom_line() + facet_grid(variable ~ .) + ggtitle(paste("DFM:",dfm$ID))
+  if(IncludeThresholds==TRUE)
+    gp<-gp+
+    geom_hline(yintercept=thresh.high,linetype="dashed", color = "red", size=0.2) + 
+    geom_hline(yintercept=thresh.low,linetype="dashed", color = "red", size=0.2) 
+  fn<-paste("BaselinedDataPlot_DFM",dfm$ID,".png",sep="")
+  if(OutputPNGFile==TRUE)
+    ggsave(filename = fn)
+  else
+    show(gp)
 }
-Feeding.ThresholdPlots.DFM<-function(dfm,range=c(0,0)){
-  ##windows(record=FALSE,width=16,height=12) # opens a window and starts recording
-  op <- par(ask=FALSE)
-  on.exit(par(op))
-  par(mfrow=c(3,4))
-  if(dfm$Parameters$Chamber.Size==1) {
-    for(i in c(1,3,5,7,9,11)){
-      Feeding.ThresholdPlots.SingleWell(dfm,i,range)     
-    }
-  }
-  else if(dfm$Parameters$Chamber.Size==2) {
-    for(i in 1:6){
-      Feeding.ThresholdPlots.TwoWell(dfm,i,range)    
-    }
-  }
-  ##windows.options(record=FALSE) #stops recording.  
-}
-
 
 #####Functions for case-specific calls########
 Feeding.Summary.OneWell<-function(dfm,range=c(0,0)){

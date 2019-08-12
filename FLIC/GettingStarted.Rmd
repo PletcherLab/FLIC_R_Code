@@ -1,6 +1,6 @@
 ---
 title: "FLIC: Data Analysis Part 1"
-author: "Scott Pletcher"
+author: "Scott Pletcher and the Pletcher Lab"
 date: "8/11/2019"
 output: html_document
 ---
@@ -11,14 +11,14 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 
-This file begins a series of markdown files that contain examples that will hopefully make it easier to understand how we often analyze the signal data from FLIC DFMs. We have written many R functions that we find useful for analyzing simple feeding experiments that involve one feeding well per chamber as well as choice experiments that involve two feeding wells per chamber.  These markdown files effectively serve as the documentation for all functions.  The source code is (semi) commented and available from GitHub (https://github.com/PletcherLab/FLIC_R_Code).  You may also contact Scott [spletch@umich.edu](mailto:spletch@umich.edu) if you have specific questions or would like to interrogate your data in a specific way that doesn't appear to be supported in the code. 
+This document begins a series of markdown files that contain working examples that will hopefully make it easier to understand how we analyze the signal data from FLIC DFMs. We have written many R functions that we find useful for analyzing simple feeding experiments that involve one feeding well per chamber as well as choice experiments that involve two feeding wells per chamber.  These markdown files effectively serve as the documentation for all functions.  The source code is (semi) commented and available from GitHub (https://github.com/PletcherLab/FLIC_R_Code). Example data files are available in the repository as archived (i.e., zipped) files. You may also contact [Scott](mailto:spletch@umich.edu) if you have specific questions or would like to interrogate your data in a specific way that doesn't appear to be supported in the code. 
 
 ## Getting Started
 Download and install the latest version of [R](https://cran.r-project.org/) or [Microsoft Open R](https://mran.microsoft.com/open) for your operating system.
 
 Download R studio (https://www.rstudio.com/) and install it. Create a new folder on your hard drive to serve as the project directory.  Copy all of  DFM data files (e.g., "DFM_1.csv") to that folder.  Clone the Github Respository or download the files as a zip file. Unzip or copy the .R files and/or the FLICFUNCTIONS file to the project directory. Start R studio. Choose File|New Project and click "Existing Directory."  Point to your project folder. R Studio will set the default directly to your project folder.  You are ready to start analyzing your feeding interaction data!
 
-You will also need to make sure that you have the following R packages installed: *ggplot2*, *stats*, and *gridExtra*. If you are new to R, you can find lots of information about packages and installing them in RStudio with a simple web search (e.g., [here](https://www.datacamp.com/community/tutorials/r-packages-guide) and [here](http://web.cs.ucla.edu/~gulzar/rstudio/))
+You will also need to make sure that you have the following R packages installed: *ggplot2*, *stats*, *reshape2*, and *gridExtra*. If you are new to R, you can find lots of information about packages and installing them in RStudio with a simple web search (e.g., [here](https://www.datacamp.com/community/tutorials/r-packages-guide) and [here](http://web.cs.ucla.edu/~gulzar/rstudio/))
 
 There are two options for providing access to the FLIC functions.  Attach the R object to the search path (assuming the file in is the working directory), preferably in a position higher than 1 so that the function definitions don't clutter your working environment.
 
@@ -27,6 +27,7 @@ attach("FLICFunctions",pos=2)
 library(ggplot2)
 library(stats)
 library(gridExtra)
+library(reshape2)
 ```
 
 Alternatively, you may copy all of the R files to the project directory and source those that are required.
@@ -91,11 +92,11 @@ To load DFM data, you will create DFM classes for each. The *DFMClass()* functio
 ```{r}
 dfm<-DFMClass(2,p)
 dfm3<-DFMClass(3,p.single)
-#dfm<-DFMClass(4,p)
-#dfm<-DFMClass(5,p)
-#dfm<-DFMClass(6,p)
-#dfm<-DFMClass(8,p)
-rm(dfm3)
+dfm<-DFMClass(4,p)
+dfm<-DFMClass(5,p)
+dfm<-DFMClass(6,p)
+dfm<-DFMClass(8,p)
+rm(dfm3) #Note that this does not remove the background object, DFM3.
 ```
 Note that in this case we passed the same parameters object to each, meaning the same thresholds will be applied in all cases (after baseline normalization for each DFM). Note also that all PI.Multipliers are the same, implying the two foods are in the same orientation on each DFM (see the Two Choice Markdown file for details).  This is not a good experiment design, but is it the most straightforward for this example.
 
@@ -116,7 +117,7 @@ The DFMClass functions perform the following actions for each DFM:
 
 4. The feeding thresholds defined in the relevant parameters object are then applied across the normalized (i.e., baselined) signal values in each well to identify interactions that are classified as feeding behaviors. Interactions are classified as feeding interactions (called 'licks' throughout) if they satisfy the following conditions: (*i*) at least one signal exceeds the *Feeding.Threshold* parameter or if a signal exceeds the *Feeding.Minimum* parameter and is linked to at least one signal that exceeds *Feeding.Threshold*. In this way a candidate feeding *Event* (i.e., a contiguous series of licks) is identified to include at least one signal over *Feeding.Threshold* and all contiguous signals that exceed *Feeding.Minimum*, and (*ii*) a candidate feeding event is kept only if the number of continguous licks exceeds the *Feeding.Minevents* parameter. Figure 1 illustrates how feeding licks and events are defined.
 
-```{r, echo=FALSE, fig.cap="Figure 1. Thresholding Concept", out.width = '30%'}
+```{r, echo=FALSE, fig.cap="Figure 1. Thresholding Concept: PLACE HOLDER, THIS NEEDS TO BE UPDATED", out.width = '30%'}
 knitr::include_graphics("Thresholds.png")
 ```
 
@@ -181,17 +182,17 @@ RawData
 
 Simple plots and outputs displaying various aspects of the data are available.  Higher quality plots and more complex outputs that take into account experiments treatments, as well as details about additional DFM components (e.g., Durations and Intervals) are described in other markdown files.
 
-To display a plot of the raw or baselined for a dfm. These functions plot MANY points and can be quite slow to produce and display. They both take a range parameter to focus more closely. Well A (the left one) is shown in black and Well B in red. Note how the slightly higher baseline in Chamber 4, Well B is corrected in the normalized data. Dramatic and peristant changes in the rawdata plots are cause for concern.
+To display a plot of the raw or baselined for a dfm. These functions plot MANY points and can be quite slow to produce and display. They both take a range parameter to focus more closely. Note how the slightly higher baseline in Well 8 is corrected in the normalized data. Dramatic and peristant changes in the rawdata plots are cause for concern.
 
-```{r}
-#RawDataPlot.DFM(dfm)
-#BaselineDataPlot.DFM(dfm)
+```{r, fig.height=11}
+RawDataPlot.DFM(dfm,OutputPNGFile = TRUE) # This will save a .png file but will not show one.
+BaselinedDataPlot.DFM(dfm,range=c(0,100),OutputPNGFile = FALSE) #This will show the plot and not save it to a file.
 ```
 
 You can overlay the current feeding threshold parameters on the baselinedata plots as follows (this is currently not available for tasting threshold).
 
-```{r}
-#Feeding.ThresholdPlots.DFM(dfm)
+```{r, fig.height=11}
+BaselinedDataPlot.DFM(dfm, range=c(0,100), IncludeThresholds=TRUE,OutputPNGFile = FALSE)
 ```
 
 A simple summary of the licks can be obtained with the feeding summary.  The format of this object depends on the type of experiment (single- or two-well): there are 12 chambers defined in a single well experiment and six chambers, each with LicksA and LicksB, for a two choice experiment.
@@ -245,3 +246,50 @@ MeanIntB                | The mean (normalized) signal intensity across all lick
 MedIntB                 | The median (normalized) signal intensity across all licks in Well B.
 StartMin                | The start of the range (in minutes) examined (0 =  start of experiment).
 EndMin                  | The end of the range (in minutes) examined (0 =  end of experiment).
+
+## Other General Functions
+
+You can get information about feeding intervals and durations by
+```{r}
+IandD<-GetIntervalData.DFM(dfm)
+head(IandD)
+```
+Column                  |   Definition
+----------------------- | ---------------------------------------------------------------------------------------
+DFM                     | The DFM ID number.
+Well                    | The Well ID number (1-12; for both single and two well chambers).
+Minutes                 | The elapsed minutes at which the feeding event began.
+IntervalSec             | The duration (in seconds) of the feeding event.
+*...Remaining...*       | The individual values of the parameters object used for the DFM calculations.  
+
+You can save the baselined data to a text file for plotting in another program. It will create a .csv file with a reasonable name (e.g., BaselinedData_DFM3.csv for DFM3).
+```{r}
+OutputBaselinedData.DFM(DFM2)
+OutputBaselinedData.DFM(DFM3, range=c(0,100))
+```
+You can also perform some of these actions on groups of DFM at a time using functions that apply to groups of monitors (such functions have ".monitors" in their name). For these functions you must provide a list of monitors, a parameters object (or list of parameters objects), and a range if desired.  If a single parameters object is provided, then it will apply to all monitors.  If a list of parameters objects is provided, then it must be the same length as the monitors list, and each parameter object will be applied to its respective DFM. This can take some time so the progress is reported in the console.
+
+```{r}
+dfms<-c(2,3)
+OutputBaselinedData.Monitors(dfms,p)
+
+different.ps<-c(p,p.single)
+OutputBaselinedData.Monitors(dfms,different.ps)
+OutputBaselinedData.Monitors(dfms,different.ps, range=c(0,100))
+```
+
+Similarly, the other types of data can be saved to a text file in the same manner through their corresponding monitors functions.
+```{r}
+OutputIntervalData.Monitors(dfms,different.ps,range=c(0,0))
+OutputTotalFeeding.Monitors(dfms,different.ps,range=c(0,0))
+```
+The feeding summary data for the list of DFMs can be output to a .csv file and/or returned as an object. For reasons that will become clear when presented treatment-based analyses, the results are obtained from returned object $Results component. 
+```{r}
+f.summary<-Feeding.Summary.Monitors(dfms,different.ps,range=c(0,0),file.output = TRUE)
+head(f.summary$Results[,1:8])
+```
+Some of these functions are able to accept a defined experimental design for treatment-based analysis.  They can be identified by looking at the function definition for an *expDesign=* option. 
+```{r}
+Feeding.Summary.Monitors
+```
+In short, these functions make it easy to output data and visualize results among different genotypes, environments, and other manipulations.  Details on how to incorporate experimental designs into your analysis are available in the markdown files for single-well and choice experiments.
