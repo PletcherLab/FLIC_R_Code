@@ -1,8 +1,6 @@
 source("ExpDesignFunctions.R")
 require(ggplot2)
 
-
-
 #####Treatment based functions######
 ## Treatment based functions
 ## Divisions will create a separate graph for the cumulative PI (starting at range[0]) up
@@ -101,15 +99,6 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
   else {
     return(list(Results=results))
   }
-}
-
-Feeding.Summary<-function(dfm,range=c(0,0)){
-  if(dfm$Parameters$Chamber.Size==1)
-    Feeding.Summary.OneWell(dfm,range)
-  else if(dfm$Parameters$Chamber.Size==2)
-    Feeding.Summary.TwoWell(dfm,range)
-  else
-    stop("Feeding Summary not implemented for this DFM type.")    
 }
 
 Feeding.Summary<-function(dfm,range=c(0,0)){

@@ -1,0 +1,100 @@
+---
+title: "FLIC: Example Choice Chamber Analysis"
+author: "Scott Pletcher"
+date: "8/11/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This file contains some examples that will hopefully make it easier to understand how you might analyze the signal data from FLIC DFMs. We have written many functions that we find useful for analyzing simple feeding experiments that involve one feeding well per chamber, as well as choice experiments that involve two feeding wells per chamber.  These markdown files effectively serve as the documentation for all functions.  The source code is (semi) commented and available from GitHub (https://github.com/PletcherLab/FLIC_R_Code).  You can also contact Scott (spletch@umich.edu) if you have specific questions or would like to interrogate your data in a specific way that doesn't appear to be supported in the code. 
+
+## Getting Started
+
+Download R studio (https://www.rstudio.com/) and install it. Create a new folder on your hard drive to serve as the project directory.  Copy all of  DFM data files (e.g., "DFM_1.csv") to that folder.  Clone the Github Respository or download the files as a zip file. Unzip or copy the .R files and/or the FLICFUNCTIONS file to the project directory. Start R studio. Choose File|New Project and click "Existing Directory."  Point to your project folder. R Studio will set the default directly to your project folder.  You are ready to start analyzing your feeding interaction data!
+
+You will also need to make sure that you have the following R packages installed: *ggplot2*, *stats*, and *gridExtra*.
+
+THere are two options for getting access to the FLIC functions.  Attach the R object to the search path (assuming the file in is the working directory), preferably in a position higher than 1 so all of the functions don't appear in the root environment.
+
+```{r}
+attach("FLICFunctions",pos=2)
+library(ggplot2)
+library(stats)
+library(gridExtra)
+```
+
+Alternatively, you can copy all of the R files to the project directory and source those that are required.
+```{r}
+source("TwoWellChamber.R")
+source("SingleWellChamber.R")
+source("MiscFunctions.R")
+```
+
+## Loading DFM data 
+
+The FLIC analysis code is loosely based on an object oriented framework,although R itself is not OOP friendly.Some functions will therefore include "Class" in their name. These create "objects" that will contain the data or other relevant information. To signify the type of data that we have and the parameters in will be used to identify food interactions, we need to create a parameters object.  For this example analysis, we would like a set of default parameters for a choice chamber in which two feeding wells are present in each behavioral chamber.
+
+```{r}
+p<-ParametersClass.TwoWell()
+```
+Note the components of this object.
+
+```{r}
+attributes(p)
+```
+and their respective default values.
+
+```{r echo=FALSE}
+p
+```
+
+Parameter               |   Definition
+----------------------- | ---------------------------------------------------------------------------------------
+Baseline.Window.Minutes | The window size (in minutes) used to normalize the (i.e., non-feeding) signal to zero.
+Signal.Threshold        | The minimal normalized signal that will be considered a feeding interaction.
+Feeding.Threshold       | The normalized signal above which a feeding interaction is indicated to have occured.
+Feeding.Minimum         | The minimum normalized signal indicating a feeding interaction (must link to a signal above threshold). 
+Tasting.Minimum         | A normalized signal is considered a taste if it is not a feeding interaction and lies between 
+Tasting.Maximum         | Tasting.Minimum and Tasting.Maximum. 
+Feeding.Minevents       | The number of consecutive feeding interactions required to constitute a feeding event.
+Tasting.Minevents       | The number of consecutive tasting interactions required to constitute a tasting event.
+Samples.Per.Second      | The frequency of observations (normally 5 for the standard MCU). Do not modify. 
+Chamber.Size            | The number of feeding wells in a behavioral chamber. Will be two for a choice analysis.  Do not modify. 
+Chamber.Sets            | Encoding of chamber numerical IDs to their position on the physical DFM.  Do not modify.
+PI.Multiplier           | Used to indicate the orientation of food choices (left or right) on each DFM. Can be -1 or 1.
+
+Note that the feeding and tasting thresholds are critical for determining all feeding interactions. We have set the default values to those we commonly use in the Pletcher lab, but you can change them using the SetParameter  function, which takes the current parameter object as its first argument, and then one or more parameters to set. Don't forget to reassign the new object. To avoid biasing your tasting data, make sure that Tasting.Maximum <= Feeding.Minimum. 
+
+```{r}
+p<-SetParameter(p,Feeding.Threshold=30)
+p<-SetParameter(p,Feeding.Minimum=20)
+p<-SetParameter(p,Tasting.Threshold.Interval=c(15,30))
+```
+
+```{r echo=FALSE}
+p
+```
+
+To load DFM data, create DFM classes for each. This function creates a background dfm object when called (e.g., DFM3, DFM6, etc.), and it also returns the object in case you would like to assign it to a specific variable. If this variable is not needed, you can remove it afterward.  It is best to assign it, even if you don't need it to avoid a lengthy output. In the following code, we just assign the results to a dummy variable (dfm) to suppress the output to the console. This function takes the DFM ID as the first argument and a parameters object as the second argument.
+```{r}
+dfm<-DFMClass(2,p)
+#dfm<-DFMClass(3,p)
+#dfm<-DFMClass(4,p)
+#dfm<-DFMClass(5,p)
+#dfm<-DFMClass(6,p)
+#dfm<-DFMClass(8,p)
+```
+Note that in this case we passed the same parameters object to each, meaning the same thresholds will be applied in all cases (after baseline normalization for each DFM). Note also that all PI.Multipliers are the same, implying the two foods are in the same orientation on each DFM.  This is not a good experiment design, but is it the most straightforward for this example.
+
+If you have experiments that run longer than one hour, the MCU will save a file every 24 hours, creating multiple files for each DFM, such as DFM_2_1.csv, DFM2_2.csv.  To link several files into one DFM object, there is a link files function.  
+```{r, eval=FALSE}
+dfm<-DFMClass.LinkFiles(2,p)
+```
+Please consult the advanced uses markup document for details.  Do not use this function for loading experiments that are shorter than 24hours.
+
+## Feeding and tasting interactions.

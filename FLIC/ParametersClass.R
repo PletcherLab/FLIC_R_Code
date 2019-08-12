@@ -19,7 +19,6 @@ ParametersClass=function(){
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
-
 ParametersClass.SingleWell=function(){
   Baseline.Window.Minutes=3
   Signal.Threshold = 10
@@ -38,7 +37,6 @@ ParametersClass.SingleWell=function(){
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
-
 ParametersClass.TwoWell=function(){
   Baseline.Window.Minutes=3
   Signal.Threshold = 20
@@ -107,7 +105,6 @@ Get.Parameter.Names<-function(parameters){
             "FeedingMinEvents","TastingMinEvents","SamplesSec","ChamberSize",chambernames,"PI.Multiplier")
   result
 }
-
 
 ## This is used internally to return the group of parameters in vector form.
 GetParameterVector<-function(parameters){  

@@ -45,6 +45,7 @@ attach("FLICFunctions",pos=2)
 ## Version 2.2 requires a couple packages
 require(ggplot2)
 require(stats)
+require(gridExtra)
 
 ## While your current working environment is empty...
 ls()
