@@ -1,5 +1,5 @@
 ---
-title: "FLIC: Data Analysis Part 1"
+title: "FLIC: Data Analysis Part 1: Introduction and Data Input"
 author: "Scott Pletcher and the Pletcher Lab"
 date: "8/11/2019"
 output: html_document

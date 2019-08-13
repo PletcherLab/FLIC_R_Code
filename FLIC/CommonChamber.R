@@ -8,7 +8,7 @@ require(reshape2)
 ## to each of the division points in the experiment.  This is distinct from the time-dependent
 ## PI because it will always start from the first point in the data set (satisfying the first
 ## range parameter).
-FeedingLicks.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   if(parameters$Chamber.Size==1)
     FeedingLicks.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else if(parameters$Chamber.Size==2)
@@ -16,7 +16,7 @@ FeedingLicks.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-FeedingEvents.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+Feeding.EventsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   if(parameters$Chamber.Size==1)
     FeedingEvents.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else if(parameters$Chamber.Size==2)
@@ -24,7 +24,7 @@ FeedingEvents.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-FeedingMeanDurations.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+Feeding.MeanDurationsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   if(parameters$Chamber.Size==1)
     FeedingMeanDuration.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else if(parameters$Chamber.Size==2)
@@ -32,7 +32,7 @@ FeedingMeanDurations.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-FeedingMeanTimeBtw.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   if(parameters$Chamber.Size==1)
     FeedingMeanTimeBtw.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else if(parameters$Chamber.Size==2)
@@ -416,9 +416,10 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE)
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
-    r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+    results$Licks<-results$Licks^0.25
+    r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(" Transformed Licks") + guides(fill=FALSE))
     print(summary(aov(Licks~Treatment,data=results)))
   }
   else {
@@ -428,10 +429,11 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
+        results$Licks<-results$Licks^0.25
         print(summary(aov(Licks~Treatment,data=results)))
-        r<-paste("Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        r<-paste("Transformed Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Transformed Licks") + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
@@ -539,10 +541,11 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
     Licks<-results$LicksA+results$LicksB
+    Licks<-Licks^0.25
     results<-data.frame(results,Licks)
-    r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+    r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Transformed Licks") + guides(fill=FALSE))
   }
   else {
     p<-list()
@@ -552,10 +555,11 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
         Licks<-results$LicksA+results$LicksB
+        Licks<-Licks^0.25
         results<-data.frame(results,Licks)
-        r<-paste("Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        r<-paste("Transformed Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Transformed Licks") + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
