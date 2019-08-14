@@ -247,6 +247,9 @@ MedIntB                 | The median (normalized) signal intensity across all li
 StartMin                | The start of the range (in minutes) examined (0 =  start of experiment).
 EndMin                  | The end of the range (in minutes) examined (0 =  end of experiment).
 
+
+We have found that the number of licks is not normally distributed, and that a transformation to the 0.25 is appropriate.  *Feeding.Summary* (and most other functions that output 'licks') has an option to transform the licks data in this way.  Because it is necessary for subsequent statistical analyses (e.g., ANOVA, t-test, etc.), the default behavior is to transform (i.e., *TransformLicks=TRUE* is set in the function definition). Specifying *TransformLicks=FALSE* in the function calls will disable the transformation.  As alwasy, details can be obtained from the function body and defintion.
+
 ## Other General Functions
 
 You can get information about feeding intervals and durations by
@@ -288,6 +291,8 @@ The feeding summary data for the list of DFMs can be output to a .csv file and/o
 f.summary<-Feeding.Summary.Monitors(dfms,different.ps,range=c(0,0),file.output = TRUE)
 head(f.summary$Results[,1:8])
 ```
+Remember the default behavior here is to transform the number of licks.
+
 Some of these functions are able to accept a defined experimental design for treatment-based analysis.  They can be identified by looking at the function definition for an *expDesign=* option. 
 ```{r}
 Feeding.Summary.Monitors

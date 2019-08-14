@@ -6,9 +6,65 @@ require(stats)
 
 
 #####Treatment based functions######
+BinLickData.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),file.output=TRUE,TransformLicks=TRUE){
+  individ.params<-FALSE
+  ## Check to determine whether parameters is a signle parameter object
+  ## or a list of them.  If it is a single one, then we use the same one for all
+  ## if it is a list, then we use a different one for each.
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  
+  for(j in 1:length(monitors)){
+    print(j)
+    monitor<-monitors[j]
+    if(individ.params==TRUE)
+      p<-parameters[[j]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitor,p)  
+    parameter.vector<-matrix(GetParameterVector(p),nrow=1)
+    pnames<-Get.Parameter.Names(p)
+    tmp<-BinLickData(dfm,binsize.min,range,TransformLicks)      
+    tmp2<-data.frame(tmp,parameter.vector)
+    names(tmp2)<-c(names(tmp),pnames)
+    if(j==1){
+      results<-tmp2
+    }
+    else {
+      results<-rbind(results,tmp2)  
+    }
+    
+  }  
+  if(is.data.frame(expDesign)) {
+    results<-AppendTreatmentonResultsFrame(results,expDesign)
+    trt.summary<-suppressWarnings(AggregateTreatments(results))
+    if(file.output==TRUE){
+      filename<-paste("BinnedData_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(trt.summary,file=filename,row.names=FALSE)
+      filename<-paste("BinnedData_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(results,file=filename,row.names=FALSE)
+    }
+  }
+  else if(file.output==TRUE){
+    filename<-paste("BinnedData_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    write.csv(results,file=filename,row.names=FALSE)
+  }
+  
+  if(is.data.frame(expDesign)) {
+    return(list(Results=results,Stats=trt.summary))
+  }
+  else {
+    return(list(Results=results))
+  }
+}
+
+
 
 #####Binning functions######
-OutputBinnedFeeding.Monitors<-function(monitors,parameters,binsize.min,range=c(0,0)){
+OutputBinnedLicks.Monitors<-function(monitors,parameters,binsize.min,range=c(0,0),TransformLicks=TRUE){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -30,7 +86,7 @@ OutputBinnedFeeding.Monitors<-function(monitors,parameters,binsize.min,range=c(0
     dfm<-DFMClass(monitor,p)
     pnames<-Get.Parameter.Names(p)
     parameter.vector<-GetParameterVector(p)
-    tmp<-BinFeedingData.Licks(dfm,binsize.min,range)
+    tmp<-BinLickData(dfm,binsize.min,range,TransformLicks)
     DFM<-rep(monitor,nrow(tmp))
     tmp<-data.frame(DFM,tmp)
     
@@ -89,26 +145,37 @@ OutputBinnedEvents.Monitors<-function(monitors,parameters,binsize.min,range=c(0,
   filename<-paste("BinnedEvents_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
-BinFeedingData.Licks<-function(dfm,binsize.min,range=c(0,0)){
+BinLickData<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
   result<-BinFeedingData.Well.Licks(dfm,1,binsize.min,range)
+  Well<-factor(rep(1,nrow(result)))
+  DFM<-factor(rep(dfm$ID,nrow(result)))
+  result<-data.frame(result,DFM,Well)
 
   for(i in 2:12) {
-    cname=paste("W",i,sep="")
     tmp<-BinFeedingData.Well.Licks(dfm,i,binsize.min,range)
-    result<-data.frame(result,tmp$SumLicks)
+    Well<-factor(rep(i,nrow(tmp)))
+    DFM<-factor(rep(dfm$ID,nrow(tmp)))
+    tmp<-data.frame(tmp,DFM,Well)
+    result<-rbind(result,tmp)
   }
-  names(result)<-c("Interval","Min",paste("W",1:12,sep=""))
+  names(result)<-c("Interval","Min","SumLicks","DFM","Well")
+  ## Note that transformation occurs after the summation.
+  if(TransformLicks==TRUE)
+    result$SumLicks<-result$SumLicks^0.25
   result  
 }
-BinFeedingData.Events<-function(dfm,binsize.min,range=c(0,0)){
+BinEventData<-function(dfm,binsize.min,range=c(0,0)){
   result<-BinFeedingData.Well.Events(dfm,1,binsize.min,range)
+  Well<-factor(rep(1,nrow(result)))
+  result<-data.frame(result,Well)
   
   for(i in 2:12) {
-    cname=paste("W",i,sep="")
-    tmp<-BinFeedingData.Well.Licks(dfm,i,binsize.min,range)
-    result<-data.frame(result,tmp$SumLicks)
+    tmp<-BinFeedingData.Well.Events(dfm,i,binsize.min,range)
+    Well<-factor(rep(i,nrow(tmp)))
+    tmp<-data.frame(tmp,Well)
+    result<-rbind(result,tmp)
   }
-  names(result)<-c("Interval","Min",paste("W",1:12,sep=""))
+  names(result)<-c("Interval","Min","SumEvents","Well")
   result  
 }
 GetCumLicksPlots.DFM<-function(dfm,FacetPlots=TRUE,TransformLicks=TRUE){
@@ -162,11 +229,10 @@ GetCumLicksPlots.DFM<-function(dfm,FacetPlots=TRUE,TransformLicks=TRUE){
   gp
 }
 GetTotalLicksPlot.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
-  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range)
+  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)
   tmp2<-tmp2$Results
   ylabel="Licks"
   if(TransformLicks==TRUE) {
-    tmp2$Licks<-tmp2$Licks^0.25
     ylabel="Transformed Licks"
   }
   tmp2$DFM<-factor(tmp2$DFM)
@@ -175,18 +241,15 @@ GetTotalLicksPlot.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TR
   gp
 }
 PlotBins.Licks<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
-  binnedData<-BinFeedingData.Licks(dfm,binsize.min,range)
-  tmp<-melt(binnedData,id.vars=c("Interval","Min"))
+  binnedData<-BinLickData(dfm,binsize.min,range,TransformLicks)
   ylabel<-"Licks"
   xlabel<-"Minutes"
   ttl<-paste("DFM:",dfm$ID)
   if(TransformLicks==TRUE) {
-    tmp$value<-tmp$value^0.25
     ylabel<-"Transformed Licks"
     ttl<-paste("DFM:",dfm$ID," (Transformed)")
   }
-    
-  gp<-ggplot(tmp,aes(x=Min,y=value,fill=variable)) + geom_bar(stat="identity") + facet_grid(variable ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+  gp<-ggplot(binnedData,aes(x=Min,y=SumLicks,fill=Well)) + geom_bar(stat="identity") + facet_grid(Well ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
     theme(legend.position = "none") + ylab(ylabel) + xlab(xlabel)
   show(gp)
 }

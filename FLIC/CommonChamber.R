@@ -45,7 +45,7 @@ Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0)
 ###################################
 ## Will output Feeding.Summary data for each chamber in each monitor
 ## over the specified range to a .csv file.
-Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),file.output=TRUE){
+Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),file.output=TRUE,TransformLicks=TRUE){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -67,7 +67,7 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     dfm<-DFMClass(monitor,p)  
     parameter.vector<-matrix(GetParameterVector(p),nrow=1)
     pnames<-Get.Parameter.Names(p)
-    tmp<-Feeding.Summary(dfm,range)      
+    tmp<-Feeding.Summary(dfm,range,TransformLicks)      
     tmp2<-data.frame(tmp,parameter.vector)
     names(tmp2)<-c(names(tmp),pnames)
     if(j==1){
@@ -78,7 +78,6 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
       }
       
   }  
-  
   if(is.data.frame(expDesign)) {
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatments(results))
@@ -102,11 +101,11 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
   }
 }
 
-Feeding.Summary<-function(dfm,range=c(0,0)){
+Feeding.Summary<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
-    Feeding.Summary.OneWell(dfm,range)
+    Feeding.Summary.OneWell(dfm,range,TransformLicks)
   else if(dfm$Parameters$Chamber.Size==2)
-    Feeding.Summary.TwoWell(dfm,range)
+    Feeding.Summary.TwoWell(dfm,range,TransformLicks)
   else
     stop("Feeding Summary not implemented for this DFM type.")    
 }
@@ -323,7 +322,7 @@ BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThr
 }
 
 #####Functions for case-specific calls########
-Feeding.Summary.OneWell<-function(dfm,range=c(0,0)){
+Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
   
@@ -342,10 +341,12 @@ Feeding.Summary.OneWell<-function(dfm,range=c(0,0)){
   }
   names(result)<-c("DFM","Chamber","Licks","Events","MeanDuration","MedDuration",
                    "MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","StartMin","EndMin")
+  if(TransformLicks==TRUE)
+    result$Licks<-result$Licks^0.25
   result    
   
 }
-Feeding.Summary.TwoWell<-function(dfm,range=c(0,0)){
+Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-chamber DFM only")
   
@@ -383,10 +384,14 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0)){
                    "MeanDurationB","MedDurationB","MeanTimeBtwA","MedTimeBtwA",
                    "MeanTimeBtwB","MedTimeBtwB","MeanIntA","MedianIntA",
                    "MeanIntB","MedianIntB","StartMin","EndMin")
+  if(TransforLicks==TRUE){
+    result$LicksA<-result$LicksA^0.25
+    result$LicksB<-result$LicksB^0.25
+  }
   result    
   
 }
-FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE){
   if(SaveToFile==TRUE){
     filename<-paste("FeedingLicksBoxPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     pdf(file=filename)
@@ -413,27 +418,40 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
   }
   
   if(divisions==1) {
-    tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE)
+    tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE,TransformLicks)
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
-    results$Licks<-results$Licks^0.25
-    r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+    if(TransformLicks==True){
+      r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Transformed Licks"
+    }
+    else {
+      r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Licks"
+    }
+    
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(" Transformed Licks") + guides(fill=FALSE))
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
     print(summary(aov(Licks~Treatment,data=results)))
   }
   else {
     p<-list()
     for(i in 1:divisions)
       local({
-        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
+        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE,TransformLicks)
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
-        results$Licks<-results$Licks^0.25
+        if(TransformLicks==True){
+          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Transformed Licks"
+        }
+        else {
+          r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Licks"
+        }
         print(summary(aov(Licks~Treatment,data=results)))
-        r<-paste("Transformed Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Transformed Licks") + guides(fill=FALSE))
+                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
@@ -510,7 +528,7 @@ FeedingEvents.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
   if(SaveToFile==TRUE)
     graphics.off()
 } 
-FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE){
   if(SaveToFile==TRUE){
     filename<-paste("FeedingLicksBoxPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     pdf(file=filename)
@@ -537,29 +555,44 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     }
   }
   if(divisions==1) {
-    tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE)
+    tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE,TransformLicks)
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
     Licks<-results$LicksA+results$LicksB
-    Licks<-Licks^0.25
+    if(TransformLicks==True){
+      r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Transformed Licks"
+    }
+    else {
+      r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Licks"
+    }
     results<-data.frame(results,Licks)
-    r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Transformed Licks") + guides(fill=FALSE))
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
   }
   else {
     p<-list()
     for(i in 1:divisions)
       local({
-        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
+        ## Because we are adding licks together, we should transform only after adding!!
+        ## So this function should always work on non-transformed data.
+        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE,TransformLicks=FALSE)
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
         Licks<-results$LicksA+results$LicksB
-        Licks<-Licks^0.25
+        if(TransformLicks==True){
+          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Transformed Licks"
+          Licks<-Licks^0.25
+        }
+        else {
+          r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Licks"
+        }
         results<-data.frame(results,Licks)
-        r<-paste("Transformed Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab("Transformed Licks") + guides(fill=FALSE))
+                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
