@@ -42,6 +42,15 @@ Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
+Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
+  if(parameters$Chamber.Size==1)
+    BinnedLicksPlot.OneWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)
+  else if(parameters$Chamber.Size==2)
+    BinnedLicksPlot.TwoWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)
+  else
+    stop("Feeding lick plots not implemented for this DFM type.")    
+}
+
 
 ###################################
 ## Will output Feeding.Summary data for each chamber in each monitor
@@ -167,8 +176,6 @@ PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE)
   gp
 }
 
-
-
 ## This function will output the baselined (and cleaned) analog
 ## values (along with minutes, parameter values, etc) to a 
 ## separate .csv file for each chamber in each of the specified monitors.
@@ -293,8 +300,6 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   write.csv(result,file=filename,row.names=FALSE)  
 }
 
-
-
 Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     Feeding.Summary.OneWell(dfm,range,TransformLicks)
@@ -341,7 +346,6 @@ GetIntervalData.DFM<-function(dfm,range){
   }
   result
 }
-
 
 RawDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE) {
   ##windows(record=FALSE,width=8,height=12) # opens a window and starts recording
@@ -435,8 +439,6 @@ CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
   }
   gp
 }
-
-
 
 #####Private Functions that should not be called by user ########
 Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
@@ -1174,39 +1176,67 @@ AggregateTreatmentsBinnedData<-function(results){
   trt.summary2<-aggregate(results,by=list(results$Interval,results$Treatment),mySEM)
   trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber|Interval",colnames(trt.summary2))]
   trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber|Interval",colnames(trt.summary1))]
+ 
   
-  trt.summary<-data.frame(trt.summary1[,1:5],trt.summary2[,4:5],trt.summary1[,6:ncol(trt.summary1)])
-  
-  tmp<-names(trt.summary)
-  tmp[1]<-"Interval"
-  tmp[2]<-"Treatment"
-  tmp[4]<-"Licks"
-  tmp[5]<-"Events"
-  tmp[6]<-"LicksSEM"
-  tmp[7]<-"EventsSEM"
-  names(trt.summary)<-tmp
-  tmp<-1:ncol(trt.summary)
-  tmp<-tmp[-2]
-  tmp<-c(2,tmp)
-  trt.summary[,tmp]
+  if("LicksA" %in% names(results)){
+    
+    tmp<-names(trt.summary1)[4:7]
+    tmps<-paste(tmp,"SEM",sep="")
+    tmp<-names(trt.summary1)
+    tmp<-c(tmp[1:7],tmps,tmp[8:ncol(trt.summary1)])
+    tmp[1]<-"Interval"
+    tmp[2]<-"Treatment"
+    trt.summary<-data.frame(trt.summary1[,1:7],trt.summary2[,4:7],trt.summary1[,8:ncol(trt.summary1)])
+    names(trt.summary)<-tmp
+    tmp<-1:ncol(trt.summary)
+    tmp<-tmp[-2]
+    tmp<-c(2,tmp)
+    tmp<-trt.summary[,tmp]
+  }
+  else {
+    trt.summary<-data.frame(trt.summary1[,1:5],trt.summary2[,4:5],trt.summary1[,6:ncol(trt.summary1)])
+    tmp<-names(trt.summary)
+    tmp[1]<-"Interval"
+    tmp[2]<-"Treatment"
+    tmp[4]<-"Licks"
+    tmp[5]<-"Events"
+    tmp[6]<-"LicksSEM"
+    tmp[7]<-"EventsSEM"
+    names(trt.summary)<-tmp
+    tmp<-1:ncol(trt.summary)
+    tmp<-tmp[-2]
+    tmp<-c(2,tmp)
+    tmp<-trt.summary[,tmp]
+  }
+  tmp
 }
+
 AggregateTreatments<-function(results){
   trt.summary1<-aggregate(results,by=list(results$Treatment),mean) 
   trt.summary2<-aggregate(results,by=list(results$Treatment),mySEM)
   trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber",colnames(trt.summary1))]
   trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber",colnames(trt.summary2))]
   
-  names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Treatment"
-  tmp<-names(trt.summary1)[2:19]
-  tmp<-paste(tmp,"SEM",sep="")
+  if("LicksA" %in% names(results)){
+    names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Treatment"
+    tmp<-names(trt.summary1)[2:19]
+    tmp<-paste(tmp,"SEM",sep="")
+    trt.summary<-data.frame(trt.summary1[,1:19],trt.summary2[,2:19],trt.summary1[,20:ncol(trt.summary1)])
+    names(trt.summary)<-c(names(trt.summary1)[1:19],tmp,names(trt.summary1)[20:ncol(trt.summary1)])
+  }
+  else {
+    names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Treatment"
+    tmp<-names(trt.summary1)[2:9]
+    tmp<-paste(tmp,"SEM",sep="")
+    trt.summary<-data.frame(trt.summary1[,1:9],trt.summary2[,2:9],trt.summary1[,10:ncol(trt.summary1)])
+    names(trt.summary)<-c(names(trt.summary1)[1:9],tmp,names(trt.summary1)[10:ncol(trt.summary1)])
+  }
   
-  trt.summary<-data.frame(trt.summary1[,1:19],trt.summary2[,2:19],trt.summary1[,20:ncol(trt.summary1)])
-  names(trt.summary)<-c(names(trt.summary1)[1:19],tmp,names(trt.summary1)[20:ncol(trt.summary1)])
   
-  tmp<-c("Treatment","MeanLicks","MeanEvents","MeanMDuration","MeanMedDuration","MeanMTimeBtw","MeanMedTimeBtw","MeanMInt","MeanMedInt",
-         "SEMLicks","SEMEvents","SEMMDuration","SEMMedDuration","SEMMTimeBtw","SEMMedTimeBtw","SEMMInt","SEMMedInt",names(trt.summary)[18:ncol(trt.summary)])
+  #tmp<-c("Treatment","MeanLicks","MeanEvents","MeanMDuration","MeanMedDuration","MeanMTimeBtw","MeanMedTimeBtw","MeanMInt","MeanMedInt",
+  #       "SEMLicks","SEMEvents","SEMMDuration","SEMMedDuration","SEMMTimeBtw","SEMMedTimeBtw","SEMMInt","SEMMedInt",names(trt.summary)[18:ncol(trt.summary)])
   
-  names(trt.summary)<-tmp
+  #names(trt.summary)<-tmp
   trt.summary
 }
 PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
@@ -1259,4 +1289,77 @@ GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   names(tmp3)<-c("DFM","Well","Minutes","Sample","IntervalSec",pnames)
   
   tmp3
+}
+BinnedLicksPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
+  if(parameters$Chamber.Size!=2)
+    stop("This function is for one chamber DFM only")
+  
+  if(TransformLicks==TRUE){
+    ylabel<-"Transformed Licks"
+  }
+  else {
+    ylabel<-"Licks"
+  }
+  
+  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)  
+  tmpA<-data.frame(data$Stats[,c(1,3,4,8)],rep("WellA",nrow(data$Stats)))
+  names(tmpA)<-c("Treatment","Min","Licks","LicksSEM","Well")
+  tmpB<-data.frame(data$Stats[,c(1,3,5,9)],rep("WellB",nrow(data$Stats)))
+  names(tmpB)<-c("Treatment","Min","Licks","LicksSEM","Well")
+  
+  newData<-rbind(tmpA,tmpB)
+  
+  pd <- position_dodge(5) # move them .05 to the left and right
+  gp<-ggplot(newData,aes(x=Min,y=Licks,color=Treatment,group=Treatment)) + 
+    geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
+    geom_line(position=pd,size=1) + facet_wrap(~Well)+
+    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
+  show(gp)
+  
+  if(SaveToFile==TRUE){
+    filename<-paste("BinnedLicksPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
+    ggsave(filename,gp)
+  }
+  
+  tmp2<-data$Results
+  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksA ~ Treatment)
+  cat("\n\n\n** Interval specific ANOVA results for Well A **\n\n")
+  print(lapply(l,summary))
+  
+  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksB ~ Treatment)
+  cat("\n\n\n** Interval specific ANOVA results for Well B **\n\n")
+  print(lapply(l,summary))
+}
+BinnedLicksPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
+  if(parameters$Chamber.Size!=1)
+    stop("This function is for one chamber DFM only")
+  
+  if(TransformLicks==TRUE){
+    ylabel<-"Transformed Licks"
+  }
+  else {
+    ylabel<-"Licks"
+  }
+  
+  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)  
+  tmp<-data$Stats
+  
+  pd <- position_dodge(5) # move them .05 to the left and right
+  gp<-ggplot(tmp,aes(x=Min,y=Licks,color=Treatment,group=Treatment)) + 
+    geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
+    geom_line(position=pd,size=1) +
+    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
+  show(gp)
+  
+  
+  if(SaveToFile==TRUE){
+    filename<-paste("BinnedLicksPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
+    ggsave(filename,gp)
+  }
+  
+  
+  tmp2<-data$Results
+  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=Licks ~ Treatment)
+  cat("** Interval specific ANOVA results **\n\n")
+  lapply(l,summary)
 }
