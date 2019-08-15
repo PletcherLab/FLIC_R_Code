@@ -157,7 +157,8 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
   }
 }
 
-Feeding.Summary<-function(dfm,range=c(0,0),TransformLicks=TRUE){
+
+Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     Feeding.Summary.OneWell(dfm,range,TransformLicks)
   else if(dfm$Parameters$Chamber.Size==2)
@@ -165,7 +166,7 @@ Feeding.Summary<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   else
     stop("Feeding Summary not implemented for this DFM type.")    
 }
-BinnedFeeding.Summary<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
+BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks)
   else if(dfm$Parameters$Chamber.Size==2)
@@ -193,26 +194,6 @@ OutputBaselinedData.DFM<-function(dfm, range=c(0,0)){
   
   filename<-paste("BaselinedData_DFM",dfm$ID,".csv",sep="") 
   write.csv(tmp3,file=filename,row.names=FALSE)  
-}
-
-## These functions will output the intervals
-GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
-  nameA<-paste("W",well,sep="")
-  parameter.vector<-GetDFMParameterVector(dfm)
-  pnames<-Get.Parameter.Names(dfm$Parameters)
-  
-  theData<-dfm$Intervals[[nameA]]
-  
-  tmpA<-data.frame(rep(well,nrow(theData)),theData)
-  names(tmpA)<-c("Well","Minutes","Sample","IntervalSec")
-  
-  tmp<-data.frame(cbind(rep(dfm$ID,nrow(tmpA)),tmpA))
-  tmp2<-matrix(rep(parameter.vector,nrow(tmp)),ncol=length(parameter.vector),byrow=TRUE)
-  
-  tmp3<-cbind(tmp,tmp2)
-  names(tmp3)<-c("DFM","Well","Minutes","Sample","IntervalSec",pnames)
-  
-  tmp3
 }
 GetIntervalData.DFM<-function(dfm,range){
   for(i in 1:12){
@@ -309,7 +290,7 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
     dfm<-DFMClass(monitor,p)
     parameter.vector<-GetParameterVector(p)
     pnames<-Get.Parameter.Names(p)
-    tmp<-Feeding.Summary(dfm,range)
+    tmp<-Feeding.Summary,DFM(dfm,range)
     if(p$Chamber.Size==1){
       atotal<-tmp$Events*tmp$MeanDuration
       d<-tmp$DFM
@@ -384,7 +365,6 @@ BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThr
   else
     show(gp)
 }
-
 BinnedLicksPlot.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     PlotBins.Licks.DFM.OneWell(dfm,binsize.min,range,TransformLicks)
@@ -393,7 +373,56 @@ BinnedLicksPlot.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
   else
     stop("Binned lick plots not implemented for this DFM type.")    
 }
-
+CumulativeLicksPlots.DFM<-function(dfm,MultiPlot=TRUE,TransformLicks=TRUE){
+  tmp<-Feeding.Durations.Well(dfm,1)
+  SumLicks<-cumsum(tmp$Licks)
+  if(TransformLicks==TRUE)
+    SumLicks<-SumLicks^0.25
+  row<-1
+  col<-1
+  Row<-rep(row,nrow(tmp))
+  Col<-rep(col,nrow(tmp))
+  Well<-rep(1,nrow(tmp))
+  tmp<-data.frame(tmp,SumLicks,Row,Col,Well)
+  for(i in 2:12){
+    if(i%%2==1) row<-row+1
+    col<-col+1
+    if(col>2) col<-1
+    tmp2<-Feeding.Durations.Well(dfm,i)
+    if(is.data.frame(tmp2)) {
+      x<-tmp2$Minutes
+      y<-cumsum(tmp2$Licks)
+      SumLicks<-y
+      if(TransformLicks==TRUE)
+        SumLicks<-SumLicks^0.25
+      Row<-rep(row,length(x))
+      Col<-rep(col,length(x))
+      Well<-rep(i,length(x))
+      tmp2<-data.frame(tmp2,SumLicks,Row,Col,Well)
+      tmp<-rbind(tmp,tmp2) 
+    }
+    else {
+      fake.entry1<-c(FirstSampleData(dfm)$Minutes,0,0,0,0,0,0,0,0,row,col,i)
+      fake.entry2<-c(LastSampleData(dfm)$Minutes,0,0,0,0,0,0,0,0,row,col,i)
+      fake.entry<-data.frame(rbind(fake.entry1,fake.entry2))
+      names(fake.entry)<-names(tmp)
+      tmp<-rbind(tmp,fake.entry) 
+    }
+  }
+  if(TransformLicks==TRUE)
+    ylabel="Transformed Cumulative Licks"
+  else
+    ylabel="Cumulative Licks"
+  if(MultiPlot==TRUE) {
+    gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
+      ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
+  }
+  else {
+    gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line(size=1.2) +
+      ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Well")
+  }
+  gp
+}
 
 #################################################################
 #####Private Functions that should not be called by user ########
@@ -1169,7 +1198,7 @@ AggregateTreatments<-function(results){
 PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
-  binnedData<-BinnedFeeding.Summary(dfm,binsize.min,range,TransformLicks)
+  binnedData<-BinnedFeeding.Summary.DFM(dfm,binsize.min,range,TransformLicks)
   ylabel<-"Licks"
   xlabel<-"Minutes"
   ttl<-paste("DFM:",dfm$ID)
@@ -1184,7 +1213,7 @@ PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks
 PlotBins.Licks.DFM.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-well chambers only")
-  binnedData<-BinnedFeeding.Summary(dfm,binsize.min,range,TransformLicks)
+  binnedData<-BinnedFeeding.Summary.DFM(dfm,binsize.min,range,TransformLicks)
   ylabel<-"Licks"
   xlabel<-"Minutes"
   ttl<-paste("DFM:",dfm$ID)
@@ -1198,4 +1227,22 @@ PlotBins.Licks.DFM.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks
     ylab(ylabel) + xlab(xlabel)
   show(gp)
 }
-
+## These functions will output the intervals
+GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
+  nameA<-paste("W",well,sep="")
+  parameter.vector<-GetDFMParameterVector(dfm)
+  pnames<-Get.Parameter.Names(dfm$Parameters)
+  
+  theData<-dfm$Intervals[[nameA]]
+  
+  tmpA<-data.frame(rep(well,nrow(theData)),theData)
+  names(tmpA)<-c("Well","Minutes","Sample","IntervalSec")
+  
+  tmp<-data.frame(cbind(rep(dfm$ID,nrow(tmpA)),tmpA))
+  tmp2<-matrix(rep(parameter.vector,nrow(tmp)),ncol=length(parameter.vector),byrow=TRUE)
+  
+  tmp3<-cbind(tmp,tmp2)
+  names(tmp3)<-c("DFM","Well","Minutes","Sample","IntervalSec",pnames)
+  
+  tmp3
+}
