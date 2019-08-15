@@ -30,10 +30,24 @@ AppendTreatmentonResultsFrame<-function(results,expdesign){
   results
 }
 
+
+
+AggregateTreatments<-function(results){
+  trt.summary1<-aggregate(results,by=list(results$Treatment),mean) 
+  trt.summary2<-aggregate(results,by=list(results$Treatment),mySEM)
+
+
+  trt.summary<-rbind(trt.summary1,trt.summary2)
+  trt.summary<-trt.summary[,-grep("Treatment|DFM|Chamber",colnames(trt.summary))]
+  names(trt.summary)[names(trt.summary) == "Group.1"] <- "Treatment"
+  trt.summary
+}
+
+
 ## This function accepts a data frame that is assumed to 
 ## hold results with a column called treatment, that indicates
 ## treatment
-AggregateTreatments<-function(results){
+AggregateTreatmentsOLD<-function(results){
   trt.summary1<-aggregate(results,by=list(results$Treatment),mean) 
   Stat<-rep("Mean",nrow(trt.summary1))
   trt.summary1<-data.frame(Stat,trt.summary1)

@@ -78,6 +78,7 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
       }
       
   }  
+  return(results)
   if(is.data.frame(expDesign)) {
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatments(results))
@@ -100,7 +101,7 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     return(list(Results=results))
   }
 }
-Feeding.BinnedSummary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
+BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -1114,22 +1115,37 @@ BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0)){
 ## treatment
 AggregateTreatmentsBinnedData<-function(results){
   trt.summary1<-aggregate(results,by=list(results$Interval,results$Treatment),mean) 
-  Stat<-rep("Mean",nrow(trt.summary1))
-  trt.summary1<-data.frame(Stat,trt.summary1)
-  
   trt.summary2<-aggregate(results,by=list(results$Interval,results$Treatment),mySEM)
-  Stat<-rep("SEM",nrow(trt.summary2))
-  trt.summary2<-data.frame(Stat,trt.summary2)
   trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber|Interval",colnames(trt.summary2))]
   trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber|Interval",colnames(trt.summary1))]
-  trt.summary<-rbind(trt.summary1,trt.summary2)
   
-  names(trt.summary)[names(trt.summary) == "Group.1"] <- "Interval"
-  names(trt.summary)[names(trt.summary) == "Group.2"] <- "Treatment"
+  trt.summary<-data.frame(trt.summary1[,1:5],trt.summary2[,4:5],trt.summary1[,6:ncol(trt.summary1)])
+  
+  tmp<-names(trt.summary)
+  tmp[1]<-"Interval"
+  tmp[2]<-"Treatment"
+  tmp[4]<-"MeanLicks"
+  tmp[5]<-"MeanEvents"
+  tmp[6]<-"SEMLicks"
+  tmp[7]<-"SEMEvents"
+  names(trt.summary)<-tmp
   tmp<-1:ncol(trt.summary)
-  tmp[2]<-3
-  tmp[3]<-2
+  tmp<-tmp[-2]
+  tmp<-c(2,tmp)
   trt.summary[,tmp]
 }
-
-
+AggregateTreatments<-function(results){
+  trt.summary1<-aggregate(results,by=list(results$Treatment),mean) 
+  trt.summary2<-aggregate(results,by=list(results$Treatment),mySEM)
+  trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber",colnames(trt.summary1))]
+  trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber",colnames(trt.summary2))]
+  
+  trt.summary<-data.frame(trt.summary1[,1:9],trt.summary2[,2:9],trt.summary1[,10:ncol(trt.summary1)])
+  names(trt.summary)[names(trt.summary) == "Group.1"] <- "Treatment"
+  
+  tmp<-c("Treatment","MeanLicks","MeanEvents","MeanMDuration","MeanMedDuration","MeanMTimeBtw","MeanMedTimeBtw","MeanMInt","MeanMedInt",
+         "SEMLicks","SEMEvents","SEMMDuration","SEMMedDuration","SEMMTimeBtw","SEMMedTimeBtw","SEMMInt","SEMMedInt",names(trt.summary)[18:ncol(trt.summary)])
+  
+  names(trt.summary)<-tmp
+  trt.summary
+}
