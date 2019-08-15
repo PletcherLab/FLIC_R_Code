@@ -100,12 +100,73 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     return(list(Results=results))
   }
 }
+Feeding.BinnedSummary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
+  individ.params<-FALSE
+  ## Check to determine whether parameters is a signle parameter object
+  ## or a list of them.  If it is a single one, then we use the same one for all
+  ## if it is a list, then we use a different one for each.
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  
+  for(j in 1:length(monitors)){
+    monitor<-monitors[j]
+    if(individ.params==TRUE)
+      p<-parameters[[j]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitor,p)  
+    parameter.vector<-matrix(GetParameterVector(p),nrow=1)
+    pnames<-Get.Parameter.Names(p)
+    tmp<-BinnedFeeding.Summary(dfm,binsize.min,range,TransformLicks)      
+    tmp2<-data.frame(tmp,parameter.vector)
+    names(tmp2)<-c(names(tmp),pnames)
+    if(j==1){
+      results<-tmp2
+    }
+    else {
+      results<-rbind(results,tmp2)  
+    }
+    
+  }  
+  if(is.data.frame(expDesign)) {
+    results<-AppendTreatmentonResultsFrame(results,expDesign)
+    trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
+    if(SaveToFile==TRUE){
+      filename<-paste("BinnedSummary_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(trt.summary,file=filename,row.names=FALSE)
+      filename<-paste("BinnedSummary_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(results,file=filename,row.names=FALSE)
+    }
+  }
+  else if(SaveToFile==TRUE){
+    filename<-paste("BinnedSummary_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    write.csv(results,file=filename,row.names=FALSE)
+  }
+  
+  if(is.data.frame(expDesign)) {
+    return(list(Results=results,Stats=trt.summary))
+  }
+  else {
+    return(list(Results=results))
+  }
+}
 
 Feeding.Summary<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     Feeding.Summary.OneWell(dfm,range,TransformLicks)
   else if(dfm$Parameters$Chamber.Size==2)
     Feeding.Summary.TwoWell(dfm,range,TransformLicks)
+  else
+    stop("Feeding Summary not implemented for this DFM type.")    
+}
+BinnedFeeding.Summary<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size==1)
+    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks)
+  else if(dfm$Parameters$Chamber.Size==2)
+    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks)
   else
     stop("Feeding Summary not implemented for this DFM type.")    
 }
@@ -321,7 +382,7 @@ BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThr
     show(gp)
 }
 
-#####Functions for case-specific calls########
+#####Private Functions for case-specific calls########
 Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
@@ -350,7 +411,6 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-chamber DFM only")
   
-  cnames<-paste("C",1:nrow(dfm$Parameters$Chamber.Sets),sep="")
   for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
     wellA<-dfm$Parameters$Chamber.Sets[i,1]
     wellB<-dfm$Parameters$Chamber.Sets[i,2] 
@@ -384,7 +444,7 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
                    "MeanDurationB","MedDurationB","MeanTimeBtwA","MedTimeBtwA",
                    "MeanTimeBtwB","MedTimeBtwB","MeanIntA","MedianIntA",
                    "MeanIntB","MedianIntB","StartMin","EndMin")
-  if(TransforLicks==TRUE){
+  if(TransformLicks==TRUE){
     result$LicksA<-result$LicksA^0.25
     result$LicksB<-result$LicksB^0.25
   }
@@ -421,7 +481,7 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE,TransformLicks)
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
-    if(TransformLicks==True){
+    if(TransformLicks==TRUE){
       r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
       ylabel<-"Transformed Licks"
     }
@@ -441,7 +501,7 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE,TransformLicks)
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
-        if(TransformLicks==True){
+        if(TransformLicks==TRUE){
           r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
           ylabel<-"Transformed Licks"
         }
@@ -559,7 +619,7 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
     Licks<-results$LicksA+results$LicksB
-    if(TransformLicks==True){
+    if(TransformLicks==TRUE){
       r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
       ylabel<-"Transformed Licks"
     }
@@ -581,7 +641,7 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
         Licks<-results$LicksA+results$LicksB
-        if(TransformLicks==True){
+        if(TransformLicks==TRUE){
           r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
           ylabel<-"Transformed Licks"
           Licks<-Licks^0.25
@@ -927,5 +987,149 @@ FeedingMeanTimeBtw.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0
     graphics.off()
  
 } 
+
+BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size!=1)
+    stop("This function is for single chambers only")
+  result<-BinLicks.Well(dfm,1,binsize.min,range)
+  tmp<-BinEvents.Well(dfm,1,binsize.min,range)
+  Events<-tmp$Events
+  result<-data.frame(result,Events)
+  Well<-factor(rep(1,nrow(result)))
+  DFM<-factor(rep(dfm$ID,nrow(result)))
+  result<-data.frame(result,DFM,Well)
+  
+  for(i in 2:12) {
+    tmp<-BinLicks.Well(dfm,i,binsize.min,range)
+    tmp2<-BinEvents.Well(dfm,i,binsize.min,range)
+    Events<-tmp2$Events
+    tmp<-data.frame(tmp,Events)
+    Well<-factor(rep(i,nrow(tmp)))
+    DFM<-factor(rep(dfm$ID,nrow(tmp)))
+    tmp<-data.frame(tmp,DFM,Well)
+    result<-rbind(result,tmp)
+  }
+  StartMin<-rep(range[1],nrow(result))
+  EndMin<-rep(range[2],nrow(result))
+  result<-data.frame(result,StartMin,EndMin)
+  names(result)<-c("Interval","Min","Licks","Events","DFM","Chamber","StartMin","EndMin")
+  ## Note that transformation occurs after the summation.
+  if(TransformLicks==TRUE)
+    result$Licks<-result$Licks^0.25
+  result  
+}
+BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+  
+  if(dfm$Parameters$Chamber.Size!=2)
+    stop("This function is for two-chamber DFM only")
+  
+  wellA<-dfm$Parameters$Chamber.Sets[i,1]
+  wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+  
+  ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
+  ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
+  etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
+  etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range)
+  Chamber<-factor(rep(1,nrow(result)))
+  DFM<-factor(rep(dfm$ID,nrow(result)))
+  
+  result<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
+  
+  for(i in 2:nrow(dfm$Parameters$Chamber.Sets)) {
+    wellA<-dfm$Parameters$Chamber.Sets[i,1]
+    wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+    ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
+    ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
+    etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
+    etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range)
+    Chamber<-factor(rep(i,nrow(tmp)))
+    DFM<-factor(rep(dfm$ID,nrow(tmp)))
+    tmp<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
+    result<-rbind(result,tmp)
+  }
+  StartMin<-rep(range[1],nrow(result))
+  EndMin<-rep(range[2],nrow(result))
+  result<-data.frame(result,StartMin,EndMin)
+  names(result)<-c("Interval","Min","LicksA","LicksB","EventsA","EventsB","DFM","Chamber","StartMin","EndMin")
+  ## Note that transformation occurs after the summation.
+  if(TransformLicks==TRUE){
+    result$LicksA<-result$LicksA^0.25
+    result$LicksB<-result$LicksB^0.25
+  }
+  result  
+}
+BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0)){
+  tmp<-FeedingData.Events(dfm,range)
+  cname=paste("W",well,sep="")
+  
+  tmp<-tmp[,c("Minutes",cname)]
+  ## Remember that Event data include duration, but we aren't interested
+  ## in that.  Set values >0 to 1.
+  tmp[tmp[,cname]>1,cname]<-1
+  
+  m.min<-min(tmp$Minutes)
+  m.max<-max(tmp$Minutes)
+  
+  y<-seq(m.min,m.max,by=binsize.min)
+  if(y[length(y)]<m.max)
+    y<-c(y,m.max)
+  
+  z<-cut(tmp$Minutes,y,include.lowest=TRUE)
+  
+  r.min<-aggregate(tmp$Minutes~z,FUN=mean)
+  r.A<-aggregate(tmp[,cname]~z,FUN=sum)
+  
+  results<-data.frame(r.min,r.A[,2])
+  names(results)<-c("Interval","Min","Events")
+  results
+}
+BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0)){
+  tmp<-FeedingData.Licks(dfm,range)
+  cname=paste("W",well,sep="")
+  
+  tmp<-tmp[,c("Minutes",cname)]
+  
+  m.min<-min(tmp$Minutes)
+  m.max<-max(tmp$Minutes)
+  
+  y<-seq(m.min,m.max,by=binsize.min)
+  if(y[length(y)]<m.max)
+    y<-c(y,m.max)
+  
+  z<-cut(tmp$Minutes,y,include.lowest=TRUE)
+  
+  r.min<-aggregate(tmp$Minutes~z,FUN=mean)
+  r.A<-aggregate(tmp[,cname]~z,FUN=sum)
+  
+  results<-data.frame(r.min,r.A[,2])
+  names(results)<-c("Interval","Min","Licks")
+  
+  #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
+  
+  
+  results
+}
+## This function accepts a data frame that is assumed to 
+## hold results with a column called treatment, that indicates
+## treatment
+AggregateTreatmentsBinnedData<-function(results){
+  trt.summary1<-aggregate(results,by=list(results$Interval,results$Treatment),mean) 
+  Stat<-rep("Mean",nrow(trt.summary1))
+  trt.summary1<-data.frame(Stat,trt.summary1)
+  
+  trt.summary2<-aggregate(results,by=list(results$Interval,results$Treatment),mySEM)
+  Stat<-rep("SEM",nrow(trt.summary2))
+  trt.summary2<-data.frame(Stat,trt.summary2)
+  trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber|Interval",colnames(trt.summary2))]
+  trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber|Interval",colnames(trt.summary1))]
+  trt.summary<-rbind(trt.summary1,trt.summary2)
+  
+  names(trt.summary)[names(trt.summary) == "Group.1"] <- "Interval"
+  names(trt.summary)[names(trt.summary) == "Group.2"] <- "Treatment"
+  tmp<-1:ncol(trt.summary)
+  tmp[2]<-3
+  tmp[3]<-2
+  trt.summary[,tmp]
+}
 
 

@@ -6,7 +6,7 @@ require(stats)
 
 
 #####Treatment based functions######
-BinLickData.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),file.output=TRUE,TransformLicks=TRUE){
+Feeding.BinnedSummary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -18,7 +18,6 @@ BinLickData.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,r
   }
   
   for(j in 1:length(monitors)){
-    print(j)
     monitor<-monitors[j]
     if(individ.params==TRUE)
       p<-parameters[[j]]
@@ -40,16 +39,16 @@ BinLickData.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,r
   }  
   if(is.data.frame(expDesign)) {
     results<-AppendTreatmentonResultsFrame(results,expDesign)
-    trt.summary<-suppressWarnings(AggregateTreatments(results))
-    if(file.output==TRUE){
-      filename<-paste("BinnedData_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
+    if(SaveToFile==TRUE){
+      filename<-paste("BinnedLicks_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(trt.summary,file=filename,row.names=FALSE)
-      filename<-paste("BinnedData_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename<-paste("BinnedLicks_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(results,file=filename,row.names=FALSE)
     }
   }
-  else if(file.output==TRUE){
-    filename<-paste("BinnedData_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+  else if(SaveToFile==TRUE){
+    filename<-paste("BinnedLicks_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
@@ -60,11 +59,7 @@ BinLickData.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,r
     return(list(Results=results))
   }
 }
-
-
-
-#####Binning functions######
-OutputBinnedLicks.Monitors<-function(monitors,parameters,binsize.min,range=c(0,0),TransformLicks=TRUE){
+Feeding.BinnedEvents.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -76,34 +71,158 @@ OutputBinnedLicks.Monitors<-function(monitors,parameters,binsize.min,range=c(0,0
   }
   
   for(j in 1:length(monitors)){
-    ##print(paste("Outputting Interval Data for DFM ",j,".",sep=""))
-    ##flush.console()
     monitor<-monitors[j]
     if(individ.params==TRUE)
       p<-parameters[[j]]
     else
       p<-parameters
-    dfm<-DFMClass(monitor,p)
+    dfm<-DFMClass(monitor,p)  
+    parameter.vector<-matrix(GetParameterVector(p),nrow=1)
     pnames<-Get.Parameter.Names(p)
-    parameter.vector<-GetParameterVector(p)
-    tmp<-BinLickData(dfm,binsize.min,range,TransformLicks)
-    DFM<-rep(monitor,nrow(tmp))
-    tmp<-data.frame(DFM,tmp)
-    
-    tmp2<-matrix(rep(parameter.vector,nrow(tmp)),ncol=length(parameter.vector),byrow=TRUE)
-    tmp3<-cbind(tmp,tmp2)
-    names(tmp3)<-c(names(tmp),pnames)
+    tmp<-BinEventData(dfm,binsize.min,range)      
+    tmp2<-data.frame(tmp,parameter.vector)
+    names(tmp2)<-c(names(tmp),pnames)
     if(j==1){
-      result<-tmp3
+      results<-tmp2
     }
     else {
-      result<-rbind(result,tmp3)
+      results<-rbind(results,tmp2)  
+    }
+    
+  }  
+  if(is.data.frame(expDesign)) {
+    results<-AppendTreatmentonResultsFrame(results,expDesign)
+    trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
+    if(SaveToFile==TRUE){
+      filename<-paste("BinnedEvents_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(trt.summary,file=filename,row.names=FALSE)
+      filename<-paste("BinnedEvents_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(results,file=filename,row.names=FALSE)
+    }
+  }
+  else if(SaveToFile==TRUE){
+    filename<-paste("BinnedEvents_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    write.csv(results,file=filename,row.names=FALSE)
+  }
+  
+  if(is.data.frame(expDesign)) {
+    return(list(Results=results,Stats=trt.summary))
+  }
+  else {
+    return(list(Results=results))
+  }
+}
+Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
+  if(parameters$Chamber.Size==1)
+    FeedingLicks.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
+  else if(parameters$Chamber.Size==2)
+    FeedingLicks.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
+  else
+    stop("Feeding lick plots not implemented for this DFM type.")    
+}
+
+
+FeedingBinnedLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE){
+  if(SaveToFile==TRUE){
+    filename<-paste("FeedingLicksBoxPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
+    pdf(file=filename)
+  }
+  ranges<-matrix(rep(NA,divisions*2),ncol=2)
+  if(divisions==1)
+    ranges[1,]<-range
+  else {
+    if(range[2]==0){
+      ## Come back to here
+      dfm<-DFMClass(monitors[1],parameters)
+      last.time<-LastSampleData(dfm)$Minutes
+      breaks<-seq(from=range[1], to=last.time, length=divisions+1)
+      ranges.1<-range[1]
+      ranges.2<-breaks[-1]
+      ranges<-round(cbind(ranges.1,ranges.2))
+    }
+    else {
+      breaks<-seq(from=range[1], to=range[2], length=divisions+1)
+      ranges.1<-range[1]
+      ranges.2<-breaks[-1]
+      ranges<-round(cbind(ranges.1,ranges.2))
     }
   }
   
-  filename<-paste("BinnedFeeding_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
-  write.csv(result,file=filename,row.names=FALSE)  
-}
+  if(divisions==1) {
+    tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE,TransformLicks)
+    results<-tmp$Results
+    results<-subset(results,Treatment!="None")
+    if(TransformLicks==TRUE){
+      r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Transformed Licks"
+    }
+    else {
+      r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Licks"
+    }
+    
+    print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    print(summary(aov(Licks~Treatment,data=results)))
+  }
+  else {
+    p<-list()
+    for(i in 1:divisions)
+      local({
+        tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE,TransformLicks)
+        results<-tmp$Results
+        results<-subset(results,Treatment!="None")
+        if(TransformLicks==TRUE){
+          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Transformed Licks"
+        }
+        else {
+          r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Licks"
+        }
+        print(summary(aov(Licks~Treatment,data=results)))
+        p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+                    ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+      })
+    if(divisions<5)
+      numcols<-2
+    else if(divisions<10)
+      numcols<-3
+    else if(divisions<17)
+      numcols<-4
+    else
+      numcols<-5
+    multiplot(plotlist=p,cols=numcols)
+  }
+  if(SaveToFile==TRUE)
+    graphics.off()
+  
+} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####Binning functions######
+
 OutputBinnedEvents.Monitors<-function(monitors,parameters,binsize.min,range=c(0,0)){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
@@ -146,36 +265,44 @@ OutputBinnedEvents.Monitors<-function(monitors,parameters,binsize.min,range=c(0,
   write.csv(result,file=filename,row.names=FALSE)  
 }
 BinLickData<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
-  result<-BinFeedingData.Well.Licks(dfm,1,binsize.min,range)
+  result<-BinLicks.Well(dfm,1,binsize.min,range)
+  tmp<-BinEvents.Well(dfm,1,binsize.min,range)
+  Events<-tmp$Events
+  result<-data.frame(result,Events)
   Well<-factor(rep(1,nrow(result)))
   DFM<-factor(rep(dfm$ID,nrow(result)))
   result<-data.frame(result,DFM,Well)
 
   for(i in 2:12) {
-    tmp<-BinFeedingData.Well.Licks(dfm,i,binsize.min,range)
+    tmp<-BinLicks.Well(dfm,i,binsize.min,range)
+    tmp2<-BinEvents.Well(dfm,i,binsize.min,range)
+    Events<-tmp2$Events
+    tmp<-data.frame(tmp,Events)
     Well<-factor(rep(i,nrow(tmp)))
     DFM<-factor(rep(dfm$ID,nrow(tmp)))
     tmp<-data.frame(tmp,DFM,Well)
     result<-rbind(result,tmp)
   }
-  names(result)<-c("Interval","Min","SumLicks","DFM","Well")
+  names(result)<-c("Interval","Min","Licks","Events","DFM","Chamber")
   ## Note that transformation occurs after the summation.
   if(TransformLicks==TRUE)
-    result$SumLicks<-result$SumLicks^0.25
+    result$Licks<-result$Licks^0.25
   result  
 }
 BinEventData<-function(dfm,binsize.min,range=c(0,0)){
   result<-BinFeedingData.Well.Events(dfm,1,binsize.min,range)
   Well<-factor(rep(1,nrow(result)))
-  result<-data.frame(result,Well)
+  DFM<-factor(rep(dfm$ID,nrow(result)))
+  result<-data.frame(result,DFM,Well)
   
   for(i in 2:12) {
     tmp<-BinFeedingData.Well.Events(dfm,i,binsize.min,range)
     Well<-factor(rep(i,nrow(tmp)))
-    tmp<-data.frame(tmp,Well)
+    DFM<-factor(rep(dfm$ID,nrow(tmp)))
+    tmp<-data.frame(tmp,DFM,Well)
     result<-rbind(result,tmp)
   }
-  names(result)<-c("Interval","Min","SumEvents","Well")
+  names(result)<-c("Interval","Min","Events","DFM","Chamber")
   result  
 }
 GetCumLicksPlots.DFM<-function(dfm,FacetPlots=TRUE,TransformLicks=TRUE){
@@ -249,65 +376,13 @@ PlotBins.Licks<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
     ylabel<-"Transformed Licks"
     ttl<-paste("DFM:",dfm$ID," (Transformed)")
   }
-  gp<-ggplot(binnedData,aes(x=Min,y=SumLicks,fill=Well)) + geom_bar(stat="identity") + facet_grid(Well ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+  gp<-ggplot(binnedData,aes(x=Min,y=Licks,fill=Well)) + geom_bar(stat="identity") + facet_grid(Well ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
     theme(legend.position = "none") + ylab(ylabel) + xlab(xlabel)
   show(gp)
 }
 
 
 #####Private functions######
-BinFeedingData.Well.Events<-function(dfm,well,binsize.min,range=c(0,0)){
-  tmp<-FeedingData.Events(dfm,range)
-  cname=paste("W",well,sep="")
-  
-  tmp<-tmp[,c("Minutes",cname)]
-  ## Remember that Event data include duration, but we aren't interested
-  ## in that.  Set values >0 to 1.
-  tmp[tmp[,cname]>1,cname]<-1
-  
-  m.min<-min(tmp$Minutes)
-  m.max<-max(tmp$Minutes)
-  
-  y<-seq(m.min,m.max,by=binsize.min)
-  if(y[length(y)]<m.max)
-    y<-c(y,m.max)
-  
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE)
-  
-  r.min<-aggregate(tmp$Minutes~z,FUN=mean)
-  r.A<-aggregate(tmp[,cname]~z,FUN=sum)
-  
-  results<-data.frame(r.min,r.A[,2])
-  names(results)<-c("Interval","Min","SumEvents")
-  results
-}
-BinFeedingData.Well.Licks<-function(dfm,well,binsize.min,range=c(0,0)){
-  tmp<-FeedingData.Licks(dfm,range)
-  cname=paste("W",well,sep="")
-  
-  tmp<-tmp[,c("Minutes",cname)]
-  
-  m.min<-min(tmp$Minutes)
-  m.max<-max(tmp$Minutes)
-  
-  y<-seq(m.min,m.max,by=binsize.min)
-  if(y[length(y)]<m.max)
-    y<-c(y,m.max)
-  
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE)
-  
-  r.min<-aggregate(tmp$Minutes~z,FUN=mean)
-  r.A<-aggregate(tmp[,cname]~z,FUN=sum)
-  
-  results<-data.frame(r.min,r.A[,2])
-  names(results)<-c("Interval","Min","SumLicks")
-  
-  #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
-  
-  
-  results
-}
-
 
 
 
