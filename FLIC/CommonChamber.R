@@ -1,7 +1,6 @@
 source("ExpDesignFunctions.R")
 require(ggplot2)
 require(reshape2)
-
 #####Treatment based functions######
 ## Treatment based functions
 ## Divisions will create a separate graph for the cumulative PI (starting at range[0]) up
@@ -43,7 +42,6 @@ Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-################################
 
 ###################################
 ## Will output Feeding.Summary data for each chamber in each monitor
@@ -70,16 +68,16 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     dfm<-DFMClass(monitor,p)  
     parameter.vector<-matrix(GetParameterVector(p),nrow=1)
     pnames<-Get.Parameter.Names(p)
-    tmp<-Feeding.Summary(dfm,range,TransformLicks)      
+    tmp<-Feeding.Summary.DFM(dfm,range,TransformLicks)      
     tmp2<-data.frame(tmp,parameter.vector)
     names(tmp2)<-c(names(tmp),pnames)
     if(j==1){
-        results<-tmp2
-      }
-      else {
-        results<-rbind(results,tmp2)  
-      }
-      
+      results<-tmp2
+    }
+    else {
+      results<-rbind(results,tmp2)  
+    }
+    
   }  
   if(is.data.frame(expDesign)) {
     results<-AppendTreatmentonResultsFrame(results,expDesign)
@@ -123,7 +121,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     dfm<-DFMClass(monitor,p)  
     parameter.vector<-matrix(GetParameterVector(p),nrow=1)
     pnames<-Get.Parameter.Names(p)
-    tmp<-BinnedFeeding.Summary(dfm,binsize.min,range,TransformLicks)      
+    tmp<-BinnedFeeding.Summary.DFM(dfm,binsize.min,range,TransformLicks)      
     tmp2<-data.frame(tmp,parameter.vector)
     names(tmp2)<-c(names(tmp),pnames)
     if(j==1){
@@ -156,55 +154,20 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     return(list(Results=results))
   }
 }
-
-
-Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
-  if(dfm$Parameters$Chamber.Size==1)
-    Feeding.Summary.OneWell(dfm,range,TransformLicks)
-  else if(dfm$Parameters$Chamber.Size==2)
-    Feeding.Summary.TwoWell(dfm,range,TransformLicks)
-  else
-    stop("Feeding Summary not implemented for this DFM type.")    
-}
-BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
-  if(dfm$Parameters$Chamber.Size==1)
-    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks)
-  else if(dfm$Parameters$Chamber.Size==2)
-    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks)
-  else
-    stop("Feeding Summary not implemented for this DFM type.")    
-}
-
-## This function will output the baselined (and cleaned) analog
-## values (along with minutes, parameter values, etc) to a 
-## .csv file.
-OutputBaselinedData.DFM<-function(dfm, range=c(0,0)){
-  
-  parameter.vector<-GetDFMParameterVector(dfm)
-  pnames<-Get.Parameter.Names(dfm$Parameters)
-  
-  tmp.all<-BaselineData(dfm,range)
-  
-  tmp<-data.frame(cbind(rep(dfm$ID,nrow(tmp.all)),tmp.all))
-  tmp2<-matrix(rep(parameter.vector,nrow(tmp)),ncol=length(parameter.vector),byrow=TRUE)
-  
-  tmp3<-cbind(tmp,tmp2)
-  final.names<-c("DFM",names(tmp.all),pnames)
-  names(tmp3)<-final.names
-  
-  filename<-paste("BaselinedData_DFM",dfm$ID,".csv",sep="") 
-  write.csv(tmp3,file=filename,row.names=FALSE)  
-}
-GetIntervalData.DFM<-function(dfm,range){
-  for(i in 1:12){
-    tmp<-GetIntervalData.Well(dfm,i)
-    if(i==1)
-      result<-tmp
-    else
-      result<-rbind(result,tmp)  
+PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
+  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)
+  tmp2<-tmp2$Results
+  ylabel="Licks"
+  if(TransformLicks==TRUE) {
+    ylabel="Transformed Licks"
   }
-  result
+  tmp2$DFM<-factor(tmp2$DFM)
+  gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
+    ylab(ylabel)
+  gp
 }
+
+
 
 ## This function will output the baselined (and cleaned) analog
 ## values (along with minutes, parameter values, etc) to a 
@@ -230,9 +193,8 @@ OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0)){
       p<-parameters
     dfm<-DFMClass(monitor,p)
     OutputBaselinedData.DFM(dfm,range)
-    }
   }
-
+}
 OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
@@ -290,7 +252,7 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
     dfm<-DFMClass(monitor,p)
     parameter.vector<-GetParameterVector(p)
     pnames<-Get.Parameter.Names(p)
-    tmp<-Feeding.Summary,DFM(dfm,range)
+    tmp<-Feeding.Summary.DFM(dfm,range)
     if(p$Chamber.Size==1){
       atotal<-tmp$Events*tmp$MeanDuration
       d<-tmp$DFM
@@ -331,6 +293,56 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   write.csv(result,file=filename,row.names=FALSE)  
 }
 
+
+
+Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size==1)
+    Feeding.Summary.OneWell(dfm,range,TransformLicks)
+  else if(dfm$Parameters$Chamber.Size==2)
+    Feeding.Summary.TwoWell(dfm,range,TransformLicks)
+  else
+    stop("Feeding Summary not implemented for this DFM type.")    
+}
+BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size==1)
+    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks)
+  else if(dfm$Parameters$Chamber.Size==2)
+    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks)
+  else
+    stop("Feeding Summary not implemented for this DFM type.")    
+}
+## This function will output the baselined (and cleaned) analog
+## values (along with minutes, parameter values, etc) to a 
+## .csv file.
+OutputBaselinedData.DFM<-function(dfm, range=c(0,0)){
+  
+  parameter.vector<-GetDFMParameterVector(dfm)
+  pnames<-Get.Parameter.Names(dfm$Parameters)
+  
+  tmp.all<-BaselineData(dfm,range)
+  
+  tmp<-data.frame(cbind(rep(dfm$ID,nrow(tmp.all)),tmp.all))
+  tmp2<-matrix(rep(parameter.vector,nrow(tmp)),ncol=length(parameter.vector),byrow=TRUE)
+  
+  tmp3<-cbind(tmp,tmp2)
+  final.names<-c("DFM",names(tmp.all),pnames)
+  names(tmp3)<-final.names
+  
+  filename<-paste("BaselinedData_DFM",dfm$ID,".csv",sep="") 
+  write.csv(tmp3,file=filename,row.names=FALSE)  
+}
+GetIntervalData.DFM<-function(dfm,range){
+  for(i in 1:12){
+    tmp<-GetIntervalData.Well(dfm,i)
+    if(i==1)
+      result<-tmp
+    else
+      result<-rbind(result,tmp)  
+  }
+  result
+}
+
+
 RawDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE) {
   ##windows(record=FALSE,width=8,height=12) # opens a window and starts recording
   tmp<-RawData(dfm,range)
@@ -365,7 +377,7 @@ BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThr
   else
     show(gp)
 }
-BinnedLicksPlot.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+BinnedLicksPlot.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     PlotBins.Licks.DFM.OneWell(dfm,binsize.min,range,TransformLicks)
   else if(dfm$Parameters$Chamber.Size==2)
@@ -373,7 +385,7 @@ BinnedLicksPlot.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
   else
     stop("Binned lick plots not implemented for this DFM type.")    
 }
-CumulativeLicksPlots.DFM<-function(dfm,MultiPlot=TRUE,TransformLicks=TRUE){
+CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
   tmp<-Feeding.Durations.Well(dfm,1)
   SumLicks<-cumsum(tmp$Licks)
   if(TransformLicks==TRUE)
@@ -413,7 +425,7 @@ CumulativeLicksPlots.DFM<-function(dfm,MultiPlot=TRUE,TransformLicks=TRUE){
     ylabel="Transformed Cumulative Licks"
   else
     ylabel="Cumulative Licks"
-  if(MultiPlot==TRUE) {
+  if(SinglePlot==FALSE) {
     gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
       ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
   }
@@ -424,7 +436,8 @@ CumulativeLicksPlots.DFM<-function(dfm,MultiPlot=TRUE,TransformLicks=TRUE){
   gp
 }
 
-#################################################################
+
+
 #####Private Functions that should not be called by user ########
 Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
@@ -685,7 +698,8 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         results<-subset(results,Treatment!="None")
         Licks<-results$LicksA+results$LicksB
         if(TransformLicks==TRUE){
-          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")"
+                   ,sep="")
           ylabel<-"Transformed Licks"
           Licks<-Licks^0.25
         }
@@ -1195,7 +1209,7 @@ AggregateTreatments<-function(results){
   names(trt.summary)<-tmp
   trt.summary
 }
-PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
   binnedData<-BinnedFeeding.Summary.DFM(dfm,binsize.min,range,TransformLicks)
