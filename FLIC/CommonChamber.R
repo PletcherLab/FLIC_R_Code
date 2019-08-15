@@ -8,6 +8,9 @@ require(reshape2)
 ## to each of the division points in the experiment.  This is distinct from the time-dependent
 ## PI because it will always start from the first point in the data set (satisfying the first
 ## range parameter).
+
+## Although it is not optimal, the two-well aspect of these functions just adds or averages the values of
+## both wells.  In the future this should probably present values for each well, adjusted for the PI multiplier.
 Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   if(parameters$Chamber.Size==1)
     FeedingLicks.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
@@ -45,7 +48,7 @@ Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0)
 ###################################
 ## Will output Feeding.Summary data for each chamber in each monitor
 ## over the specified range to a .csv file.
-Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),file.output=TRUE,TransformLicks=TRUE){
+Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -78,18 +81,17 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
       }
       
   }  
-  return(results)
   if(is.data.frame(expDesign)) {
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatments(results))
-    if(file.output==TRUE){
+    if(SaveToFile==TRUE){
       filename<-paste("FeedingSummary_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(trt.summary,file=filename,row.names=FALSE)
       filename<-paste("FeedingSummary_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(results,file=filename,row.names=FALSE)
     }
   }
-  else if(file.output==TRUE){
+  else if(SaveToFile==TRUE){
     filename<-paste("FeedingSummary_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
@@ -383,7 +385,18 @@ BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThr
     show(gp)
 }
 
-#####Private Functions for case-specific calls########
+BinnedLicksPlot.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size==1)
+    PlotBins.Licks.DFM.OneWell(dfm,binsize.min,range,TransformLicks)
+  else if(dfm$Parameters$Chamber.Size==2)
+    PlotBins.Licks.DFM.TwoWell(dfm,binsize.min,range,TransformLicks)
+  else
+    stop("Binned lick plots not implemented for this DFM type.")    
+}
+
+
+#################################################################
+#####Private Functions that should not be called by user ########
 Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
@@ -1024,15 +1037,15 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-chamber DFM only")
   
-  wellA<-dfm$Parameters$Chamber.Sets[i,1]
-  wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+  wellA<-dfm$Parameters$Chamber.Sets[1,1]
+  wellB<-dfm$Parameters$Chamber.Sets[1,2] 
   
   ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
   ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
   etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
   etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range)
-  Chamber<-factor(rep(1,nrow(result)))
-  DFM<-factor(rep(dfm$ID,nrow(result)))
+  Chamber<-factor(rep(1,nrow(ltmp)))
+  DFM<-factor(rep(dfm$ID,nrow(ltmp)))
   
   result<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
   
@@ -1043,8 +1056,8 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
     ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
     etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
     etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range)
-    Chamber<-factor(rep(i,nrow(tmp)))
-    DFM<-factor(rep(dfm$ID,nrow(tmp)))
+    Chamber<-factor(rep(i,nrow(ltmp)))
+    DFM<-factor(rep(dfm$ID,nrow(ltmp)))
     tmp<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
     result<-rbind(result,tmp)
   }
@@ -1124,10 +1137,10 @@ AggregateTreatmentsBinnedData<-function(results){
   tmp<-names(trt.summary)
   tmp[1]<-"Interval"
   tmp[2]<-"Treatment"
-  tmp[4]<-"MeanLicks"
-  tmp[5]<-"MeanEvents"
-  tmp[6]<-"SEMLicks"
-  tmp[7]<-"SEMEvents"
+  tmp[4]<-"Licks"
+  tmp[5]<-"Events"
+  tmp[6]<-"LicksSEM"
+  tmp[7]<-"EventsSEM"
   names(trt.summary)<-tmp
   tmp<-1:ncol(trt.summary)
   tmp<-tmp[-2]
@@ -1140,8 +1153,12 @@ AggregateTreatments<-function(results){
   trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber",colnames(trt.summary1))]
   trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber",colnames(trt.summary2))]
   
-  trt.summary<-data.frame(trt.summary1[,1:9],trt.summary2[,2:9],trt.summary1[,10:ncol(trt.summary1)])
-  names(trt.summary)[names(trt.summary) == "Group.1"] <- "Treatment"
+  names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Treatment"
+  tmp<-names(trt.summary1)[2:19]
+  tmp<-paste(tmp,"SEM",sep="")
+  
+  trt.summary<-data.frame(trt.summary1[,1:19],trt.summary2[,2:19],trt.summary1[,20:ncol(trt.summary1)])
+  names(trt.summary)<-c(names(trt.summary1)[1:19],tmp,names(trt.summary1)[20:ncol(trt.summary1)])
   
   tmp<-c("Treatment","MeanLicks","MeanEvents","MeanMDuration","MeanMedDuration","MeanMTimeBtw","MeanMedTimeBtw","MeanMInt","MeanMedInt",
          "SEMLicks","SEMEvents","SEMMDuration","SEMMedDuration","SEMMTimeBtw","SEMMedTimeBtw","SEMMInt","SEMMedInt",names(trt.summary)[18:ncol(trt.summary)])
@@ -1149,3 +1166,36 @@ AggregateTreatments<-function(results){
   names(trt.summary)<-tmp
   trt.summary
 }
+PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size!=1)
+    stop("This function is for single chambers only")
+  binnedData<-BinnedFeeding.Summary(dfm,binsize.min,range,TransformLicks)
+  ylabel<-"Licks"
+  xlabel<-"Minutes"
+  ttl<-paste("DFM:",dfm$ID)
+  if(TransformLicks==TRUE) {
+    ylabel<-"Transformed Licks"
+    ttl<-paste("DFM:",dfm$ID," (Transformed)")
+  }
+  gp<-ggplot(binnedData,aes(x=Min,y=Licks,fill=Chamber)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+    theme(legend.position = "none") + ylab(ylabel) + xlab(xlabel)
+  show(gp)
+}
+PlotBins.Licks.DFM.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size!=2)
+    stop("This function is for two-well chambers only")
+  binnedData<-BinnedFeeding.Summary(dfm,binsize.min,range,TransformLicks)
+  ylabel<-"Licks"
+  xlabel<-"Minutes"
+  ttl<-paste("DFM:",dfm$ID)
+  if(TransformLicks==TRUE) {
+    ylabel<-"Transformed Licks"
+    ttl<-paste("DFM:",dfm$ID," (Transformed)")
+  }
+  tmp2<-melt(binnedData,id.vars=c("Min","Chamber"),measure.vars=c("LicksA","LicksB"))
+  names(tmp2)[3]<-"Well"
+  gp<-ggplot(tmp2,aes(x=Min,y=value,fill=Well)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+    ylab(ylabel) + xlab(xlabel)
+  show(gp)
+}
+
