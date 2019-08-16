@@ -1,4 +1,5 @@
-source("DFMPrivate.R")
+source("PrivateFunctions.R")
+source("ParametersClass.R")
 
 ## These are functions that are generally available to the user ##
 DFMClass<-function(id,parameters,range=c(0,0)) {
