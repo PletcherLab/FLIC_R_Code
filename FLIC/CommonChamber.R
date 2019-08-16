@@ -470,8 +470,14 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
     stop("This function is for two-chamber DFM only")
   
   for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
-    wellA<-dfm$Parameters$Chamber.Sets[i,1]
-    wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+    if(dfm$Parameters$PI.Multiplier==1){
+      wellA<-dfm$Parameters$Chamber.Sets[i,1]
+      wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+    }
+    else {
+      wellB<-dfm$Parameters$Chamber.Sets[i,1]
+      wellA<-dfm$Parameters$Chamber.Sets[i,2] 
+    }
     
     interval.a<-Feeding.IntervalSummary.Well(dfm,wellA,range)
     intensity.a<-Feeding.IntensitySummary.Well(dfm,wellA,range)
@@ -678,12 +684,12 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     results<-subset(results,Treatment!="None")
     Licks<-results$LicksA+results$LicksB
     if(TransformLicks==TRUE){
-      r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
-      ylabel<-"Transformed Licks"
+      r<-paste("Transformed Total Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+      ylabel<-"Transformed Total Licks (A+B)"
     }
     else {
       r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
-      ylabel<-"Licks"
+      ylabel<-"Total Licks (A+B)"
     }
     results<-data.frame(results,Licks)
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
@@ -700,14 +706,14 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         results<-subset(results,Treatment!="None")
         Licks<-results$LicksA+results$LicksB
         if(TransformLicks==TRUE){
-          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")"
+          r<-paste("Transformed Total Licks -- Range(min): (",range[1],",",range[2],")"
                    ,sep="")
-          ylabel<-"Transformed Licks"
+          ylabel<-"Transformed Totoal Licks (A+B)"
           Licks<-Licks^0.25
         }
         else {
-          r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
-          ylabel<-"Licks"
+          r<-paste("Total Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          ylabel<-"Total Licks (A+B)"
         }
         results<-data.frame(results,Licks)
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
@@ -758,11 +764,11 @@ FeedingEvents.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
     tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE)
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
-    Licks<-results$LicksA+results$LicksB
-    results<-data.frame(results,Licks)
-    r<-paste("Events -- Range(min): (",range[1],",",range[2],")",sep="")
+    Events<-results$EventsA+results$EventsB
+    results<-data.frame(results,Events)
+    r<-paste("Total Events -- Range(min): (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+            ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Total Events (A+B)") + guides(fill=FALSE))
   }
   else {
     p<-list()
@@ -771,11 +777,11 @@ FeedingEvents.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
         tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
-        Licks<-results$LicksA+results$LicksB
-        results<-data.frame(results,Licks)
-        r<-paste("Events -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        Licks<-results$EventsA+results$EventsB
+        results<-data.frame(results,Events)
+        r<-paste("Total Events -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+                    ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Total Events (A+B)") + guides(fill=FALSE))
       })
     if(divisions<5)
       numcols<-2
@@ -1082,8 +1088,14 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-chamber DFM only")
   
-  wellA<-dfm$Parameters$Chamber.Sets[1,1]
-  wellB<-dfm$Parameters$Chamber.Sets[1,2] 
+  if(dfm$Parameters$PI.Multiplier==1){
+    wellA<-dfm$Parameters$Chamber.Sets[1,1]
+    wellB<-dfm$Parameters$Chamber.Sets[1,2] 
+  }
+  else {
+    wellB<-dfm$Parameters$Chamber.Sets[1,1]
+    wellA<-dfm$Parameters$Chamber.Sets[1,2] 
+  }
   
   ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
   ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
@@ -1095,8 +1107,15 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   result<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
   
   for(i in 2:nrow(dfm$Parameters$Chamber.Sets)) {
-    wellA<-dfm$Parameters$Chamber.Sets[i,1]
-    wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+    if(dfm$Parameters$PI.Multiplier==1){
+      wellA<-dfm$Parameters$Chamber.Sets[i,1]
+      wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+    }
+    else {
+      wellB<-dfm$Parameters$Chamber.Sets[i,1]
+      wellA<-dfm$Parameters$Chamber.Sets[i,2] 
+    }
+    
     ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
     ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
     etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
