@@ -1741,6 +1741,8 @@ GetTreatmentForChamber<-function(dfmNum,chamberNum,expdesign){
   else
     return(as.character(tmp$Treatment))
 }
+
+## Need to fix treatment assignments in single and choice experiments!!
 AppendTreatmentonResultsFrame<-function(results,expdesign){
   Treatment<-rep(NA,nrow(results))
   for(i in 1:nrow(results)){

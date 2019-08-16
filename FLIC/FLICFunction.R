@@ -1,8 +1,8 @@
 ## Used to make the file for distribution
 
 rm(list=ls())
-source("TwoWellChamber.R")
-source("SingleWellChamber.R")
+source("CommonChamber.R")
+source("ChoiceFunctions.R")
 source("MiscFunctions.R")
 save.image(file="FLICFunctions")
 

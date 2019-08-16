@@ -13,3 +13,9 @@ fsummary<-Feeding.Summary.Monitors(monitors,p2,ed)
 binfsummary<-BinnedFeeding.Summary.Monitors(monitors,p2,binsize.min=60,ed)
 Feeding.EventsPlot.Trt(monitors,p2,ed,divisions=4)
 Feeding.LicksPlot.Trt(monitors,p2,ed,divisions=4)
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 
+
+p2<-ParametersClass.TwoWell()
+p2<-SetParameter(p2,PI.Multiplier=-1)

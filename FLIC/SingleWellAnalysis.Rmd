@@ -1,7 +1,7 @@
 ---
-title: "FLIC: Data Analysis Part 3: Analysis of Single Well Chambers"
+title: "FLIC: Data Analysis Part 2: Grouped Analysis and Treatments"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "8/12/2019"
+date: "8/16/2019"
 output: html_document
 ---
 
@@ -9,22 +9,80 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+## Overview
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This document will describe  functions that manage groups of DFMs, which may or may not be associated with each other as part of an experimental design. Functions appended with *.Monitors* act on groups of DFM and may or may not accept an optional experimental design argument  Functions appended with *.Trt* require an experimental design argument and seek to present a more complete analysis of different treatments, across DFMs and chambers.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+## DFM Groups Without Design Structure
 
-```{r cars}
-summary(cars)
+When *Monitors* functions are used without an experimental design argument, they effectively serve to batch process the functions that operate on individual DFM, which are described in the *Getting Started* document.
+For these functions you must provide a numerical vector whose elements list the DFM numbers that you wish to analyze. You must aslo supply either a single parameters object or a list of parameters objects. If a single parameters object is provided, then it will apply to all monitors in the list.  If a list of parameters objects is provided, then it must be the same length as the monitors list, and each parameter object will be applied to its respective DFM. As usual, a range may be specificed (in minutes) if desired.  These batch functions can take a significant amount of time to run (sometimes many hours) if you have several DFMs and more than 48 hours of data. Remember that each DFM reports 5,184,000 signal values in 24 hours (it actually collects 200x that)!
+
+For the examples in this document we will use DFM data from two different experiments.  First, a single-well experiment that used four DFMs(DFM1-DFM4), which lasted 1080 minutes (18 hours), and second, a choice experiment that used seven DFMs (DFM11-17) and lasted 360 minutes (6 hours). First, we will attach the FLICFunctions object and load the required libraries.
+
+```{r}
+library(ggplot2)
+library(stats)
+library(gridExtra)
+library(reshape2)
+attach("FLICFunctions",pos=2)
 ```
 
-## Including Plots
+Now let's load in the data for our two experiments.  For the single-well experiment we will accept the default parameters and set the list of monitors
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+p.single<-ParametersClass.SingleWell()
+monitors.single<-c(1,2,3,4)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The choice experiment followed good design principles and swapped the food wells (sucrose vs. denatonium) on different DFM. On DFMs 11, 13, 15, and 17, denatonium food was made available from the right well in each chamber with standard sucrose food on the left.  In DFMs 12, 14, and 16, the food was switched such that denatonium was present on the left side and sucrose on the right. We will choose to present the data in terms of preference FOR denatonium.  Thus, we would like to set PI.Multiplier to 1 when denatonium is present in the left well and -1 when it is present in the right well.
+
+First create the two parameters objects, which will be identical except for the PI.Multiplier. Then set our monitor vector for the choice experiment and also define the list of parameter objects that will be associated with each monitor.
+
+```{r}
+p.choice.one<-ParametersClass.TwoWell()
+p.choice.two<-ParametersClass.TwoWell()
+p.choice.two<-SetParameter(p.choice.two,PI.Multiplier=-1.0)
+monitors.choice<-c(11,12,13,14,15,16,17)
+p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two)
+```
+
+In general, *.Monitors* and *.Trt* functions will automatically read in DFM data if they haven't been already (i.e., if a background DFM object is not alread present). So there is no need to load them with separate *DFMClass()* statements.  It will also update the DFM object with the parameter values that are specified if the values are different from those in the existing DFM object.  These functions effectively call *DFMClass()* for each monitor (see *Getting Started* documentation for details).
+
+To output the baselined data for DFM use the *OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0))* function.  Because these files can be extremely large, a separate file is saved for each DFM.  These files will be formatted similarly for single-well and choice experiments. Console feeding is provided because these functions can take quite some time.
+```{r}
+OutputBaselinedData.Monitors(monitors.single,p.single)
+OutputBaselinedData.Monitors(monitors.choice,p.choice.list, range=c(0,15)) ## Applies parameters objects to DFM objects elementwise.
+```
+
+
+Similarly, the other types of data can be saved to a text file in the same manner through their corresponding monitors functions.
+```{r}
+OutputIntervalData.Monitors(monitors.single,p.single)
+OutputIntervalData.Monitors(monitors.choice,p.choice.list)
+```
+
+This function groups multiple DFMs into a single file and indicate each in a "DFM" column in the output.  Both functions also report data for Well Number, which represents the physical location of the well and is not adjusted for PI.Multiplier.
+
+
+
+The feeding summary data for the list of DFMs can be output to a .csv file and/or returned as an object. For reasons that will become clear when presented treatment-based analyses, the results are obtained from returned object $Results component. 
+```{r}
+f.summary<-Feeding.Summary.Monitors(dfms,different.ps,range=c(0,0),file.output = TRUE)
+head(f.summary$Results[,1:8])
+```
+Remember the default behavior here is to transform the number of licks.
+
+Some of these functions are able to accept a defined experimental design for treatment-based analysis.  They can be identified by looking at the function definition for an *expDesign=* option. 
+```{r}
+Feeding.Summary.Monitors
+```
+In short, these functions make it easy to output data and visualize results among different genotypes, environments, and other manipulations.  Details on how to incorporate experimental designs into your analysis are available in the markdown files for single-well and choice experiments.
+
+
+
+Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
+BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
+PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE)
+OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0))
+OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0))

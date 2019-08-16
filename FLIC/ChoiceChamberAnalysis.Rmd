@@ -1,5 +1,5 @@
 ---
-title: "FLIC: Data Analysis Part 3: Analysis of Two Well (Choice) Chambers"
+title: "FLIC: Data Analysis Part 3: Analysis of choice Experiments"
 author: "Scott Pletcher and the Pletcher Lab"
 date: "8/12/2019"
 output: html_document

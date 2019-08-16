@@ -36,4 +36,5 @@ vignettes/*.pdf
 # DFM data files and analysis outputs.
 *.pdf
 *.csv
+*.png
 

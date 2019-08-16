@@ -175,7 +175,6 @@ PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE)
     ylab(ylabel)
   gp
 }
-
 ## This function will output the baselined (and cleaned) analog
 ## values (along with minutes, parameter values, etc) to a 
 ## separate .csv file for each chamber in each of the specified monitors.
@@ -346,7 +345,6 @@ GetIntervalData.DFM<-function(dfm,range){
   }
   result
 }
-
 RawDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE) {
   ##windows(record=FALSE,width=8,height=12) # opens a window and starts recording
   tmp<-RawData(dfm,range)
@@ -425,17 +423,38 @@ CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
       tmp<-rbind(tmp,fake.entry) 
     }
   }
+  if(dfm$Parameters$Chamber.Size==2){
+    
+    even<-(as.numeric(as.character(tmp$Well))%%2==0)
+    if(dfm$Parameters$PI.Multiplier==1){
+      WellTC<-rep("WellA",nrow(tmp))
+      WellTC[even]<-"WellB"
+    }
+    else {
+      WellTC<-rep("WellB",nrow(tmp))
+      WellTC[even]<-"WellA"
+    }
+    tmp<-data.frame(tmp,WellTC)
+  }
+
   if(TransformLicks==TRUE)
     ylabel="Transformed Cumulative Licks"
   else
     ylabel="Cumulative Licks"
   if(SinglePlot==FALSE) {
-    gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
-      ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
+    if(dfm$Parameters$Chamber.Size==1) {
+      gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
+        ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
+    }
+    else {
+      gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(WellTC)) +geom_point() +
+        ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
+    }
+    
   }
   else {
-    gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line(size=1.2) +
-      ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Well")
+      gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line(size=1.2) +
+        ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Well")
   }
   gp
 }
