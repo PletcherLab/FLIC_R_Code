@@ -1571,6 +1571,55 @@ AggregateTreatmentsBinnedData<-function(results){
   tmp
 }
 
+
+
+GetTCWellFromWell<-function(dfm,well){
+  if(dfm$Parameters$Chamber.Size==1){
+    well<-NA
+  }
+  else {
+    if(well==1 || well==3 || well==5 || well==7 || well==9 || well==11){
+      if(dfm$Parameters$PI.Multiplier==1) {
+        well<-"WellA"
+      }  
+      else {
+        well<-"WellB"
+      }
+    }
+      
+    else {
+      if(dfm$Parameters$PI.Multiplier==1) {
+        well<-"WellB"
+      }  
+      else {
+        well<-"WellA"
+      } 
+    }
+  }
+  well
+}
+GetChamberFromWell<-function(dfm,well){
+  if(dfm$Parameters$Chamber.Size==1){
+    chamber<-well
+  }
+  else {
+    if(well==1 || well==2)
+      chamber<-1
+    else if(well==3 || well==4)
+      chamber<-2
+    else if(well==5 || well==6)
+      chamber<-3
+    else if(well==7 || well==8)
+      chamber<-4
+    else if(well==9 || well==10)
+      chamber<-5
+    else if(well==11 || well==12)
+      chamber<-6
+  }
+  chamber
+}
+
+
 AggregateTreatments<-function(results){
   trt.summary1<-aggregate(results,by=list(results$Treatment),mean) 
   trt.summary2<-aggregate(results,by=list(results$Treatment),mySEM)
@@ -1639,14 +1688,18 @@ GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   
   theData<-dfm$Intervals[[nameA]]
   
-  tmpA<-data.frame(rep(well,nrow(theData)),theData)
-  names(tmpA)<-c("Well","Minutes","Sample","IntervalSec")
+  Well<-rep(well,nrow(theData))
+  chamber<-rep(GetChamberFromWell(dfm,well),nrow(theData))
+  TCWell<-rep(GetTCWellFromWell(dfm,well),nrow(theData))
+  DFM<-rep(dfm$ID,nrow(theData))
   
-  tmp<-data.frame(cbind(rep(dfm$ID,nrow(tmpA)),tmpA))
-  tmp2<-matrix(rep(parameter.vector,nrow(tmp)),ncol=length(parameter.vector),byrow=TRUE)
+  tmpA<-data.frame(DFM,chamber,TCWell,Well,theData)
+  tmp2<-matrix(rep(parameter.vector,nrow(tmpA)),ncol=length(parameter.vector),byrow=TRUE)
+  tmp3<-data.frame(tmpA,tmp2)
+  names(tmp3)<-c("DFM","Chamber","TCWell","Well","Minutes","Sample","IntervalSec",pnames)
   
-  tmp3<-cbind(tmp,tmp2)
-  names(tmp3)<-c("DFM","Well","Minutes","Sample","IntervalSec",pnames)
+  if(dfm$Parameters$Chamber.Size==1)
+    tmp3<-tmp3[,!names(tmp3) %in% "TCWell"]
   
   tmp3
 }
@@ -1736,14 +1789,16 @@ mySEM<-function(x){
 GetTreatmentForChamber<-function(dfmNum,chamberNum,expdesign){
   tmp<-subset(expdesign,DFM==dfmNum)
   tmp<-subset(tmp,Chamber==chamberNum)
-  if(nrow(tmp)==0)
+  if(nrow(tmp)!=1)
     return("None")
   else
     return(as.character(tmp$Treatment))
 }
-
 ## Need to fix treatment assignments in single and choice experiments!!
 AppendTreatmentonResultsFrame<-function(results,expdesign){
+  isChamberThere<-"Chamber" %in% names(results)
+  if(isChamberThere==FALSE)
+    stop("Need a chamber to assign treatment.")
   Treatment<-rep(NA,nrow(results))
   for(i in 1:nrow(results)){
     Treatment[i]<-GetTreatmentForChamber(results$DFM[i],results$Chamber[i],expdesign)

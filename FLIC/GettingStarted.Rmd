@@ -357,3 +357,25 @@ OutputBaselinedData.DFM(dfm.choice, range=c(0,100)) # Remember DFM11 and dfm.cho
 ```
 
 
+## Function Definition Reference
+Listed below are the functions used in this document along with their argument list showing optional parameters and their default values.  You should know what each of these functions does and what each argument represents before moving on to the remaining documentation. It is important that these functions, and the larger set of R Code for the FLIC, are not treated as a black box. In our experience the FLIC system provides remarkable insights, but the data are large and complex and must be managed carefully to ensure that mistakes are avoided.
+
+```{ eval=FALSE}
+ParametersClass.SingleWell()
+ParametersClass.TwoWell()
+DFMClass(id,parameters,range=c(0,0))
+DFMClass.LinkFiles(id,parameters,range=c(0,0))
+FindDataBreaks(dfm,multiplier=4,returnvals=TRUE)
+ChangeParameterObject(dfm,newP)
+FirstSampleData(dfm)
+LastSampleData(dfm)
+CleanDFM()
+
+Feeding.Summary.DFM(dfm,range=c(0,0),TransformLicks=TRUE)
+BinnedFeeding.Summary.DFM(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE)
+OutputBaselinedData.DFM(dfm, range=c(0,0))
+GetIntervalData.DFM(dfm,range)
+RawDataPlot.DFM(dfm,range=c(0,0),OutputPNGFile=FALSE)
+BaselinedDataPlot.DFM(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThresholds=FALSE)
+BinnedLicksPlot.DFM(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE)
+```

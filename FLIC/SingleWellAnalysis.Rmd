@@ -47,6 +47,8 @@ monitors.choice<-c(11,12,13,14,15,16,17)
 p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two)
 ```
 
+
+
 In general, *.Monitors* and *.Trt* functions will automatically read in DFM data if they haven't been already (i.e., if a background DFM object is not alread present). So there is no need to load them with separate *DFMClass()* statements.  It will also update the DFM object with the parameter values that are specified if the values are different from those in the existing DFM object.  These functions effectively call *DFMClass()* for each monitor (see *Getting Started* documentation for details).
 
 To output the baselined data for DFM use the *OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0))* function.  Because these files can be extremely large, a separate file is saved for each DFM.  These files will be formatted similarly for single-well and choice experiments. Console feeding is provided because these functions can take quite some time.
@@ -62,16 +64,26 @@ OutputIntervalData.Monitors(monitors.single,p.single)
 OutputIntervalData.Monitors(monitors.choice,p.choice.list)
 ```
 
-This function groups multiple DFMs into a single file and indicate each in a "DFM" column in the output.  Both functions also report data for Well Number, which represents the physical location of the well and is not adjusted for PI.Multiplier.
+This function groups multiple DFMs into a single file and indicate each in a DFM column in the output, as well as the appropriate chamber.  Both functions also report data for Well Number, which represents the physical location of the well and which is not adjusted for PI.Multiplier. For choice chambers, there is a TCWell column that reflects the PI.Multiplier and contains values of "WellA" and "WellB".   
 
-
-
-The feeding summary data for the list of DFMs can be output to a .csv file and/or returned as an object. For reasons that will become clear when presented treatment-based analyses, the results are obtained from returned object $Results component. 
+The *OutputTotalFeeding.Monitors(monitors,parameters,expDesign=NA,range=c(0,0))* function will save the total feeding time (in seconds) for each well. Data from choice experiments are adjusted for the PI.Multiplier as indicated by the columnnames that include reference to WellA and WellB.
 ```{r}
-f.summary<-Feeding.Summary.Monitors(dfms,different.ps,range=c(0,0),file.output = TRUE)
-head(f.summary$Results[,1:8])
+OutputTotalFeeding.Monitors(monitors.single,p.single)
+OutputTotalFeeding.Monitors(monitors.choice,p.choice.list)
 ```
-Remember the default behavior here is to transform the number of licks.
+
+The feeding summary data for the list of DFMs can be output to a .csv file and/or returned as an object. For reasons that will become clear when we introduce treatment-based analyses below, the results are obtained from the *$Results* component of the returned object.
+```{r}
+f.summary<-Feeding.Summary.Monitors(monitors.single,p.single,SaveToFile = TRUE)
+f.summary2<-Feeding.Summary.Monitors(monitors.choice,p.choice.list,SaveToFile = TRUE)
+head(f.summary$Results[,1:10])
+```
+Remember the default behavior here is to transform the number of licks to the 0.25 power. Please refer to the *Getting Started* document for an explanation of each summary metric.  For the choice chamber, there is a value for WellA and WellB
+
+**NOTE:** It is absolutely critical that you understand how parameters objects are assigned to DFMs and that you get the parameter values and PI.Multipliers correct for each DFM.  Otherwise, your feeding data will be incorrect, and differences among chambers and among treatments will be obfuscated. If you do get it wrong, it will not necessarily be obvious from the plots or from the data output, given the size and complexity of the FLIC data. Please evaluate the summary data and ensure that it matches your expectations and the expectations generated from examination of the individual DFMs, as described in the *Getting Started* document. It is at this point that you should take your time and be certain the data are properly loaded and sumamrized. Only after you are comfortable should you move on to explore the experiments in different ways using the treatment-based functions (below), the functions that evaluate preference (*Analysis of choice Experiments* document), and the advanced functions for specialized analyses (*Advanced Analyses* document).
+
+## Treatment-Based Analysis
+
 
 Some of these functions are able to accept a defined experimental design for treatment-based analysis.  They can be identified by looking at the function definition for an *expDesign=* option. 
 ```{r}
@@ -81,8 +93,21 @@ In short, these functions make it easy to output data and visualize results amon
 
 
 
-Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
 BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
 PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE)
+
+
+
+Feeding.LicksPlot.Trt
+
+
+## Function Definition Reference
+Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
+BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
+PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE)
+
+OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0))
 OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0))
 OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0))
+CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE)
+
