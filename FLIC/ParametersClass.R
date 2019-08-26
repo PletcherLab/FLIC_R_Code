@@ -5,7 +5,7 @@ ParametersClass=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10
-  Tasting.Threshold.Interval=c(10,20)
+  Tasting.Interval=c(10,20)
   Feeding.Minevents=2
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -13,8 +13,8 @@ ParametersClass=function(){
   Chamber.Size=2
   PI.Multiplier=1
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
-       Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Threshold.Interval[1],
-       Tasting.Maximum=Tasting.Threshold.Interval[2],
+       Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Interval[1],
+       Tasting.Maximum=Tasting.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
@@ -22,7 +22,7 @@ ParametersClass.SingleWell=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10  
-  Tasting.Threshold.Interval=c(10,20)
+  Tasting.Interval=c(10,20)
   Feeding.Minevents=2
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -30,8 +30,8 @@ ParametersClass.SingleWell=function(){
   Chamber.Size=1
   PI.Multiplier=0
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
-       Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Threshold.Interval[1],
-       Tasting.Maximum=Tasting.Threshold.Interval[2],
+       Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Interval[1],
+       Tasting.Maximum=Tasting.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
@@ -39,7 +39,7 @@ ParametersClass.TwoWell=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10
-  Tasting.Threshold.Interval=c(10,20)
+  Tasting.Interval=c(10,20)
   Feeding.Minevents=2
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -47,14 +47,14 @@ ParametersClass.TwoWell=function(){
   Chamber.Size=2
   PI.Multiplier=1
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
-       Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Threshold.Interval[1],
-       Tasting.Maximum=Tasting.Threshold.Interval[2],
+       Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Interval[1],
+       Tasting.Maximum=Tasting.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
        Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
 }
 
 ## change the initial values using this function
-SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feeding.Minimum=NA, Tasting.Threshold.Interval=NA,
+SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feeding.Minimum=NA, Tasting.Interval=NA,
                        Feeding.Minevents=NA,Tasting.Minevents=NA,
                        Samples.Per.Sec=NA, Chamber.Size=NA, PI.Multiplier=NA){
   tmp.O<-options()
@@ -69,9 +69,9 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feedin
   if(!is.na(Feeding.Minimum)) {
     p$Feeding.Minimum=Feeding.Minimum
   }
-  if(!is.na(Tasting.Threshold.Interval)) {
-    p$Tasting.Minimum=Tasting.Threshold.Interval[1]
-    p$Tasting.Maximum=Tasting.Threshold.Interval[2]
+  if(!is.na(Tasting.Interval)) {
+    p$Tasting.Minimum=Tasting.Interval[1]
+    p$Tasting.Maximum=Tasting.Interval[2]
   }
   if(!is.na(Feeding.Minevents)){
     p$Feeding.Minevents=Feeding.Minevents

@@ -855,7 +855,9 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
   else {
     if(range[2]==0){
       ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
+      if(is.na(dfm))
+        stop("DFM Missing")
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -885,6 +887,8 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
             ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    r2<-paste("\n** ",r," **\n")
+    cat(r2)
     print(summary(aov(Licks~Treatment,data=results)))
   }
   else {
@@ -895,13 +899,15 @@ FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
         if(TransformLicks==TRUE){
-          r<-paste("Transformed Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          r<-paste("Transformed Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
           ylabel<-"Transformed Licks"
         }
         else {
-          r<-paste("Licks -- Range(min): (",range[1],",",range[2],")",sep="")
+          r<-paste("Licks -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
           ylabel<-"Licks"
         }
+        r2<-paste("\n** ",r," **\n")
+        cat(r2)
         print(summary(aov(Licks~Treatment,data=results)))
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                     ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
@@ -931,8 +937,9 @@ FeedingEvents.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
+      if(is.na(dfm))
+        stop("DFM Missing")
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -951,9 +958,9 @@ FeedingEvents.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
     tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,range,FALSE)
     results<-tmp$Results
     results<-subset(results,Treatment!="None")
-    r<-paste("Events -- Range(min): (",range[1],",",range[2],")",sep="")
+    r<-paste("Events-Range: (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
+            ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Events") + guides(fill=FALSE))
     cat("** ANOVA results Full Range **\n\n")
     print(summary(aov(Events~Treatment,data=results)))
   }
@@ -964,7 +971,7 @@ FeedingEvents.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
         tmp<-Feeding.Summary.Monitors(monitors,parameters,expDesign,ranges[i,],FALSE)
         results<-tmp$Results
         results<-subset(results,Treatment!="None")
-        r<-paste("Events -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        r<-paste("Events-Range: (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                     ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Licks") + guides(fill=FALSE))
         ppp<-paste("\n** ANOVA results -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
@@ -995,8 +1002,7 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -1024,7 +1030,8 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
       ylabel<-"Total Licks (A+B)"
     }
     results<-data.frame(results,Licks)
-    cat("** ANOVA results Full Range **\n\n")
+    r2<-paste("\n** ",r," **\n")
+    cat(r2)
     print(summary(aov(Licks~Treatment,data=results)))
     print(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
             ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
@@ -1050,8 +1057,8 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
           ylabel<-"Total Licks (A+B)"
         }
         results<-data.frame(results,Licks)
-        ppp<-paste("\n** ANOVA results -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
-        cat(ppp)
+        r2<-paste("\n** ",r," **\n")
+        cat(r2)
         print(summary(aov(Licks~Treatment,data=results)))
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                     ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
@@ -1081,8 +1088,7 @@ FeedingEvents.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -1103,7 +1109,7 @@ FeedingEvents.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
     results<-subset(results,Treatment!="None")
     Events<-results$EventsA+results$EventsB
     results<-data.frame(results,Events)
-    r<-paste("Total Events -- Range(min): (",range[1],",",range[2],")",sep="")
+    r<-paste("Events-Range: (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
             ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Total Events (A+B)") + guides(fill=FALSE))
     cat("** ANOVA results Full Range **\n\n")
@@ -1118,7 +1124,7 @@ FeedingEvents.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),d
         results<-subset(results,Treatment!="None")
         Events<-results$EventsA+results$EventsB
         results<-data.frame(results,Events)
-        r<-paste("Total Events -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+        r<-paste("Events-Range: (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                     ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab("Total Events (A+B)") + guides(fill=FALSE))
         ppp<-paste("\n** ANOVA results -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
@@ -1149,8 +1155,7 @@ FeedingMeanDuration.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -1171,7 +1176,7 @@ FeedingMeanDuration.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(
     results<-subset(results,Treatment!="None")
     r<-paste("Durations -- Range(min): (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$MeanDuration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Duration") + guides(fill=FALSE))
+            ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Mean Duration (sec)") + guides(fill=FALSE))
     print(summary(aov(MeanDuration~Treatment,data=results)))
   }
   else {
@@ -1183,7 +1188,7 @@ FeedingMeanDuration.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(
         results<-subset(results,Treatment!="None")
         r<-paste("Durations -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MeanDuration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Duration") + guides(fill=FALSE))
+                    ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Mean Duration (sec)") + guides(fill=FALSE))
         print(summary(aov(MeanDuration~Treatment,data=results)))
       })
     if(divisions<5)
@@ -1210,8 +1215,7 @@ FeedingMeanTimeBtw.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -1272,8 +1276,7 @@ FeedingMeanDuration.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -1296,7 +1299,7 @@ FeedingMeanDuration.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(
     results<-data.frame(results,MeanDuration)
     r<-paste("Durations -- Range(min): (",range[1],",",range[2],")",sep="")
     print(ggplot(results, aes(results$Treatment, results$MeanDuration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Duration") + guides(fill=FALSE))
+            ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Mean Duration (A and B)") + guides(fill=FALSE))
     print(summary(aov(MeanDuration~Treatment,data=results)))
   }
   else {
@@ -1310,7 +1313,7 @@ FeedingMeanDuration.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(
         results<-data.frame(results,MeanDuration)
         r<-paste("Durations -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
         p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MeanDuration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                    ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Duration") + guides(fill=FALSE))
+                    ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab("Mean Duration (A and B") + guides(fill=FALSE))
         print(summary(aov(MeanDuration~Treatment,data=results)))
       })
     if(divisions<5)
@@ -1338,8 +1341,7 @@ FeedingMeanTimeBtw.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0
     ranges[1,]<-range
   else {
     if(range[2]==0){
-      ## Come back to here
-      dfm<-DFMClass(monitors[1],parameters)
+      dfm<-GetDFM(monitors[1])
       last.time<-LastSampleData(dfm)$Minutes
       breaks<-seq(from=range[1], to=last.time, length=divisions+1)
       ranges.1<-range[1]
@@ -1704,9 +1706,7 @@ GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   tmp3
 }
 BinnedLicksPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
-  if(parameters$Chamber.Size!=2)
-    stop("This function is for one chamber DFM only")
-  
+
   if(TransformLicks==TRUE){
     ylabel<-"Transformed Licks"
   }
@@ -1776,6 +1776,63 @@ BinnedLicksPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesi
   cat("** Interval specific ANOVA results **\n\n")
   lapply(l,summary)
 }
+
+BinnedEventsPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
+  
+  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
+  tmpA<-data.frame(data$Stats[,c(1,3,6,10)],rep("WellA",nrow(data$Stats)))
+  names(tmpA)<-c("Treatment","Min","Events","EventsSEM","Well")
+  tmpB<-data.frame(data$Stats[,c(1,3,7,11)],rep("WellB",nrow(data$Stats)))
+  names(tmpB)<-c("Treatment","Min","Events","EventsSEM","Well")
+  
+  newData<-rbind(tmpA,tmpB)
+  
+  pd <- position_dodge(5) # move them .05 to the left and right
+  gp<-ggplot(newData,aes(x=Min,y=Events,color=Treatment,group=Treatment)) + 
+    geom_errorbar(aes(ymin=Events-EventsSEM, ymax=Events+EventsSEM,color=Treatment), width=.1, position=pd) +
+    geom_line(position=pd,size=1) + facet_wrap(~Well)+
+    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Events")
+  show(gp)
+  
+  if(SaveToFile==TRUE){
+    filename<-paste("BinnedEventsPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
+    ggsave(filename,gp)
+  }
+  
+  tmp2<-data$Results
+  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksA ~ Treatment)
+  cat("\n\n\n** Interval specific ANOVA results for Well A **\n\n")
+  print(lapply(l,summary))
+  
+  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksB ~ Treatment)
+  cat("\n\n\n** Interval specific ANOVA results for Well B **\n\n")
+  print(lapply(l,summary))
+}
+BinnedEventsPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
+ 
+  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
+  tmp<-data$Stats
+  
+  pd <- position_dodge(5) # move them .05 to the left and right
+  gp<-ggplot(tmp,aes(x=Min,y=Events,color=Treatment,group=Treatment)) + 
+    geom_errorbar(aes(ymin=Events-EventsSEM, ymax=Events+EventsSEM,color=Treatment), width=.1, position=pd) +
+    geom_line(position=pd,size=1) +
+    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Events")
+  show(gp)
+  
+  
+  if(SaveToFile==TRUE){
+    filename<-paste("BinnedEventsPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
+    ggsave(filename,gp)
+  }
+  
+  
+  tmp2<-data$Results
+  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=Licks ~ Treatment)
+  cat("** Interval specific ANOVA results **\n\n")
+  lapply(l,summary)
+}
+
 
 ## Private Utilities
 mySEM<-function(x){

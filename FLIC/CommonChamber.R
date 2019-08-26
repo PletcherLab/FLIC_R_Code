@@ -10,47 +10,91 @@ require(reshape2)
 
 ## Although it is not optimal, the two-well aspect of these functions just adds or averages the values of
 ## both wells.  In the future this should probably present values for each well, adjusted for the PI multiplier.
-Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(parameters$Chamber.Size==1)
+Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE){
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+   if(cs==1)
     FeedingLicks.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(parameters$Chamber.Size==2)
+  else if(cs==2)
     FeedingLicks.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
 Feeding.EventsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(parameters$Chamber.Size==1)
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+  if(cs==1)
     FeedingEvents.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(parameters$Chamber.Size==2)
+  else if(cs==2)
     FeedingEvents.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
 Feeding.MeanDurationsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(parameters$Chamber.Size==1)
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+  if(cs==1)
     FeedingMeanDuration.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(parameters$Chamber.Size==2)
+  else if(cs==2)
     FeedingMeanDuration.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
 Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(parameters$Chamber.Size==1)
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+  if(cs==1)
     FeedingMeanTimeBtw.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(parameters$Chamber.Size==2)
+  else if(cs==2)
     FeedingMeanTimeBtw.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
 Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
-  if(parameters$Chamber.Size==1)
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+  if(cs==1)
     BinnedLicksPlot.OneWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)
-  else if(parameters$Chamber.Size==2)
+  else if(cs==2)
     BinnedLicksPlot.TwoWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
 
+Feeding.BinnedEventsPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+  if(cs==1)
+    BinnedEventsPlot.OneWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile)
+  else if(cs==2)
+    BinnedEventsPlot.TwoWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile)
+  else
+    stop("Feeding lick plots not implemented for this DFM type.")    
+}
 
 ###################################
 ## Will output Feeding.Summary data for each chamber in each monitor
@@ -163,16 +207,28 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     return(list(Results=results))
   }
 }
+
+
 PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
-  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)
-  tmp2<-tmp2$Results
+  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)$Results
+  
   ylabel="Licks"
   if(TransformLicks==TRUE) {
     ylabel="Transformed Licks"
   }
+ 
   tmp2$DFM<-factor(tmp2$DFM)
-  gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
-    ylab(ylabel)
+  
+  if("LicksA" %in% names(tmp2)){
+   tmp2<-tmp2[,c("DFM","LicksA","LicksB")]
+   tmp2<-melt(tmp2,id.vars="DFM",value.name="Licks", variable.name="Well")
+   gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=Well)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
+     ylab(ylabel)
+  }
+  else {
+    gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
+      ylab(ylabel)
+  }
   gp
 }
 ## This function will output the baselined (and cleaned) analog

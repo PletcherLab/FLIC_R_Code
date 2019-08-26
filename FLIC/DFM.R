@@ -219,3 +219,15 @@ ChangeParameterObject<-function(dfm,newP) {
   dfm
 }
 
+GetDFM<-function(id){
+  if (!is.numeric(id) || !all(is.finite(id)))
+    stop("invalid arguments")
+  
+  ## Check to determine whether the DFM object already exists
+  st<-paste("DFM",id,sep="")
+  data<-NA
+  if(exists(st,where=1)) {
+    data<-get(st)  
+  }
+  data
+}
