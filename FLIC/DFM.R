@@ -208,9 +208,6 @@ ChangeParameterObject<-function(dfm,newP) {
   else if(eventpi.flag==TRUE) {
     dfm<-Set.Feeding.Data(dfm)
     dfm<-Set.Tasting.Data(dfm)
-    if(dfm$Parameters$Chamber.Size==2){
-      dfm<-Set.PI.Data(dfm) 
-    }
     dfm<-Set.Durations.And.Intervals(dfm)
     dfm<-Set.Tasting.Durations.And.Intervals(dfm)
   }

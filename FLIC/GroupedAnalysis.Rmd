@@ -280,7 +280,7 @@ Feeding.BinnedEventsPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
 
 ```
 
-```{r, fig.width=5, fig.height=5.5}
+```{r, fig.width=5, fig.height=5.5, fig.width=8}
 Feeding.BinnedEventsPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDesign)
 
 ```

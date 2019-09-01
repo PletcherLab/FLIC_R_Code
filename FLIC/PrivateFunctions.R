@@ -54,9 +54,7 @@ SetThreshold = function(dfm,getStandard=TRUE) {
   ## Now update the licks and PI
   dfm<-Set.Feeding.Data(dfm)
   dfm<-Set.Tasting.Data(dfm)
-  if(dfm$Parameters$Chamber.Size==2){
-    dfm<-Set.PI.Data(dfm) 
-  }
+  
   #Other measures
   dfm<-Set.Durations.And.Intervals(dfm)
   dfm<-Set.Tasting.Durations.And.Intervals(dfm)
@@ -140,57 +138,6 @@ Set.Tasting.Data.Well<-function(dfm,well){
   Events[Events<dfm$Parameters$Tasting.Minevents]<-0
   
   data.frame(Licks,Events)
-}
-Set.PI.Data<-function(dfm){
-  ## Get the Feeding.PI
-  cnames<-paste("C",1:nrow(dfm$Parameters$Chamber.Sets),sep="")
-  Minutes<-dfm$BaselineData$Minutes
-  for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
-    
-    ## Conflicts are defined as both pads with signal greater than the
-    ## minimum value of all feeding and tasting thresholds
-    wellA<-dfm$Parameters$Chamber.Sets[i,1]
-    wellB<-dfm$Parameters$Chamber.Sets[i,2]
-    
-    FeedingLicksA<-FeedingData.Well.Licks(dfm,wellA)
-    FeedingLicksB<-FeedingData.Well.Licks(dfm,wellB)
-    
-    ## Here it is the instantaneous PI
-    Feeding.PI<-FeedingLicksA - FeedingLicksB  
-    
-    ## Temporarily eliminate duration information for EventPI.
-    tmpA<-FeedingData.Well.Events(dfm,wellA)
-    tmpA[tmpA>0]<-1
-    tmpB<-FeedingData.Well.Events(dfm,wellB)
-    tmpB[tmpB>0]<-1
-    Feeding.EventPI<-tmpA-tmpB
-    
-    TastingLicksA<-TastingData.Well(dfm,wellA)
-    TastingLicksB<-TastingData.Well(dfm,wellB)
-    
-    ## Here it is the instantaneous PI
-    Tasting.PI<-TastingLicksA - TastingLicksB  
-    
-    results<-data.frame(Minutes,Feeding.PI,Feeding.EventPI,Tasting.PI)
-    names(results)<-c("Minutes","Feeding.PI", "Feeding.EventPI","Tasting.PI")
-    
-    if(dfm$Parameters$PI.Multiplier!=1){
-      results$Feeding.PI<-results$Feeding.PI*dfm$Parameters$PI.Multiplier
-      results$Feeding.EventPI<-results$Feeding.EventPI*dfm$Parameters$PI.Multiplier
-      results$Tasting.PI<-results$Tasting.PI*dfm$Parameters$PI.Multiplier
-    }
-    
-    if(i==1){    
-      PIData=list(C1=results)      
-    }
-    else {
-      s<-paste("C",i,sep="")      
-      PIData[[s]]<-results    
-    }        
-  }
-  row.names(PIData)<-NULL
-  dfm$PIData<-PIData
-  dfm
 }
 Set.Fixed.Threshold<-function(dfm){
   tmp<-Set.Fixed.Threshold.Well(dfm,1)
@@ -481,6 +428,7 @@ FeedingData.Licks<-function(dfm,range=c(0,0)){
   }    
   data
 }
+
 ## Remember that this function returns a vector with 
 ## duration of event information as well.
 ## Need to set these to 1 to get number of events.
@@ -647,8 +595,12 @@ BaselinedData.Range.Well<-function(dfm,well,range=c(0,0)){
   x2<-max(tmp)
   c(x1,x2)
 }
-Minutes<-function(dfm) {
-  dfm$BaselineData$Minutes
+Minutes<-function(dfm,range=c(0,0)) {
+  data<-dfm$BaselineData$Minutes
+  if(sum(range)!=0) {
+    data<- data[(data>range[1] & data<range[2])]
+  }    
+  data
 }
 Feeding.Durations.Well<-function(dfm,well){
   cname=paste("W",well,sep="")
@@ -820,8 +772,7 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
     FLicks.b<-Feeding.TotalLicks.Well(dfm,wellB,range)
     FEvents.b<-Feeding.TotalEvents.Well(dfm,wellB,range) 
     
-    FPIs<-c(Feeding.FinalPI.Chamber(dfm,i,range),Feeding.FinalEventPI.Chamber(dfm,i,range))
-    
+    FPIs<-c((FLicks.a-FLicks.b)/(FLicks.a+FLicks.b),(FEvents.a-FEvents.b)/(FEvents.a+FEvents.b))
     if(i==1){
       result<-data.frame(matrix(c(dfm$ID,i,FPIs,FLicks.a,FLicks.b,FEvents.a,FEvents.b,unlist(dur.a),unlist(dur.b),unlist(interval.a),
                                   unlist(interval.b),unlist(intensity.a),unlist(intensity.b),range[1],range[2]),nrow=1))    
@@ -1846,6 +1797,16 @@ mySEM<-function(x){
 GetTreatmentForChamber<-function(dfmNum,chamberNum,expdesign){
   tmp<-subset(expdesign,DFM==dfmNum)
   tmp<-subset(tmp,Chamber==chamberNum)
+  if(nrow(tmp)!=1)
+    return("None")
+  else
+    return(as.character(tmp$Treatment))
+}
+gt<-function(df,expDesign){
+  return("hi")
+}
+GetTreatmentForRow<-function(df,expdesign){
+  tmp<-subset(expdesign,DFM==df["DFM"] & Chamber==df["Chamber"])
   if(nrow(tmp)!=1)
     return("None")
   else

@@ -80,7 +80,6 @@ Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesi
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-
 Feeding.BinnedEventsPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size
@@ -500,17 +499,17 @@ CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
   if(SinglePlot==FALSE) {
     if(dfm$Parameters$Chamber.Size==1) {
       gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
-        ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
+        ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Chamber")
     }
     else {
       gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(WellTC)) +geom_point() +
-        ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Well")
+        ggtitle(paste("DFM",dfm$ID)) + ylab(ylabel) + labs(color="Chamber")
     }
     
   }
   else {
       gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line(size=1.2) +
-        ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Well")
+        ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Chamber")
   }
   gp
 }
