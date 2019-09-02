@@ -42,10 +42,11 @@ attach("FLICFunctions",pos=2)
 
 Alternatively, you may copy all of the R files to the project directory and source those that are required.
 ```{r}
-source("DFM.R")
 source("CommonChamber.R")
-source("ChoiceFunctions.R")
+source("PIFunctions.R")
 source("MiscFunctions.R")
+source("DFM.R")
+source("ParametersClass.R")
 ```
 
 ## Loading DFM Data 
