@@ -144,7 +144,7 @@ The DFMClass functions perform the following actions for each DFM:
 
 4. Apply the feeding thresholds defined in the relevant parameters object across the normalized (i.e., baselined) signal values in each well to identify interactions that are classified as feeding behaviors. Interactions are classified as feeding interactions (called 'licks' throughout) if they satisfy the following conditions: (*i*) at least one signal exceeds the *Feeding.Threshold* parameter or if a signal exceeds the *Feeding.Minimum* parameter and is linked to at least one signal that exceeds *Feeding.Threshold*. In this way a candidate feeding *Event* (i.e., a contiguous series of licks) is identified to include at least one signal over *Feeding.Threshold* and all contiguous signals that exceed *Feeding.Minimum*, and (*ii*) a candidate feeding event is kept only if the number of continguous licks exceeds the *Feeding.Minevents* parameter. Figure 1 illustrates how feeding licks and events are defined.
 
-```{r, echo=FALSE, fig.cap="Figure 1. Thresholding Concept: PLACE HOLDER, THIS NEEDS TO BE UPDATED", out.width = '30%'}
+```{r, echo=FALSE, fig.cap="Figure 1. Thresholding Concept", fig.height=5}
 knitr::include_graphics("Thresholds.png")
 ```
 
