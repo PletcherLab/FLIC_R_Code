@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 2: Grouped Analysis and Treatments"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "8/22/2019"
+date: "9/2/2019"
 output: html_document
 ---
 
@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Overview
 
 This document describes the most common functions that we have written to manage groups of DFMs, which may or may not be associated with each other as part of an experimental design. Function whose name ends in *.Monitors()* act on groups of DFM and may or may not accept an optional experimental design argument  Functions whose name ends in *.Trt()* require an experimental design argument and present additional analysis of different treatments, across DFMs and chambers.
+
+As with all FLIC R code, this is a work in progress. If you decide to extend this code and wish to share it with the community, please contact [Scott](mailto:spletch@umich.edu).
 
 First, we will attach the FLICFunctions object and load the required libraries.
 
@@ -26,9 +28,11 @@ attach("FLICFunctions",pos=2)
 ## DFM Groups Without Design Structure
 
 When *Monitors* functions are used without an experimental design argument, they effectively serve to batch process the functions that operate on individual DFMs, which are described in the *Getting Started* document.
-For these functions you must provide a vector of integers whose elements enumerate the DFM IDs that you wish to analyze. You must also supply either a single parameters object or a list of parameters objects. If a single parameters object is provided, then it will be applied to all of the monitors in the list.  If a list of parameters objects is provided, then it must be the same length as the monitors list, and each parameter object will be applied to its respective DFM. As usual, a range may be specificed (in minutes) if desired.  These batch functions can take a significant amount of time to run (sometimes many hours) if you have several DFMs and more than 48 hours of data. Remember that each DFM reports 5,184,000 signal values in 24 hours (it actually collects 200x that)!
+For these functions you must provide a vector of integers whose elements enumerate the DFM IDs that you wish to analyze. You must also supply either a single parameters object or a list of parameters objects. If a single parameters object is provided, then it will be applied to all of the monitors in the list.  If a list of parameters objects is provided, then it must be the same length as the monitors list, and each parameter object will be applied to its respective DFM. As usual, a range may be specificed (in minutes) if desired.  These batch functions can take a significant amount of time to run (sometimes many hours) if you have several DFMs and more than 48 hours of data. Remember that each DFM reports 5,184,000 signal values in 24 hours (it actually samples from the feeding pad 200x more often than that)!
 
 The examples in this document we use DFM data from two different experiments.  First, we will examine the data from a single-well experiment that used four DFMs (DFM1 - DFM4). This experiment lasted 1080 minutes (18 hours). The second experiment that we will examine is a choice experiment that used seven DFMs (DFM11 - DFM17). It lasted 360 minutes (6 hours). 
+
+It is important to recognize three terms in this document and in the relevant data output, all of which refer in some way to the individual food wells or the overall feeding environment.  First,*Well Number* refers to the physical position of the food well on the DFM.  For any specific well, this number does not change and is independent of the type of experiment or lid. At present, there is a single model of DFM and the wells are numbered 1-12 from left to right and top to bottom. Second, the term *Chamber* refers to the physical space that a fly (or small number of flies) experience.  When obtained from our laboratory or from Sable Systems, the FLIC system includes lids that define 12 chambers (one food well in each chamber) or six chambers (choice chambers with two food wells in each chamber, one on the left and one on the right). Third, choice experiments (but not single-well experiments) identify *WellA* and *WellB*, where a preference index of PI = 1 indicates feeding 100% from *WellA*, and PI = -1 indicates 100% feeding on *WellB*. These wells are defined based on the *PI.Multiplier* parameter in a parameters object for a particular DFM.  *WellA* will be the left well of a two-well chamber if *PI.Multiplier* = 1, and it will be the right well if *PI.Multiplier* = -1.
 
 Let's first load in the data for our two experiments.  For the single-well experiment we will accept the default set of parameters and define the list of monitors
 
@@ -197,7 +201,7 @@ for(i in levels(f.binsummary$Results$Interval)[1:5]){
 
 
 ## Plotting Treatment Effects
-Several functions are available for plotting data with respect to treatments. These functions all require en experimental design argument as well as most other arguments that we have seen before. The output of these plots will often depend on whether the experiment involves single-well or choice chambers. 
+Several functions are available for plotting data with respect to treatments. These functions all require an experimental design argument as well as most other arguments that we have seen before. The output of the plots will often depend on whether the experiment involves single-well or choice chambers. 
 
 
 
@@ -224,7 +228,7 @@ SaveToFile      | FALSE            | Whether to save the plot to a .png file.
 TransformLicks  | TRUE             | Whether to transform licks to the 0.25 power.
 
 
-To split the first 100 minutes into four divisions, each of 25 min, you must override the default *divisions* parameter.  Please note that this option does not split the range into non-overlapping regions (that would be more appropriate for binned plots, described below).  Instead, each division includes the beginning of the range and a different end point.
+To split the first 100 minutes into four divisions, each consisting of an additional 25 min, you must override the default *divisions* parameter.  Please note that this option does not split the range into non-overlapping regions (that would be more appropriate for binned plots, which are described below).  Instead, each division includes the beginning of the range and a different end point.
 
 A box plot for each division is created, and a summary one-way ANOVA for each is output to the console.
 

@@ -1,8 +1,4 @@
-#source("DFM.R")
-#source("ParametersClass.R")
-#source("CommonChamber.R")
-#require(stats)
-#require(ggplot2)
+
 
 Feeding.PIPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   individ.params<-FALSE
@@ -266,7 +262,7 @@ Feeding.CumulativeEventPIPlots.Trt<-function(monitors,parameters,expDesign,event
     return(results)
 }
 
-BinnedFeeding.PIPlots.Trt<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
+BinnedFeeding.PIPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=FALSE){
   mystderr <- function(x, na.rm=FALSE) {
     if (na.rm) x <- na.omit(x)
     sqrt(var(x)/length(x))
@@ -275,27 +271,28 @@ BinnedFeeding.PIPlots.Trt<-function(monitors,parameters,binsize.min=30,expDesign
   licksA<-tmp$Results$LicksA
   licksB<-tmp$Results$LicksB
   licksPI1<-(licksA-licksB)/(licksA+licksB)
-  tmp2<-data.frame(tmp$Results$Treatment,tmp$Results$Interval,tmp$Results$Min,licksPI1)
-  names(tmp2)<-c("Treatment","Interval","Min","PI")
+  tmp2<-data.frame(tmp$Results$Treatment,tmp$Results$Interval,tmp$Results$Min,licksPI1,licksA+licksB)
+  names(tmp2)<-c("Treatment","Interval","Min","PI","Licks")
   
   tmp3.mean<-aggregate(tmp2$PI,by=list(tmp2$Min,tmp2$Treatment),mean,na.rm=TRUE)
   tmp3.sem<-aggregate(tmp2$PI,by=list(tmp2$Min,tmp2$Treatment),mystderr,na.rm=TRUE)
+  tmp3.licks<-aggregate(tmp2$Licks,by=list(tmp2$Min,tmp2$Treatment),mean,na.rm=TRUE)
   
-  tmp3<-data.frame(tmp3.mean[,1:3],tmp3.sem[,3])
-  names(tmp3)<-c("Min","Treatment","Mean","SEM")
+  tmp3<-data.frame(tmp3.mean[,1:3],tmp3.sem[,3],tmp3.licks[,3])
+  names(tmp3)<-c("Min","Treatment","Mean","SEM","Licks")
   
   pd <- position_dodge(5) # move them .05 to the left and right
   gp<-ggplot(tmp3,aes(x=Min,y=Mean,color=Treatment,group=Treatment)) + 
     geom_errorbar(aes(ymin=Mean-SEM, ymax=Mean+SEM,color=Treatment), width=.1, position=pd) +
     geom_line(position=pd,size=1) +
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("PI") + ylim(c(-1,1))
+    geom_point(position=pd, size=4, shape=21, fill="White") +xlab("Minutes") + ylab("PI") + ylim(c(-1,1)) 
   if(SaveToFile==TRUE){
     filename<-paste("BinnedFeedingPI_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     ggsave(filename,gp)
   }
   show(gp)
 }
-BinnedFeeding.EventPIPlots.Trt<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
+BinnedFeeding.EventPIPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=FALSE){
   mystderr <- function(x, na.rm=FALSE) {
     if (na.rm) x <- na.omit(x)
     sqrt(var(x)/length(x))
@@ -347,10 +344,10 @@ Feeding.CumulativePI.DFM<-function(dfm, range=c(0,0), ShowPlots=TRUE, SinglePlot
     FeedingLicksB<-cumsum(b)
     
     ## Here it is the instantaneous PI
-    Feeding.PI<-data.frame(Minutes,(FeedingLicksA - FeedingLicksB)/(FeedingLicksA+FeedingLicksB))
+    Feeding.PI<-data.frame(Minutes,(FeedingLicksA - FeedingLicksB)/(FeedingLicksA+FeedingLicksB),FeedingLicksA+FeedingLicksB)
     Feeding.PI<-Feeding.PI[a+b>0,]
     Feeding.PI<-data.frame(Feeding.PI,rep(chambers[i],nrow(Feeding.PI)))
-    names(Feeding.PI)<-c("Minutes","PI","Chamber")
+    names(Feeding.PI)<-c("Minutes","PI","Licks","Chamber")
     
     if(i==1)
       results<-Feeding.PI
@@ -360,8 +357,8 @@ Feeding.CumulativePI.DFM<-function(dfm, range=c(0,0), ShowPlots=TRUE, SinglePlot
   }
   if(ShowPlots==TRUE){
     if(SinglePlot==FALSE) 
-      gp<-ggplot(results,aes(Minutes,PI,color=factor(Chamber))) + geom_line() + facet_grid(rows=vars(factor(Chamber))) +geom_point() +
-        ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Licks)") + labs(color="Chamber") + ylim(c(-1,1))
+      gp<-ggplot(results,aes(Minutes,PI,color=Licks)) + geom_line() + facet_grid(rows=vars(factor(Chamber))) +geom_point() +
+        ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Licks)") + labs(color="Licks") + ylim(c(-1,1)) + scale_color_gradientn(colours = rainbow(5))
     else
       gp<-ggplot(results,aes(Minutes,PI,color=factor(Chamber))) + geom_line() +geom_point() +
         ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Licks)") + labs(color="Chamber") + ylim(c(-1,1))
@@ -409,11 +406,11 @@ Feeding.CumulativeEventPI.DFM<-function(dfm, events.limit=NA, range=c(0,0), Show
   }
   if(ShowPlots==TRUE){
     if(SinglePlot==FALSE) 
-      gp<-ggplot(results,aes(Minutes,PI,color=factor(Chamber))) + geom_line() + facet_grid(rows=vars(factor(Chamber))) +geom_point() +
-        ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Events)") + labs(color="Chamber") + ylim(c(-1,1))
+      gp<-ggplot(results,aes(Minutes,PI,color=EventNum)) + geom_line() + facet_grid(rows=vars(factor(Chamber))) +geom_point() +
+        ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Events)") + labs(color="Events") + ylim(c(-1,1))+ scale_color_gradientn(colours = rainbow(5))
     else
       gp<-ggplot(results,aes(Minutes,PI,color=factor(Chamber))) + geom_line() + geom_point() +
-        ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Events)") + labs(color="Chamber") + ylim(c(-1,1))
+        ggtitle(paste("DFM",dfm$ID)) + ylab("PI (Events)") + labs(color="Events") + ylim(c(-1,1))
     show(gp)
   }
   results

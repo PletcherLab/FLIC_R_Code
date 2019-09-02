@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 1: Introduction and DFM Data"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "8/22/2019"
+date: "9/2/2019"
 output: html_document
 ---
 
@@ -12,6 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Overview
 
 This document begins a series of markdown files that contain working examples that will hopefully make it easier to understand how we analyze the signal data from FLIC DFMs. We have written many R functions that we find useful for analyzing simple feeding experiments that involve one feeding well per chamber as well as choice experiments that involve two feeding wells per chamber.  These markdown files currently serve as the documentation for all functions.  The source code is (semi) commented and available from GitHub (https://github.com/PletcherLab/FLIC_R_Code). The example data files are available in the repository as an archived (i.e., zipped) file. You may also contact [Scott](mailto:spletch@umich.edu) if you have specific questions or would like to interrogate your data in a specific way that doesn't appear to be supported in the code. 
+
+As with all FLIC R code, this is a work in progress. If you decide to extend this code and wish to share it with the community, please contact [Scott](mailto:spletch@umich.edu).
 
 ## Getting Started
 1. Download and install the latest version of [R](https://cran.r-project.org/) or [Microsoft Open R](https://mran.microsoft.com/open) for your operating system.
@@ -31,11 +33,11 @@ This document begins a series of markdown files that contain working examples th
 There are two options for providing access to the FLIC functions.  Attach the R object to the search path (assuming the file in is the working directory), preferably in a search position higher than 1 (note the *pos=2* argument to *attach()*) so that the function definitions don't clutter your working environment.
 
 ```{r}
-attach("FLICFunctions",pos=2)
 library(ggplot2)
 library(stats)
 library(gridExtra)
 library(reshape2)
+attach("FLICFunctions",pos=2)
 ```
 
 Alternatively, you may copy all of the R files to the project directory and source those that are required.
