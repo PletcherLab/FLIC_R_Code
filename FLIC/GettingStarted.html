@@ -396,6 +396,7 @@ $(document).ready(function () {
 <li><p>Clone the Github Respository or download the files as a zip file. Unzip or copy the .R files and/or the FLICFUNCTIONS file to the project directory.</p></li>
 <li><p>Start R studio. Choose File|New Project and click “Existing Directory.” Point to your project folder. R Studio will set the default directly to your project folder. You are ready to start analyzing your feeding interaction data!</p></li>
 <li><p>You will need to ensure that you have the following R packages installed: <em>ggplot2</em>, <em>stats</em>, <em>reshape2</em>, and <em>gridExtra</em>. If you are new to R, you can find lots of information about packages and installing them in RStudio with a simple web search (e.g., <a href="https://www.datacamp.com/community/tutorials/r-packages-guide">here</a> and <a href="http://web.cs.ucla.edu/~gulzar/rstudio/">here</a>)</p></li>
+<li><p>All relevant files used for the example analyses are provided in the <em>ExampleData.zip</em> file. To run the examples, you will need to extract these files into the project directory.</p></li>
 </ol>
 <p>There are two options for providing access to the FLIC functions. Attach the R object to the search path (assuming the file in is the working directory), preferably in a search position higher than 1 (note the <em>pos=2</em> argument to <em>attach()</em>) so that the function definitions don’t clutter your working environment.</p>
 <pre class="r"><code>library(ggplot2)
@@ -725,7 +726,7 @@ head(data.raw)</code></pre>
 ##     }
 ##     tmp
 ## }
-## &lt;bytecode: 0x000000001d1924c0&gt;</code></pre>
+## &lt;bytecode: 0x00000000142dc698&gt;</code></pre>
 <p>Simple plots and outputs displaying various aspects of the data are available. Higher quality plots and more complex outputs that take into account experiments treatments, as well as details about additional DFM components (e.g., Durations and Intervals) are described in other markdown files. Sometimes the plots will be different for single-well and choice experiments. It is important to note that regardless of experiment type, Wells are numbered from left to right and top to bottom. So, Well 5 is always the left well in Row 3, regardless of the value of the PI.Multiplier. However, WellA for Chamber 3 will be the left well in Row three (i.e., Well 5) if the PI.Multiplier = 1 and the right well in Row 3 (i.e., Well 6) if the PI.Multiplier = -1.</p>
 <p>To display a plot of the raw or baselined for a dfm. These functions plot MANY points and can be quite slow to produce and display. They both take a range parameter to focus on a particular period in time. Note how the slightly higher baseline in Well 8 is corrected in the normalized data. Dramatic and peristant changes in the rawdata plots are cause for concern.</p>
 <pre class="r"><code>RawDataPlot.DFM(dfm.single,OutputPNGFile = TRUE) # This will save a .png file but will not show one.</code></pre>

@@ -30,6 +30,8 @@ As with all FLIC R code, this is a work in progress. If you decide to extend thi
 
 7. You will need to ensure that you have the following R packages installed: *ggplot2*, *stats*, *reshape2*, and *gridExtra*. If you are new to R, you can find lots of information about packages and installing them in RStudio with a simple web search (e.g., [here](https://www.datacamp.com/community/tutorials/r-packages-guide) and [here](http://web.cs.ucla.edu/~gulzar/rstudio/))
 
+8. All relevant files used for the example analyses are provided in the *ExampleData.zip* file. To run the examples, you will need to extract these files into the project directory.
+
 There are two options for providing access to the FLIC functions.  Attach the R object to the search path (assuming the file in is the working directory), preferably in a search position higher than 1 (note the *pos=2* argument to *attach()*) so that the function definitions don't clutter your working environment.
 
 ```{r}
