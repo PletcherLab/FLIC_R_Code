@@ -230,7 +230,7 @@ BaselinedDataPlot.DFM(dfm.single,range=c(0,100),OutputPNGFile = FALSE) #This wil
 You can overlay the current feeding parameters (*Feeding.Threshold* and *Feeding.Minimum*) on the baselinedata plots as follows (this is currently not available for tasting parameters).
 
 ```{r, fig.height=11}
-BaselinedDataPlot.DFM(dfm.choice, range=c(0,100), IncludeThresholds=TRUE,OutputPNGFile = FALSE)
+BaselinedDataPlot.DFM(dfm.choice, range=c(0,100), OutputPNGFile = FALSE, IncludeThresholds=TRUE)
 ```
 
 A simple summary of the licks from one DFM can be obtained with the feeding summary.  The format of this object depends on the type of experiment (single-well or choice). This function applies to a single DFM, as noted by the last part of the function name.
