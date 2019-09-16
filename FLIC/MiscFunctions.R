@@ -26,3 +26,30 @@ QuickAOV.FeedingSummary<-function(datafile="FeedingSummary.csv"){
 }
 
 
+GetLightsInfo<-function(dfm){
+  Column1<-dfm$RawData$OptoCol1
+  Column2<-dfm$RawData$OptoCol2
+  data<-data.frame(Column1,Column2)dim(da)
+  data2<-apply(data,1,LightStatus)
+  data2<-t(data2)
+  final.data<-data.frame(dfm$RawData$Minutes,data2,data)
+  names(final.data)<-c("Minutes",paste("W",1:12,sep=""),"OptoCol1","OptoCol2")
+  final.data
+}
+
+
+LightStatus<-function(cols){
+  col1<-cols[1]
+  col2<-cols[2]
+  lights<-rep(FALSE,12)
+  for(i in 0:5){
+    tmp<-bitwShiftL(1,i)
+    if(bitwAnd(tmp,col1)>0){
+      lights[i*2+1]<-TRUE
+    }
+    if(bitwAnd(tmp,col2)>0){
+      lights[i*2+2]<-TRUE
+    }
+  }
+  lights
+}
