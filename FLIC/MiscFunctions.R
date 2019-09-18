@@ -24,20 +24,45 @@ QuickAOV.FeedingSummary<-function(datafile="FeedingSummary.csv"){
   g2<-ggplot(data,aes(x=DFM,y=Licks, fill=Treatment)) + geom_boxplot(aes(fill=Treatment))
   show(g2)
 }
+PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
+  tmp<-FeedingData.Well.Licks(dfm,well)
+  SumLicks<-cumsum(tmp)
+  if(TransformLicks==TRUE)
+    SumLicks<-SumLicks^0.25
+  Light<-Lights[,paste("W",well,sep="")]
+  row<-1
+  col<-1
+  Row<-rep(row,length(tmp))
+  Col<-rep(col,length(tmp))
+  Well<-rep(1,length(tmp))
+  Size <- Light*2
+  Size[Size==0]<-1
+  results<-data.frame(dfm$LickData$Minutes,SumLicks,Light,Size,Row,Col,Well)
+  names(results)<-c("Minutes","SumLicks","Light","Size","Row","Col","Well")
+  if(sum(range)!=0) {
+    results<- results[(results$Minutes>range[1]) & (results$Minutes<range[2]),]
+  }   
+  if(TransformLicks==TRUE)
+    ylabel="Transformed Cumulative Licks"
+  else
+    ylabel="Cumulative Licks"
+  gp<-ggplot(results,aes(Minutes,SumLicks,color=Light)) + geom_point(size=results$Size) +
+    ggtitle(paste("DFM ",dfm$ID, "; Well ",well, sep=""))+ ylab(ylabel)+ labs(color="Light")
+  
+  gp
+}
 
 
 GetLightsInfo<-function(dfm){
   Column1<-dfm$RawData$OptoCol1
   Column2<-dfm$RawData$OptoCol2
-  data<-data.frame(Column1,Column2)dim(da)
+  data<-data.frame(Column1,Column2)
   data2<-apply(data,1,LightStatus)
   data2<-t(data2)
   final.data<-data.frame(dfm$RawData$Minutes,data2,data)
   names(final.data)<-c("Minutes",paste("W",1:12,sep=""),"OptoCol1","OptoCol2")
   final.data
 }
-
-
 LightStatus<-function(cols){
   col1<-cols[1]
   col2<-cols[2]

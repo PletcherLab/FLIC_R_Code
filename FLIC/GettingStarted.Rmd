@@ -332,7 +332,7 @@ EndMin                  | The end of the range (in minutes) examined (0 =  end o
 
 Two simple plotting functions help visualize the data for individual DFMS. The first is *CumulativeLicksPlots.DFM(dfm,SinglePlot=FALSE,TransformLicks=TRUE)*, which presents the accumulation of licks over time.  If *SinglePlot=FALSE* (the default behavior), the format of the plot depends on the type of DFM, noting that for choice-chambers, the plot is faceted on WellA and WellB, which are adjusted for PI.Multiplier, and not on the physical location of the wells. However, the color of the lines, which is determined by Well Number and shown in the legend, remains determined by physical location. If *SinglePlot=TRUE* then all lines for both types of DFM represent Well Number and therefore physical location.
 
-```{r, fig.height=11, echo=FALSE}
+```{r, fig.height=11}
 CumulativeLicksPlots.DFM(dfm.single)
 CumulativeLicksPlots.DFM(dfm.choice)
 ```

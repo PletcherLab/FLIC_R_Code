@@ -11,3 +11,6 @@ p.choice.two<-SetParameter(p.choice.two,PI.Multiplier=-1.0)
 monitors.choice<-c(11,12,13,14,15,16,17)
 p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two)
 
+tmp<-Feeding.Summary.Monitors(monitors.choice,p.choice.list,expDesign)
+
+Lights<-GetLightsInfo(DFM11)
