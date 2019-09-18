@@ -13,4 +13,8 @@ p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice
 
 tmp<-Feeding.Summary.Monitors(monitors.choice,p.choice.list,expDesign)
 
-Lights<-GetLightsInfo(DFM11)
+PlotLicksandLight.Well(DFM11,7)
+PlotLicksandLight.Well(DFM11,8)
+PlotLicksandLight.Well(DFM11,7,range=c(102,103))
+PlotLicksandLight.Well(DFM11,8,range=c(102,103))
+                        

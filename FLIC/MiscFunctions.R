@@ -29,6 +29,7 @@ PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
   SumLicks<-cumsum(tmp)
   if(TransformLicks==TRUE)
     SumLicks<-SumLicks^0.25
+  Lights<-GetLightsInfo(dfm)
   Light<-Lights[,paste("W",well,sep="")]
   row<-1
   col<-1
