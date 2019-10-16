@@ -98,7 +98,7 @@ Feeding.BinnedEventsPlot.Trt<-function(monitors,parameters,binsize.min=20,expDes
 ###################################
 ## Will output Feeding.Summary data for each chamber in each monitor
 ## over the specified range to a .csv file.
-Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
+Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummary"){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -135,14 +135,15 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatments(results))
     if(SaveToFile==TRUE){
-      filename<-paste("FeedingSummary_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename
+      filename<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(trt.summary,file=filename,row.names=FALSE)
-      filename<-paste("FeedingSummary_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(results,file=filename,row.names=FALSE)
     }
   }
   else if(SaveToFile==TRUE){
-    filename<-paste("FeedingSummary_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
@@ -208,7 +209,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
 }
 
 
-PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
+PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE,filename="BaselinedData"){
   tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)$Results
   
   ylabel="Licks"
@@ -256,7 +257,7 @@ OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0)){
     OutputBaselinedData.DFM(dfm,range)
   }
 }
-OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)){
+OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="IntervalData"){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -285,12 +286,12 @@ OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
       result<-rbind(result,tmp2)
     }
   }
-  filename<-paste("IntervalData_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
+  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
 ## This fucntion will output for each well in each chamber for each monitor
 ## the total amount of time spend drinking over the perscribed range.
-OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)){
+OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="TotalFeedingTime"){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -350,7 +351,7 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   if(is.data.frame(expDesign))
     result<-AppendTreatmentonResultsFrame(result,expDesign)
   
-  filename<-paste("TotalFeedingTime_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
+  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
 
@@ -387,7 +388,7 @@ OutputBaselinedData.DFM<-function(dfm, range=c(0,0)){
   final.names<-c("DFM",names(tmp.all),pnames)
   names(tmp3)<-final.names
   
-  filename<-paste("BaselinedData_DFM",dfm$ID,".csv",sep="") 
+  filename<-paste(filename,"_DFM",dfm$ID,".csv",sep="") 
   write.csv(tmp3,file=filename,row.names=FALSE)  
 }
 GetIntervalData.DFM<-function(dfm,range){
