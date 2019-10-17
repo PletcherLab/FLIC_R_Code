@@ -154,7 +154,7 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     return(list(Results=results))
   }
 }
-BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE){
+BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="BinnedSummary"){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -189,14 +189,14 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
     if(SaveToFile==TRUE){
-      filename<-paste("BinnedSummary_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(trt.summary,file=filename,row.names=FALSE)
-      filename<-paste("BinnedSummary_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
       write.csv(results,file=filename,row.names=FALSE)
     }
   }
   else if(SaveToFile==TRUE){
-    filename<-paste("BinnedSummary_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
