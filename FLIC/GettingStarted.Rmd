@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 1: Introduction and DFM Data"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "9/2/2019"
+date: "11/6/2019"
 output: html_document
 ---
 
@@ -408,7 +408,7 @@ Feeding.Summary.DFM(dfm,range=c(0,0),TransformLicks=TRUE)
 
 BinnedFeeding.Summary.DFM(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE)
 
-OutputBaselinedData.DFM(dfm, range=c(0,0))
+OutputBaselinedData.DFM(dfm, range=c(0,0),filename="Baselined")
 
 GetIntervalData.DFM(dfm,range)
 

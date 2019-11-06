@@ -209,7 +209,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
 }
 
 
-PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE,filename="BaselinedData"){
+PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE,filename="LicksPlots"){
   tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)$Results
   
   ylabel="Licks"
@@ -234,7 +234,7 @@ PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE,
 ## This function will output the baselined (and cleaned) analog
 ## values (along with minutes, parameter values, etc) to a 
 ## separate .csv file for each chamber in each of the specified monitors.
-OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0)){
+OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0),filename="Baselined"){
   individ.params<-FALSE
   ## Check to determine whether parameters is a signle parameter object
   ## or a list of them.  If it is a single one, then we use the same one for all
@@ -254,7 +254,7 @@ OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0)){
     else
       p<-parameters
     dfm<-DFMClass(monitor,p)
-    OutputBaselinedData.DFM(dfm,range)
+    OutputBaselinedData.DFM(dfm,range,filename)
   }
 }
 OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="IntervalData"){
@@ -374,7 +374,7 @@ BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLic
 ## This function will output the baselined (and cleaned) analog
 ## values (along with minutes, parameter values, etc) to a 
 ## .csv file.
-OutputBaselinedData.DFM<-function(dfm, range=c(0,0)){
+OutputBaselinedData.DFM<-function(dfm, range=c(0,0),filename="Baselined"){
   
   parameter.vector<-GetDFMParameterVector(dfm)
   pnames<-Get.Parameter.Names(dfm$Parameters)

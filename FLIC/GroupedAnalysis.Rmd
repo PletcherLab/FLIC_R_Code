@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 2: Grouped Analysis and Treatments"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "9/2/2019"
+date: "11/6/2019"
 output: html_document
 ---
 
@@ -323,17 +323,17 @@ Feeding.MeanDurationsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,
 Listed below are the functions used in this document along with their argument list showing optional parameters and their default values.  You should know what each of these functions does and what each argument represents before moving on to the remaining documentation. It is important that these functions, and the larger set of R Code for the FLIC, are not treated as a black box. In our experience the FLIC system provides remarkable insights, but the data sets are large and complex and must be managed carefully to ensure that mistakes are avoided.
 
 ``` {r, eval=FALSE}
-Feeding.Summary.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
+Feeding.Summary.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummary")
 
-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE)
+BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="BinnedSummary")
 
-PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE)
+PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE,filename="LicksPlots")
 
-OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0))
+OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0),filename="Baselined")
 
-OutputIntervalData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0))
+OutputIntervalData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="IntervalData")
 
-OutputTotalFeeding.Monitors(monitors,parameters,expDesign=NA,range=c(0,0))
+OutputTotalFeeding.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="TotalFeedingTime")
 
 CumulativeLicksPlots.DFM(dfm,SinglePlot=FALSE,TransformLicks=TRUE)
 
