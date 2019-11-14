@@ -1347,11 +1347,11 @@ FeedingMeanTimeBtw.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0
   
 } 
 
-BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
-  result<-BinLicks.Well(dfm,1,binsize.min,range)
-  tmp<-BinEvents.Well(dfm,1,binsize.min,range)
+  result<-BinLicks.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
+  tmp<-BinEvents.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
   Events<-tmp$Events
   result<-data.frame(result,Events)
   Well<-factor(rep(1,nrow(result)))
@@ -1359,8 +1359,8 @@ BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   result<-data.frame(result,DFM,Well)
   
   for(i in 2:12) {
-    tmp<-BinLicks.Well(dfm,i,binsize.min,range)
-    tmp2<-BinEvents.Well(dfm,i,binsize.min,range)
+    tmp<-BinLicks.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
+    tmp2<-BinEvents.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
     Events<-tmp2$Events
     tmp<-data.frame(tmp,Events)
     Well<-factor(rep(i,nrow(tmp)))
@@ -1377,7 +1377,7 @@ BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
     result$Licks<-result$Licks^0.25
   result  
 }
-BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE){
+BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
   
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-chamber DFM only")
@@ -1391,10 +1391,10 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
     wellA<-dfm$Parameters$Chamber.Sets[1,2] 
   }
   
-  ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
-  ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
-  etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
-  etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range)
+  ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
+  ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
+  etmp<-BinEvents.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
+  etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
   Chamber<-factor(rep(1,nrow(ltmp)))
   DFM<-factor(rep(dfm$ID,nrow(ltmp)))
   
@@ -1410,10 +1410,10 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
       wellA<-dfm$Parameters$Chamber.Sets[i,2] 
     }
     
-    ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range)
-    ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range)
-    etmp<-BinEvents.Well(dfm,wellA,binsize.min,range)
-    etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range)
+    ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
+    ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
+    etmp<-BinEvents.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
+    etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
     Chamber<-factor(rep(i,nrow(ltmp)))
     DFM<-factor(rep(dfm$ID,nrow(ltmp)))
     tmp<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
@@ -1430,7 +1430,7 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   }
   result  
 }
-BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0)){
+BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
   tmp<-FeedingData.Events(dfm,range)
   cname=paste("W",well,sep="")
   
@@ -1439,14 +1439,25 @@ BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0)){
   ## in that.  Set values >0 to 1.
   tmp[tmp[,cname]>1,cname]<-1
   
-  m.min<-min(tmp$Minutes)
-  m.max<-max(tmp$Minutes)
+  if(is.na(StartMin)){
+    m.min<-0
+  }
+  else {
+    m.min<-StartMin
+  }
+  
+  if(is.na(EndMin)){
+    m.max<-max(tmp$Minutes)  
+  }
+  else {
+    m.max<-EndMin
+  }
   
   y<-seq(m.min,m.max,by=binsize.min)
   if(y[length(y)]<m.max)
     y<-c(y,m.max)
   
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE)
+  z<-cut(tmp$Minutes,y,include.lowest=TRUE,dig.lab=8)
   
   r.min<-aggregate(tmp$Minutes~z,FUN=mean)
   r.A<-aggregate(tmp[,cname]~z,FUN=sum)
@@ -1455,20 +1466,32 @@ BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0)){
   names(results)<-c("Interval","Min","Events")
   results
 }
-BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0)){
+BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
   tmp<-FeedingData.Licks(dfm,range)
   cname=paste("W",well,sep="")
   
   tmp<-tmp[,c("Minutes",cname)]
   
-  m.min<-min(tmp$Minutes)
-  m.max<-max(tmp$Minutes)
+  if(is.na(StartMin)){
+    m.min<-0
+  }
+  else {
+    m.min<-StartMin
+  }
+  
+  if(is.na(EndMin)){
+    m.max<-max(tmp$Minutes)  
+  }
+  else {
+    m.max<-EndMin
+  }
+  
   
   y<-seq(m.min,m.max,by=binsize.min)
   if(y[length(y)]<m.max)
     y<-c(y,m.max)
   
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE)
+  z<-cut(tmp$Minutes,y,include.lowest=TRUE,dig.lab=8)
   
   r.min<-aggregate(tmp$Minutes~z,FUN=mean)
   r.A<-aggregate(tmp[,cname]~z,FUN=sum)

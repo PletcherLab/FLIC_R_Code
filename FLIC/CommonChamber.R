@@ -165,6 +165,17 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     individ.params<-TRUE
   }
   
+  StartTimeMin<-0 # Start the first bin at 0min elapsed time.
+  ## now need to come up with an endtime that is the same for all monitors
+  EndTimeMin<-0
+  
+  for(j in 2:length(monitors)){
+    dfm<-DFMClass(monitor,p)  
+    tmp<-LastSampleData(dfm)$Minutes
+    if(tmp>EndTimeMin)
+      EndTimeMin<-tmp
+  }
+  
   for(j in 1:length(monitors)){
     monitor<-monitors[j]
     if(individ.params==TRUE)
@@ -174,7 +185,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     dfm<-DFMClass(monitor,p)  
     parameter.vector<-matrix(GetParameterVector(p),nrow=1)
     pnames<-Get.Parameter.Names(p)
-    tmp<-BinnedFeeding.Summary.DFM(dfm,binsize.min,range,TransformLicks)      
+    tmp<-BinnedFeeding.Summary.DFM(dfm,binsize.min,range,TransformLicks,StartTimeMin,EndTimeMin)      
     tmp2<-data.frame(tmp,parameter.vector)
     names(tmp2)<-c(names(tmp),pnames)
     if(j==1){
@@ -363,11 +374,11 @@ Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   else
     stop("Feeding Summary not implemented for this DFM type.")    
 }
-BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
+BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
   if(dfm$Parameters$Chamber.Size==1)
-    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks)
+    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks,StartTimeMin=NA,EndTimeMin=NA)
   else if(dfm$Parameters$Chamber.Size==2)
-    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks)
+    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks,StartTimeMin=NA,EndTimeMin=NA)
   else
     stop("Feeding Summary not implemented for this DFM type.")    
 }
