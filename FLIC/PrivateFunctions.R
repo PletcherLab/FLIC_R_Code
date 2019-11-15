@@ -1026,7 +1026,7 @@ FeedingLicks.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),di
   }
   if(SaveToFile==TRUE)
     graphics.off()
- 
+  
 } 
 FeedingEvents.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
   if(SaveToFile==TRUE){
@@ -1484,8 +1484,8 @@ BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA)
   }
   else {
     m.max<-EndMin
+    
   }
-  
   
   y<-seq(m.min,m.max,by=binsize.min)
   if(y[length(y)]<m.max)
@@ -1562,7 +1562,7 @@ GetTCWellFromWell<-function(dfm,well){
         well<-"WellB"
       }
     }
-      
+    
     else {
       if(dfm$Parameters$PI.Multiplier==1) {
         well<-"WellB"
@@ -1680,7 +1680,7 @@ GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   tmp3
 }
 BinnedLicksPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
-
+  
   if(TransformLicks==TRUE){
     ylabel<-"Transformed Licks"
   }
@@ -1783,7 +1783,7 @@ BinnedEventsPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDes
   print(lapply(l,summary))
 }
 BinnedEventsPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
- 
+  
   data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
   tmp<-data$Stats
   

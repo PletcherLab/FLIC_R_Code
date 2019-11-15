@@ -17,7 +17,7 @@ Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divis
   else {
     cs<-parameters$Chamber.Size
   }
-   if(cs==1)
+  if(cs==1)
     FeedingLicks.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
   else if(cs==2)
     FeedingLicks.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
@@ -135,11 +135,10 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatments(results))
     if(SaveToFile==TRUE){
-      filename
-      filename<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
-      write.csv(trt.summary,file=filename,row.names=FALSE)
-      filename<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
-      write.csv(results,file=filename,row.names=FALSE)
+      filename2<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(trt.summary,file=filename2,row.names=FALSE)
+      filename2<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(results,file=filename2,row.names=FALSE)
     }
   }
   else if(SaveToFile==TRUE){
@@ -200,10 +199,10 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
     if(SaveToFile==TRUE){
-      filename<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
-      write.csv(trt.summary,file=filename,row.names=FALSE)
-      filename<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
-      write.csv(results,file=filename,row.names=FALSE)
+      filename2<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(trt.summary,file=filename2,row.names=FALSE)
+      filename2<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      write.csv(results,file=filename2,row.names=FALSE)
     }
   }
   else if(SaveToFile==TRUE){
@@ -220,21 +219,21 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
 }
 
 
-PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE,filename="LicksPlots"){
+PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
   tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)$Results
   
   ylabel="Licks"
   if(TransformLicks==TRUE) {
     ylabel="Transformed Licks"
   }
- 
+  
   tmp2$DFM<-factor(tmp2$DFM)
   
   if("LicksA" %in% names(tmp2)){
-   tmp2<-tmp2[,c("DFM","LicksA","LicksB")]
-   tmp2<-melt(tmp2,id.vars="DFM",value.name="Licks", variable.name="Well")
-   gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=Well)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
-     ylab(ylabel)
+    tmp2<-tmp2[,c("DFM","LicksA","LicksB")]
+    tmp2<-melt(tmp2,id.vars="DFM",value.name="Licks", variable.name="Well")
+    gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=Well)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
+      ylab(ylabel)
   }
   else {
     gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
@@ -376,9 +375,9 @@ Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
 }
 BinnedFeeding.Summary.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
   if(dfm$Parameters$Chamber.Size==1)
-    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks,StartTimeMin=NA,EndTimeMin=NA)
+    BinnedFeeding.Summary.OneWell(dfm,binsize.min,range,TransformLicks,StartTimeMin,EndTimeMin)
   else if(dfm$Parameters$Chamber.Size==2)
-    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks,StartTimeMin=NA,EndTimeMin=NA)
+    BinnedFeeding.Summary.TwoWell(dfm,binsize.min,range,TransformLicks,StartTimeMin,EndTimeMin)
   else
     stop("Feeding Summary not implemented for this DFM type.")    
 }
@@ -503,7 +502,7 @@ CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
     }
     tmp<-data.frame(tmp,WellTC)
   }
-
+  
   if(TransformLicks==TRUE)
     ylabel="Transformed Cumulative Licks"
   else
@@ -520,8 +519,8 @@ CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
     
   }
   else {
-      gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line(size=1.2) +
-        ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Chamber")
+    gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line(size=1.2) +
+      ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Chamber")
   }
   gp
 }
