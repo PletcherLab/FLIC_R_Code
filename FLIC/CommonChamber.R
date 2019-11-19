@@ -169,7 +169,12 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
   EndTimeMin<-0
   
   for(j in 1:length(monitors)){
-    dfm<-DFMClass(monitors[j],p)  
+    monitor<-monitors[j]
+    if(individ.params==TRUE)
+      p<-parameters[[j]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitor,p)   
     tmp<-LastSampleData(dfm)$Minutes
     if(tmp>EndTimeMin)
       EndTimeMin<-tmp
