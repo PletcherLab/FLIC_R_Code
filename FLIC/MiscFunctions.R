@@ -79,3 +79,40 @@ LightStatus<-function(cols){
   }
   lights
 }
+
+
+ScrollEventPlots<-function(dfm,wellnum){
+  events<-unique(dfm$BaselineData$Sample)
+  currentevent<-1
+  keepgoing<-TRUE
+  while (keepgoing==TRUE){
+    cat("Return = Forward; b = back; q = quit")
+    PlotSingleSampleEvent(dfm,wellnum,events[currentevent])
+    tmp<-readline()
+    if(tmp[1]==""){
+      currentevent <- currentevent+1
+      if(currentevent>length(events))
+        currentevent<-1
+    }
+    else if(tmp[1]=="b"){
+      currentevent<-currentevent-1
+      if(currentevent<1)
+        currentevent=length(events)
+    }
+    
+    else if(tmp[1]=="q"){
+      keepgoing<-FALSE
+    }
+  }
+}
+
+
+PlotSingleSampleEvent<-function(dfm,wellnum,eventnum){
+  tmp<-subset(dfm$BaselineData,dfm$BaselineData$Sample==eventnum)
+  w<-paste("W",wellnum,sep="")
+  gp<-ggplot(tmp,aes(Minutes,tmp[,(6+wellnum)])) + geom_line(color="red",size=1.2) + facet_wrap(tmp$Sample) +geom_point(color="blue",size=4) +
+    ggtitle(paste("DFM: ",dfm$ID,"   Well: ",w,"   Event:",eventnum)) + ylab("Signal") + labs(color="Chamber")
+  show(gp)
+}
+
+

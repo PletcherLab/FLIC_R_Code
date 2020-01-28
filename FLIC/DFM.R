@@ -70,10 +70,12 @@ DFMClass.LinkFiles<-function(id,parameters,range=c(0,0)) {
     
     dfm<-read.csv(files[1],header=TRUE)  
     print(paste("Reading DFM File:",files[1]))
-    for(i in 2:length(files)){ 
-      print(paste("Reading DFM File:",files[i]))
-      tmp<-read.csv(files[i],header=TRUE)  
-      dfm<-rbind(dfm,tmp)
+    if(length(files)>1){
+      for(i in 2:length(files)){ 
+        print(paste("Reading DFM File:",files[i]))
+        tmp<-read.csv(files[i],header=TRUE)  
+        dfm<-rbind(dfm,tmp)
+      }
     }
     ## Get Minutes from Sample column only if ElapsedTime is not
     ## there

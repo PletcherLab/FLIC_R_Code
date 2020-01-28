@@ -18,3 +18,6 @@ PlotLicksandLight.Well(DFM11,8)
 PlotLicksandLight.Well(DFM11,7,range=c(102,103))
 PlotLicksandLight.Well(DFM11,8,range=c(102,103))
                         
+
+p<-ParametersClass.SingleWell()
+dfm<-DFMClass.LinkFiles(1,p)
