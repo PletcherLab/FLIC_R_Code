@@ -1,13 +1,9 @@
 ## Used to make the file for distribution
 
 rm(list=ls())
-source("TwoWellChamber.R")
-source("SingleWellChamber.R")
+source("CommonChamber.R")
+source("PIFunctions.R")
 source("MiscFunctions.R")
+source("DFM.R")
+source("ParametersClass.R")
 save.image(file="FLICFunctions")
-
-p<-ParametersClass.SingleWell()
-dfm<-DFMClass(2,p)
-
-p2<-ParametersClass.TwoWell()
-dfm2<-DFMClass(2,p2)

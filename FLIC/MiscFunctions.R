@@ -2,49 +2,6 @@ require(ggplot2)
 require(stats)
 require(gridExtra)
 
-
-GetCumLicksPlots.DFM<-function(dfm){
-  tmp<-Feeding.Durations.Well(dfm,1)
-  SumLicks<-cumsum(tmp$Licks)
-  row<-1
-  col<-1
-  Row<-rep(row,nrow(tmp))
-  Col<-rep(col,nrow(tmp))
-  Well<-rep(1,nrow(tmp))
-  tmp<-data.frame(tmp,SumLicks,Row,Col,Well)
-  for(i in 2:12){
-    print(i)
-    if(i%%2==1) row<-row+1
-    col<-col+1
-    if(col>2) col<-1
-    tmp2<-Feeding.Durations.Well(dfm,i)
-    if(is.data.frame(tmp2)) {
-      x<-tmp2$Minutes
-      y<-cumsum(tmp2$Licks)
-      SumLicks<-y
-      Row<-rep(row,length(x))
-      Col<-rep(col,length(x))
-      Well<-rep(i,length(x))
-      tmp2<-data.frame(tmp2,SumLicks,Row,Col,Well)
-      tmp<-rbind(tmp,tmp2) 
-    }
-  }
-  gp<-ggplot(tmp,aes(Minutes,SumLicks,color=factor(Well))) + geom_line() + facet_grid(rows=vars(Row),cols=vars(Col)) +geom_point() +
-    ggtitle(paste("DFM",dfm$ID))
-  gp
-}
-
-
-
-GetTotalLicksPlot.Monitors<-function(monitors, p, range=c(0,0)){
-  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range)
-  tmp2<-tmp2$Results
-  tmp2$DFM<-factor(tmp2$DFM)
-  gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7)
-  gp
-}
-
-
 ## Give filename to this function and it will do analyses of 
 ## variance with and without DFM as a factor.  It will also plot
 ## the data for each well for each treatment in each DFM to look for
@@ -67,5 +24,58 @@ QuickAOV.FeedingSummary<-function(datafile="FeedingSummary.csv"){
   g2<-ggplot(data,aes(x=DFM,y=Licks, fill=Treatment)) + geom_boxplot(aes(fill=Treatment))
   show(g2)
 }
+PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
+  tmp<-FeedingData.Well.Licks(dfm,well)
+  SumLicks<-cumsum(tmp)
+  if(TransformLicks==TRUE)
+    SumLicks<-SumLicks^0.25
+  Lights<-GetLightsInfo(dfm)
+  Light<-Lights[,paste("W",well,sep="")]
+  row<-1
+  col<-1
+  Row<-rep(row,length(tmp))
+  Col<-rep(col,length(tmp))
+  Well<-rep(1,length(tmp))
+  Size <- Light*2
+  Size[Size==0]<-1
+  results<-data.frame(dfm$LickData$Minutes,SumLicks,Light,Size,Row,Col,Well)
+  names(results)<-c("Minutes","SumLicks","Light","Size","Row","Col","Well")
+  if(sum(range)!=0) {
+    results<- results[(results$Minutes>range[1]) & (results$Minutes<range[2]),]
+  }   
+  if(TransformLicks==TRUE)
+    ylabel="Transformed Cumulative Licks"
+  else
+    ylabel="Cumulative Licks"
+  gp<-ggplot(results,aes(Minutes,SumLicks,color=Light)) + geom_point(size=results$Size) +
+    ggtitle(paste("DFM ",dfm$ID, "; Well ",well, sep=""))+ ylab(ylabel)+ labs(color="Light")
+  
+  gp
+}
 
 
+GetLightsInfo<-function(dfm){
+  Column1<-dfm$RawData$OptoCol1
+  Column2<-dfm$RawData$OptoCol2
+  data<-data.frame(Column1,Column2)
+  data2<-apply(data,1,LightStatus)
+  data2<-t(data2)
+  final.data<-data.frame(dfm$RawData$Minutes,data2,data)
+  names(final.data)<-c("Minutes",paste("W",1:12,sep=""),"OptoCol1","OptoCol2")
+  final.data
+}
+LightStatus<-function(cols){
+  col1<-cols[1]
+  col2<-cols[2]
+  lights<-rep(FALSE,12)
+  for(i in 0:5){
+    tmp<-bitwShiftL(1,i)
+    if(bitwAnd(tmp,col1)>0){
+      lights[i*2+1]<-TRUE
+    }
+    if(bitwAnd(tmp,col2)>0){
+      lights[i*2+2]<-TRUE
+    }
+  }
+  lights
+}
