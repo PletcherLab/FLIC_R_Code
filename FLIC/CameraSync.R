@@ -19,7 +19,7 @@ OutputEventPlots<-function(dfm,wellnum){
       png(fn.long,width=960,height=480)
       tmp$Index<-(tmp$Index-tmp$Index[1])+1   
       gp<-ggplot(tmp,aes(Index,tmp[,(6+wellnum)])) + geom_line(color="red",size=1.2) + facet_wrap(tmp$Sample) +geom_point(color="blue",size=4) +
-        ggtitle(paste("DFM: ",dfm$ID,"   Well: ",w,"   Event:",eventnum)) + ylab("Signal") + labs(color="Chamber") +xlim(xlims) + ylim(ylims)
+        ggtitle(paste("DFM: ",dfm$ID,"   Well: ",w,"   Event:",i)) + ylab("Signal") + labs(color="Chamber") +xlim(xlims) + ylim(ylims)
       show(gp)
       graphics.off()
     }
