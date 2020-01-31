@@ -378,6 +378,13 @@ BaselinedData.Well<-function(dfm,well,range=c(0,0)) {
   }    
   tmp  
 }
+SampleData.Well<-function(dfm,range=c(0,0)) {  
+  tmp<-dfm$BaselineData$Sample
+  if(sum(range)!=0) {
+    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<range[2])]
+  }    
+  tmp  
+}
 BaselinedData<-function(dfm,range=c(0,0)) {   
   tmp<-dfm$BaselineData
   if(sum(range)!=0) {

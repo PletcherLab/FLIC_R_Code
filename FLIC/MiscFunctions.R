@@ -106,13 +106,3 @@ ScrollEventPlots<-function(dfm,wellnum){
   }
 }
 
-
-PlotSingleSampleEvent<-function(dfm,wellnum,eventnum){
-  tmp<-subset(dfm$BaselineData,dfm$BaselineData$Sample==eventnum)
-  w<-paste("W",wellnum,sep="")
-  gp<-ggplot(tmp,aes(Minutes,tmp[,(6+wellnum)])) + geom_line(color="red",size=1.2) + facet_wrap(tmp$Sample) +geom_point(color="blue",size=4) +
-    ggtitle(paste("DFM: ",dfm$ID,"   Well: ",w,"   Event:",eventnum)) + ylab("Signal") + labs(color="Chamber")
-  show(gp)
-}
-
-
