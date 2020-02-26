@@ -5,10 +5,10 @@ source("MiscFunctions.R")
 source("CameraSync.R")
 
 p<-ParametersClass.SingleWell()
-p<-SetParameter(p,Feeding.Event.Link.Gap=10000)
-dfm<-DFMClass(4,p)
+p<-SetParameter(p,Feeding.Event.Link.Gap=100)
+dfm<-DFMClass(1,p)
 
-
+OutputEventPlots(dfm,5)
 
 tmp<-dfm$LickData$W1
 

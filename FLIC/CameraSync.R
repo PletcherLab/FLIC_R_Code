@@ -120,7 +120,11 @@ Set.Durations.And.Intervals.Well<-function(dfm,well){
   ## Now intervals
   
   ## Collapse feeding data to time BETWEEN events.
-  boutInt<-Get.Intervals(FeedingData.Well.Licks(dfm,well))  
+  #boutInt<-Get.Intervals(FeedingData.Well.Licks(dfm,well))  
+  
+  tmp<-FeedingData.Well.Events(dfm,well)
+  tmp<-Expand.Events(tmp)
+  boutInt<-Get.Intervals(tmp)  
   
   indices<-1:length(boutInt)
   indices<-indices[boutInt>0]
