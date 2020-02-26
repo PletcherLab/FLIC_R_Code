@@ -96,6 +96,10 @@ Set.Feeding.Data.Well<-function(dfm,well){
   ## Now expand the licks to TRUE/FALSE entries
   FeedingLicks<-Expand.Events(Events)
   
+  ## Now Bridge sporadic lick events into single events.
+  tmp<-Link.Events(FeedingLicks,dfm$Parameters$Feeding.Event.Link.Gap)
+  Events<-Get.Events(tmp)
+  
   data.frame(FeedingLicks,Events)
 }
 Set.Tasting.Data<-function(dfm){
@@ -247,7 +251,11 @@ Set.Durations.And.Intervals.Well<-function(dfm,well){
   ## Now intervals
   
   ## Collapse feeding data to time BETWEEN events.
-  boutInt<-Get.Intervals(FeedingData.Well.Licks(dfm,well))  
+  ##boutInt<-Get.Intervals(FeedingData.Well.Licks(dfm,well))  
+  tmp<-FeedingData.Well.Events(dfm,well)
+  tmp<-Expand.Events(tmp)
+  boutInt<-Get.Intervals(tmp)  
+  
   
   indices<-1:length(boutInt)
   indices<-indices[boutInt>0]
@@ -693,6 +701,33 @@ Get.Events.And.Intensities<-function(z,data){
   names(result)<-c("FeedingEvent","MinIntensity","MaxIntensity","SumIntensity","MeanIntensity")
   result
 }
+
+## This function will take a TRUE/FALSE vector, assumed to be minthresholded lick data
+## and it will "bridge" runs of FALSE of less than 'thresh' entries with TRUE
+## e.g. c(TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,FALSE,TRUE,TRUE,TRUE) -> c(TRUE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,TRUE,TRUE)
+## with thresh <= 3
+Link.Events<-function(z,thresh){
+  tmp<-rle(z)
+  result<-c(FALSE)
+  for(i in 1:length(tmp$lengths)){
+    if(tmp$values[i]){
+      tmp2<-rep(TRUE,tmp$lengths[i])
+      result<-c(result,tmp2)
+    }
+    else {
+      if(tmp$lengths[i]>thresh){
+        tmp2<-rep(FALSE,tmp$lengths[i])
+        result<-c(result,tmp2)
+      }
+      else {
+        tmp2<-rep(TRUE,tmp$lengths[i])
+        result<-c(result,tmp2)
+      }
+    }
+  }
+  result[-1]
+}
+
 # This function replaces continuing events with zero and make the first event of that
 # episode equal to its duration.
 ## c(TRUE,TRUE,FALSE,FALSE,TRUE,FALSE,TRUE,TRUE,TRUE) -> (0 0 2 0 0 1 0 0 0)

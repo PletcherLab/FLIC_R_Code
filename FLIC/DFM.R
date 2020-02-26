@@ -192,6 +192,9 @@ ChangeParameterObject<-function(dfm,newP) {
   if(p$Chamber.Size !=newP$Chamber.Size){
     baseline.flag<-TRUE
   }
+  if(p$Feeding.Event.Link.Gap != newP$Feeding.Event.Link.Gap){
+    threshold.flag<-TRUE
+  }
   if(sum(c(p$Chamber.Sets)!=c(newP$Chamber.Sets))!=0){
     baseline.flag<-TRUE
   }
