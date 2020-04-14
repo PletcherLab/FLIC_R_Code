@@ -3,6 +3,17 @@ source("CommonChamber.R")
 source("DFM.R")
 source("MiscFunctions.R")
 
+
+p<-ParametersClass.SingleWell()
+dfm<-DFMClassV3(1,p)
+dfm<-DFMClassV3(2,p)
+dfm<-DFMClassV3(3,p)
+
+
+
+
+
+
 ## Testing the Two Well Data with Example
 expDesign<-read.csv("ExpDesign.csv")
 p.choice.one<-ParametersClass.TwoWell()

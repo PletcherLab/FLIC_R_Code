@@ -48,6 +48,54 @@ DFMClass<-function(id,parameters,range=c(0,0)) {
   }
   data 
 }
+
+DFMClassV3<-function(id,parameters,range=c(0,0)) {
+  if (!is.numeric(id) || !all(is.finite(id)))
+    stop("invalid arguments")
+  
+  ## Check to determine whether the DFM object already exists
+  st<-paste("DFM",id,sep="")
+  found=0
+  if(exists(st,where=1)) {
+    data<-get(st)  
+    found<-1
+    if(AreParametersEqual(parameters,data$Parameters)==FALSE)
+      data<-ChangeParameterObject(data,parameters)
+  }
+  
+  ## If doesn't exist, get and create
+  if(found==0) {
+    
+    file<-paste("DFM",id,"_0.csv",sep="")
+    dfm<-read.csv(file,header=TRUE)  
+    
+    ## Get Minutes from Sample column only if ElapsedTime is not
+    ## there
+    if('Seconds' %in% colnames(dfm)) {
+      Minutes<-dfm$Seconds/60
+      dfm<-data.frame(Minutes,dfm)
+    } else if(('Date' %in% colnames(dfm))&&('Time' %in% colnames(dfm))&&('MSec' %in% colnames(dfm))){
+      Seconds<-GetElapsedSeconds(dfm)
+      Minutes<-Seconds/60.0
+      dfm<-data.frame(Minutes,Seconds,dfm)
+    } else {
+      stop("Time information missing from DFM data.")
+    }
+    if(sum(range)!=0){
+      dfm<- dfm[(dfm$Minutes>range[1]) & (dfm$Minutes<range[2]),]
+    }
+    data=list(ID=id,Parameters=parameters,RawData=dfm)
+    class(data)="DFM"
+    if(!is.na(FindDataBreaks(data,multiplier=4,returnvals=FALSE))){
+      cat("Data lapses found. Use FindDataBreaks for details.")
+      flush.console()      
+    }
+    data<-CalculateBaseline(data)  
+    assign(st,data,pos=1)  
+  }
+  data 
+}
+
 DFMClass.LinkFiles<-function(id,parameters,range=c(0,0)) {
   if (!is.numeric(id) || !all(is.finite(id)))
     stop("invalid arguments")
