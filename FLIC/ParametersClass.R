@@ -6,9 +6,10 @@ ParametersClass=function(){
   Feeding.Threshold=20
   Feeding.Minimum=10
   Tasting.Interval=c(10,20)
-  Feeding.Minevents=2
+  Feeding.Minevents=1
   Tasting.Minevents=1
   Samples.Per.Second=5
+  Feeding.Event.Link.Gap=5
   Chamber.Sets=matrix(1:12,ncol=2,byrow=TRUE)
   Chamber.Size=2
   PI.Multiplier=1
@@ -16,47 +17,49 @@ ParametersClass=function(){
        Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Interval[1],
        Tasting.Maximum=Tasting.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
-       Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
+       Chamber.Sets=Chamber.Sets,Feeding.Event.Link.Gap=Feeding.Event.Link.Gap,PI.Multiplier=PI.Multiplier)
 }
 ParametersClass.SingleWell=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10  
   Tasting.Interval=c(10,20)
-  Feeding.Minevents=2
+  Feeding.Minevents=1
   Tasting.Minevents=1
   Samples.Per.Second=5
   Chamber.Sets=matrix(1:12,ncol=1,byrow=TRUE)
   Chamber.Size=1
   PI.Multiplier=0
+  Feeding.Event.Link.Gap=5
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
        Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Interval[1],
        Tasting.Maximum=Tasting.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
-       Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
+       Chamber.Sets=Chamber.Sets,Feeding.Event.Link.Gap=Feeding.Event.Link.Gap,PI.Multiplier=PI.Multiplier)
 }
 ParametersClass.TwoWell=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10
   Tasting.Interval=c(10,20)
-  Feeding.Minevents=2
+  Feeding.Minevents=1
   Tasting.Minevents=1
   Samples.Per.Second=5
   Chamber.Sets=matrix(1:12,ncol=2,byrow=TRUE)
   Chamber.Size=2
   PI.Multiplier=1
+  Feeding.Event.Link.Gap=5
   list(Baseline.Window.Minutes=Baseline.Window.Minutes,Feeding.Threshold=Feeding.Threshold,
        Feeding.Minimum=Feeding.Minimum,Tasting.Minimum=Tasting.Interval[1],
        Tasting.Maximum=Tasting.Interval[2],
        Feeding.Minevents=Feeding.Minevents,Tasting.Minevents=Tasting.Minevents,Samples.Per.Second=Samples.Per.Second,Chamber.Size=Chamber.Size,
-       Chamber.Sets=Chamber.Sets,PI.Multiplier=PI.Multiplier)
+       Chamber.Sets=Chamber.Sets,Feeding.Event.Link.Gap=Feeding.Event.Link.Gap,PI.Multiplier=PI.Multiplier)
 }
 
 ## change the initial values using this function
 SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feeding.Minimum=NA, Tasting.Interval=NA,
                        Feeding.Minevents=NA,Tasting.Minevents=NA,
-                       Samples.Per.Sec=NA, Chamber.Size=NA, PI.Multiplier=NA){
+                       Samples.Per.Sec=NA, Chamber.Size=NA, Feeding.Event.Link.Gap=NA,PI.Multiplier=NA){
   tmp.O<-options()
   options(warn=-1)
   ## Change only those that are listed
@@ -88,6 +91,9 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feedin
   if(!is.na(PI.Multiplier)){
     p$PI.Multiplier=PI.Multiplier
   }
+  if(!is.na(Feeding.Event.Link.Gap)){
+    p$Feeding.Event.Link.Gap=Feeding.Event.Link.Gap
+  }
   options(tmp.O)
   p
   
@@ -96,7 +102,7 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feedin
 Get.Parameter.Names<-function(parameters){
   chambernames<-paste("Ch",1:length(parameters$Chamber.Sets),sep="")
   result<-c("BaselineWindowMin","FeedingThreshold","FeedingMinimum","TastingLow","TastingHigh",
-            "FeedingMinEvents","TastingMinEvents","SamplesSec","ChamberSize",chambernames,"PI.Multiplier")
+            "FeedingMinEvents","TastingMinEvents","SamplesSec","ChamberSize",chambernames,"Link.Gap","PI.Multiplier")
   result
 }
 
@@ -129,6 +135,9 @@ AreParametersEqual<-function(p1,p2){
     result<-FALSE
   }
   if(p1$Chamber.Size!=p2$Chamber.Size) {
+    result<-FALSE
+  }
+  if(p1$Feeding.Event.Link.Gap!=p2$Feeding.Event.Link.Gap) {
     result<-FALSE
   }
   if(p1$PI.Multiplier!=p2$PI.Multiplier) {
