@@ -66,7 +66,7 @@ Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
+Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size
   }
@@ -80,7 +80,7 @@ Feeding.BinnedLicksPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesi
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
-Feeding.BinnedEventsPlot.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
+Feeding.BinnedEventsPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign,range=c(0,0),SaveToFile=FALSE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size
   }
@@ -91,6 +91,20 @@ Feeding.BinnedEventsPlot.Trt<-function(monitors,parameters,binsize.min=20,expDes
     BinnedEventsPlot.OneWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile)
   else if(cs==2)
     BinnedEventsPlot.TwoWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile)
+  else
+    stop("Feeding lick plots not implemented for this DFM type.")    
+}
+Feeding.BinnedDurationsPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign,range=c(0,0),SaveToFile=FALSE){
+  if(is.list(parameters[[1]])){
+    cs <- parameters[[1]]$Chamber.Size
+  }
+  else {
+    cs<-parameters$Chamber.Size
+  }
+  if(cs==1)
+    BinnedDurationsPlot.OneWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile)
+  else if(cs==2)
+    BinnedDurationsPlot.TwoWell.Trt(monitors,parameters,binsize.min,expDesign,range,SaveToFile)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
@@ -304,6 +318,42 @@ OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
+
+
+OutputDurationData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="DurationsData"){
+  individ.params<-FALSE
+  ## Check to determine whether parameters is a signle parameter object
+  ## or a list of them.  If it is a single one, then we use the same one for all
+  ## if it is a list, then we use a different one for each.
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  for(j in 1:length(monitors)){
+    ##print(paste("Outputting Interval Data for DFM ",monitors[j],".",sep=""))
+    ##flush.console()
+    monitor<-monitors[j]
+    if(individ.params==TRUE)
+      p<-parameters[[j]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitor,p)
+    tmp2<-GetDurationData.DFM(dfm,range)
+    if(is.data.frame(expDesign))
+      tmp2<-AppendTreatmentonResultsFrame(tmp2,expDesign)
+    if(j==1){
+      result<-tmp2
+    }
+    else {
+      result<-rbind(result,tmp2)
+    }
+  }
+  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
+  write.csv(result,file=filename,row.names=FALSE)  
+}
+
+
 ## This fucntion will output for each well in each chamber for each monitor
 ## the total amount of time spend drinking over the perscribed range.
 OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="TotalFeedingTime"){
@@ -416,6 +466,16 @@ GetIntervalData.DFM<-function(dfm,range){
   }
   result
 }
+GetDurationData.DFM<-function(dfm,range){
+  for(i in 1:12){
+    tmp<-GetDurationData.Well(dfm,i)
+    if(i==1)
+      result<-tmp
+    else
+      result<-rbind(result,tmp)  
+  }
+  result
+}
 RawDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE) {
   ##windows(record=FALSE,width=8,height=12) # opens a window and starts recording
   tmp<-RawData(dfm,range)
@@ -458,6 +518,16 @@ BinnedLicksPlot.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRU
   else
     stop("Binned lick plots not implemented for this DFM type.")    
 }
+
+BinnedDurationsPlot.DFM<-function(dfm,binsize.min=30,range=c(0,0)){
+  if(dfm$Parameters$Chamber.Size==1)
+    PlotBins.Durations.DFM.OneWell(dfm,binsize.min,range)
+  else if(dfm$Parameters$Chamber.Size==2)
+    PlotBins.Durations.DFM.TwoWell(dfm,binsize.min,range)
+  else
+    stop("Binned durations plots not implemented for this DFM type.")    
+}
+
 CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
   tmp<-Feeding.Durations.Well(dfm,1)
   SumLicks<-cumsum(tmp$Licks)

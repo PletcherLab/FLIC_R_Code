@@ -115,4 +115,16 @@ PlotSingleSampleEvent<-function(dfm,wellnum,eventnum){
   show(gp)
 }
 
-
+# THis accepts the startTime as MM/DD/YYYY HH:MM:SS in military time
+# The data frame argument must have a column entitled "Minutes", which
+# is assumed to be the elapsed time of the experiment.
+AddRealTimeColumn<-function(data,startTimeString){
+  dtm<-strptime(startTimeString, format = "%m/%d/%Y %H:%M:%S")
+  secs<-data$Minutes*60
+  realTimes<-dtm+secs
+  tmp<-names(data)
+  tmp<-c("RealTime",tmp)
+  r<-data.frame(realTimes,data)
+  names(r)<-tmp
+  r
+}

@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 2: Grouped Analysis and Treatments"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "11/6/2019"
+date: "04/20/2020"
 output: html_document
 ---
 
@@ -65,11 +65,20 @@ OutputBaselinedData.Monitors(monitors.choice,p.choice.list, range=c(0,15))
 ```
 
 
-Other aspects of the data can also be saved to a *.csv* file in the same manner through their corresponding *.Monitors()* functions.
+Other aspects of the data can also be saved to a *.csv* file in the same manner through their corresponding *.Monitors()* functions, such as the durations or intervals between events:
+
+```{r}
+OutputDurationData.Monitors(monitors.single,p.single)
+OutputDurationData.Monitors(monitors.choice,p.choice.list)
+```
+
+
 ```{r}
 OutputIntervalData.Monitors(monitors.single,p.single)
 OutputIntervalData.Monitors(monitors.choice,p.choice.list)
 ```
+
+
 
 Because the data in these files is more condensed, this function collects multiple DFMs into a single file and appends a column to indicate the appropriate DFM.  Both functions also report data for Well Number, which represents the physical location of the well and which is not adjusted for PI.Multiplier. For choice chambers, there is a TCWell column that has incorporated the PI.Multiplier information and therefore indicates values of 'WellA' or 'WellB'.   
 
@@ -242,7 +251,7 @@ For choice experiments, licks are combined from both wells and represented with 
 Feeding.LicksPlot.Trt(monitors.choice,p.choice.list,expDesign, range=c(0,100),divisions=4)
 ```
 
-The same plots are available for Events, rather than Licks, and they are accompanied by a summary of one-way ANOVA results as well. 
+The same plots are available for Events and for mean Event Durations, rather than Licks, and they are accompanied by a summary of one-way ANOVA results as well. As of 4/20/2020 ANOVA results will fail for analysis of mean Duration if intervals have zero events.
 
 ```{r, fig.height=7.5}
 Feeding.EventsPlot.Trt(monitors.single,p.single,expDesign, range=c(0,100),divisions=4)
@@ -252,7 +261,7 @@ Feeding.EventsPlot.Trt(monitors.single,p.single,expDesign, range=c(0,100),divisi
 Feeding.EventsPlot.Trt(monitors.choice,p.choice.list,expDesign, range=c(0,100),divisions=4)
 ```
 
-To visualize binned data, use *Feeding.BinnedLicksPlot.Trt()* and *Feeding.BinnedEventsPlot.Trt()*, with the following arguments.
+To visualize binned data, use *Feeding.BinnedLicksPlot.Trt()*, *Feeding.BinnedEventsPlot.Trt()*, and *Feeding.BinnedDurationsPlot.Trt()* with the following arguments.
 
 Argument        |   Default Value  | Description
 ----------------|------------------| -----------------------------------------------------------------------------
@@ -267,6 +276,7 @@ TransformLicks  | TRUE             | Whether to transform licks to the 0.25 powe
 ```{r, fig.height=5.5}
 Feeding.BinnedLicksPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
 ```
+
 For each bin, a one-way ANOVA summary across treatments is output to the console. Note that in this example the two treatments in which specific fly neurons were activated exhibited a persistant increase in feeding throughout experiment.  Control animals exhibited a characteristic increase in feeding near the start of the experiment, which coincided with their evening meal, that decreased with time, eventually becoming quite low in darkness.
 
 or choice experiments, the plots are faceted such that feeding interactions in Well A are presented separately from those in Well B. Remember, these have been corrected for PI.Multiplier. 
@@ -277,11 +287,15 @@ Feeding.BinnedLicksPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDesi
 
 In this experiment, activated flies received optostimulation when feeding from Well A, but not from Well B for the first 180 minutes of the experiment.  For the second 180 minutes, no stimulation was provided. The binned data clearly show that optostimulation specifically promotes feeding from Well A, and this preference declines to near control levels by 360 min (P=0.59 from the one-way ANOVA for the final interval in Well A).
 
-The same plots can be produced for events, rather than licks.
+The same plots can be produced for events and durations, rather than licks.
 
 ```{r, fig.height=5.5}
 Feeding.BinnedEventsPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
 
+```
+
+```{r, fig.height=5.5}
+Feeding.BinnedDurationsPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
 ```
 
 ```{r, fig.width=5, fig.height=5.5, fig.width=8}
@@ -289,8 +303,12 @@ Feeding.BinnedEventsPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDes
 
 ```
 
+```{r, fig.height=5.5, fig.width=8}
+Feeding.BinnedDurationsPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDesign)
+```
 
-The mean/average duration of each feeding interaction event can be displayed for each treatment. 
+
+The mean/average duration of each feeding interaction event over the entire experiment can be displayed for each treatment. 
 ```{r}
 Feeding.MeanDurationsPlot.Trt(monitors.single,p.single,expDesign)
 Feeding.MeanDurationsPlot.Trt(monitors.choice,p.choice.list,expDesign)
@@ -333,6 +351,8 @@ OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0),filename="Baseline
 
 OutputIntervalData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="IntervalData")
 
+OutputDurationData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="DurationData")
+
 OutputTotalFeeding.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="TotalFeedingTime")
 
 CumulativeLicksPlots.DFM(dfm,SinglePlot=FALSE,TransformLicks=TRUE)
@@ -348,4 +368,6 @@ Feeding.MeanTimeBtwPlot.Trt(monitors,parameters,expDesign,range=c(0,0),divisions
 Feeding.BinnedLicksPlot.Trt(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE)
 
 Feeding.BinnedEventsPlot.Trt(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE)
+
+Feeding.BinnedDurationsPlot.Trt(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE)
 ```

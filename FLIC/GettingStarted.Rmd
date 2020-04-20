@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 1: Introduction and DFM Data"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "11/6/2019"
+date: "4/20/2020"
 output: html_document
 ---
 
@@ -307,7 +307,8 @@ Column                  |   Definition
 Interval                | The defined limits of the interval (in minutes).
 Min                     | The midpoint of the interval (in minutes).
 Licks                   | The number of feeding licks in the defined range (the entire experiment if not specified). 
-Events                  | The number of events (groups of contiguous licks) in the defined range. 
+Events                  | The number of events (groups of contiguous licks) in the defined range.
+Duration                | The mean duration of events in the defined range. 
 DFM                     | The DFM ID number.
 Chamber                 | The chamber number (1-12) numbered as in the parameter vector.
 StartMin                | The start of the range (in minutes) examined (0 =  start of experiment).
@@ -324,6 +325,8 @@ LicksA                  | The number of feeding licks in WellA over the defined 
 LicksB                  | The number of feeding licks in WellA over the defined range (the entire experiment if not specified).  
 EventsA                 | The number of events in WellA (groups of contiguous licks) in the defined range.
 EventsB                 | The number of events in WellB (groups of contiguous licks) in the defined range. 
+DurationA               | The mean duration of events in WellA in the defined range.
+DurationB               | The mean duration of events in WellB in the defined range. 
 DFM                     | The DFM ID number.
 Chamber                 | The chamber number (1-6) numbered as in the parameter vector.
 StartMin                | The start of the range (in minutes) examined (0 =  start of experiment).
