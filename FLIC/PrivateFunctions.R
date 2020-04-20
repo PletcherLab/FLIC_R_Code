@@ -1388,7 +1388,15 @@ BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   result<-BinLicks.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
   tmp<-BinEvents.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
   Events<-tmp$Events
-  result<-data.frame(result,Events)
+  tmp<-BinDurations.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
+  if(length(tmp)==1 && tmp[1]==0){
+    Duration<-rep(0,length(Events))
+  }
+  else {
+    Duration<-tmp$Duration
+  }
+  
+  result<-data.frame(result,Events,Duration)
   Well<-factor(rep(1,nrow(result)))
   DFM<-factor(rep(dfm$ID,nrow(result)))
   result<-data.frame(result,DFM,Well)
@@ -1396,8 +1404,16 @@ BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   for(i in 2:12) {
     tmp<-BinLicks.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
     tmp2<-BinEvents.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
+    tmp3<-BinDurations.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
     Events<-tmp2$Events
-    tmp<-data.frame(tmp,Events)
+    if(length(tmp3)==1 && tmp3[1]==0){
+      Duration<-rep(0,length(Events))
+    }
+    else {
+      Duration<-tmp3$Duration
+    }
+   
+    tmp<-data.frame(tmp,Events,Duration)
     Well<-factor(rep(i,nrow(tmp)))
     DFM<-factor(rep(dfm$ID,nrow(tmp)))
     tmp<-data.frame(tmp,DFM,Well)
@@ -1406,12 +1422,13 @@ BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   StartMin<-rep(range[1],nrow(result))
   EndMin<-rep(range[2],nrow(result))
   result<-data.frame(result,StartMin,EndMin)
-  names(result)<-c("Interval","Min","Licks","Events","DFM","Chamber","StartMin","EndMin")
+  names(result)<-c("Interval","Min","Licks","Events","Duration","DFM","Chamber","StartMin","EndMin")
   ## Note that transformation occurs after the summation.
   if(TransformLicks==TRUE)
     result$Licks<-result$Licks^0.25
   result  
 }
+
 BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
   
   if(dfm$Parameters$Chamber.Size!=2)
@@ -1430,10 +1447,28 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
   etmp<-BinEvents.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
   etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
+  dtmp<-BinDurations.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
+  dtmp2<-BinDurations.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
+  
+  if(length(dtmp)==1 && dtmp[1]==0){
+    DurationA<-rep(0,length(etmp$Events))
+  }
+  else {
+    DurationA<-dtmp$Duration
+  }
+  
+  if(length(dtmp2)==1 && dtmp2[1]==0){
+    DurationB<-rep(0,length(etmp2$Events))
+  }
+  else {
+    DurationB<-dtmp2$Duration
+  }
+  
+  
   Chamber<-factor(rep(1,nrow(ltmp)))
   DFM<-factor(rep(dfm$ID,nrow(ltmp)))
   
-  result<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
+  result<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DurationA,DurationB,DFM,Chamber)
   
   for(i in 2:nrow(dfm$Parameters$Chamber.Sets)) {
     if(dfm$Parameters$PI.Multiplier==1){
@@ -1449,15 +1484,33 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
     ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
     etmp<-BinEvents.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
     etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
+    
+    dtmp<-BinDurations.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
+    dtmp2<-BinDurations.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
+    
+    if(length(dtmp)==1 && dtmp[1]==0){
+      DurationA<-rep(0,length(etmp$Events))
+    }
+    else {
+      DurationA<-dtmp$Duration
+    }
+    
+    if(length(dtmp2)==1 && dtmp2[1]==0){
+      DurationB<-rep(0,length(etmp2$Events))
+    }
+    else {
+      DurationB<-dtmp2$Duration
+    }
+    
     Chamber<-factor(rep(i,nrow(ltmp)))
     DFM<-factor(rep(dfm$ID,nrow(ltmp)))
-    tmp<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DFM,Chamber)
+    tmp<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DurationA,DurationB,DFM,Chamber)
     result<-rbind(result,tmp)
   }
   StartMin<-rep(range[1],nrow(result))
   EndMin<-rep(range[2],nrow(result))
   result<-data.frame(result,StartMin,EndMin)
-  names(result)<-c("Interval","Min","LicksA","LicksB","EventsA","EventsB","DFM","Chamber","StartMin","EndMin")
+  names(result)<-c("Interval","Min","LicksA","LicksB","EventsA","EventsB","DurationA","DurationB","DFM","Chamber","StartMin","EndMin")
   ## Note that transformation occurs after the summation.
   if(TransformLicks==TRUE){
     result$LicksA<-result$LicksA^0.25
@@ -1465,6 +1518,7 @@ BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLi
   }
   result  
 }
+
 BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
   tmp<-FeedingData.Events(dfm,range)
   cname=paste("W",well,sep="")
@@ -1536,6 +1590,45 @@ BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA)
   
   #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
   
+  
+  results
+}
+
+BinDurations.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
+  tmp<-Feeding.Durations.Well(dfm,well)
+  if(length(tmp)==1 && tmp[1]==0){
+    return(0)
+  }
+  
+ 
+  if(is.na(StartMin)){
+    m.min<-0
+  }
+  else {
+    m.min<-StartMin
+  }
+  
+  if(is.na(EndMin)){
+    m.max<-max(tmp$Minutes)  
+  }
+  else {
+    m.max<-EndMin
+  }
+  
+  y<-seq(m.min,m.max,by=binsize.min)
+  if(y[length(y)]<m.max)
+    y<-c(y,m.max)
+  
+  z<-cut(tmp$Minutes,y,include.lowest=TRUE,dig.lab=8)
+  
+  
+  r.min<-aggregate(tmp$Minutes~z,FUN=mean,drop=FALSE)
+  r.A<-aggregate(tmp$Duration~z,FUN=mean,drop=FALSE)
+  
+  results<-data.frame(r.min,r.A[,2])
+  names(results)<-c("Interval","Min","Duration")
+  
+  #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
   
   results
 }
