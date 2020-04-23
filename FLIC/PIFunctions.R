@@ -322,7 +322,6 @@ BinnedFeeding.EventPIPlot.Trt<-function(monitors,parameters,binsize.min=30,expDe
   show(gp)
 }
 
-
 Feeding.CumulativePI.DFM<-function(dfm, range=c(0,0), ShowPlots=TRUE, SinglePlot=FALSE){
   ## Get the Feeding.PI
   chambers<-1:nrow(dfm$Parameters$Chamber.Sets)

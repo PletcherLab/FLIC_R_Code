@@ -25,25 +25,13 @@ expDesign<-read.csv("ExpDesign.csv")
 monitors<-c(1,2,3,4)
 monitors2<-c(11,12,13,14,15,16,17)
 
-
-fs1<-Feeding.Summary.DFM(dfm1)
-fs2<-Feeding.Summary.DFM(dfm2)
-
-bfs1<-BinnedFeeding.Summary.DFM(dfm1,60)
-bfs2<-BinnedFeeding.Summary.DFM(dfm2,60)
-
-bfs1[bfs1$Chamber==1,]
-bfs2[bfs2$Chamber==1,]
-
 fsm<-Feeding.Summary.Monitors(monitors,p1,expDesign = expDesign)
 bfsm<-BinnedFeeding.Summary.Monitors(monitors,p1,60,expDesign = expDesign)
 
 
-fsm2<-Feeding.Summary.Monitors(c(11,12,13,14),p2,expDesign = expDesign)
-bfsm2<-BinnedFeeding.Summary.Monitors(c(11,12,13,14),p2,60,expDesign = expDesign)
+fsm2<-Feeding.Summary.Monitors(monitors2,p2,expDesign = expDesign)
+bfsm2<-BinnedFeeding.Summary.Monitors(monitors2,p2,60,expDesign = expDesign)
 
-BinnedPlot.OneWell.Trt(monitors,p1,60,ExpDesign)
-BinnedPlot.OneWell.Trt(bfsm2)
 
 
 

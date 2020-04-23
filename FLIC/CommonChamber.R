@@ -54,6 +54,29 @@ BaselinedDataPlot.DFM<-function(dfm,range=c(0,0),OutputPNGFile=FALSE, IncludeThr
   else
     show(gp)
 }
+## Use this function to identify large well- or DFM-based effects.
+PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
+  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)$Results
+  
+  ylabel="Licks"
+  if(TransformLicks==TRUE) {
+    ylabel="Transformed Licks"
+  }
+  
+  tmp2$DFM<-factor(tmp2$DFM)
+  
+  if("LicksA" %in% names(tmp2)){
+    tmp2<-tmp2[,c("DFM","LicksA","LicksB")]
+    tmp2<-melt(tmp2,id.vars="DFM",value.name="Licks", variable.name="Well")
+    gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=Well)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
+      ylab(ylabel)
+  }
+  else {
+    gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
+      ylab(ylabel)
+  }
+  gp
+}
 
 ##### Experiment Analysis Functions ######
 Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummary"){
@@ -93,14 +116,14 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatments(results))
     if(SaveToFile==TRUE){
-      filename2<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename2<-paste(filename,"_Stats.csv",sep="")
       write.csv(trt.summary,file=filename2,row.names=FALSE)
-      filename2<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename2<-paste(filename,"_Data.csv",sep="")
       write.csv(results,file=filename2,row.names=FALSE)
     }
   }
   else if(SaveToFile==TRUE){
-    filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    filename<-paste(filename,"_DFM.csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
@@ -163,14 +186,14 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     results<-AppendTreatmentonResultsFrame(results,expDesign)
     trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
     if(SaveToFile==TRUE){
-      filename2<-paste(filename,"_TRT_Stats",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename2<-paste(filename,"_Stats.csv",sep="")
       write.csv(trt.summary,file=filename2,row.names=FALSE)
-      filename2<-paste(filename,"_TRT_Data",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+      filename2<-paste(filename,"_Data.csv",sep="")
       write.csv(results,file=filename2,row.names=FALSE)
     }
   }
   else if(SaveToFile==TRUE){
-    filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="")
+    filename<-paste(filename,"_DFM.csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
@@ -182,8 +205,8 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
   }
 }
 
-
 ##### Simple Experiment Plotting Functions ######
+## These functions take the output of the experimental analysis functions and rapidly plot different measures.
 BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
   if("LicksA" %in% names(binnedDataResult$Results)){
     BinnedPlot.TwoWell.Trt(binnedDataResult,Type,SaveToFile)
@@ -193,31 +216,27 @@ BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
   }
 }
 DataPlot<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
-  if("LicksA" %in% names(binnedDataResult$Results)){
-    SimpleDataPlot.TwoWell(summaryResults,Type,SaveToFile)
+  if("LicksA" %in% names(summaryResults$Results)){
+    stop("Not implemented!")
   }
   else {
     SimpleDataPlot.OneWell(summaryResults,Type,SaveToFile)
   }
 }
 
-##### Divided Box Plots ######
-
-
-
-
-#####Treatment based functions######
-## Treatment based functions
+##### Advanced Cumulative Division Box Plots ######
 ## Divisions will create a separate graph for the cumulative PI (starting at range[0]) up
 ## to each of the division points in the experiment.  This is distinct from the time-dependent
 ## PI because it will always start from the first point in the data set (satisfying the first
 ## range parameter).
 
+## These plots allow the user to specify a range.
+
 ## Although it is not optimal, the two-well aspect of these functions just adds or averages the values of
 ## both wells.  In the future this should probably present values for each well, adjusted for the PI multiplier.
 
-
-Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE){
+## These plots are slower than the simple plots because analysis calculations are required.
+DivisionPlots.Monitors<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size
   }
@@ -225,249 +244,53 @@ Feeding.LicksPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divis
     cs<-parameters$Chamber.Size
   }
   if(cs==1)
-    FeedingLicks.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
+    DivisionPlots.OneWell(monitors,parameters,expDesign,range,divisions,Type,SaveToFile,TransformLicks)
   else if(cs==2)
-    FeedingLicks.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else
-    stop("Feeding lick plots not implemented for this DFM type.")    
-}
-Feeding.EventsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(is.list(parameters[[1]])){
-    cs <- parameters[[1]]$Chamber.Size
-  }
-  else {
-    cs<-parameters$Chamber.Size
-  }
-  if(cs==1)
-    FeedingEvents.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(cs==2)
-    FeedingEvents.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else
-    stop("Feeding lick plots not implemented for this DFM type.")    
-}
-Feeding.MeanDurationsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(is.list(parameters[[1]])){
-    cs <- parameters[[1]]$Chamber.Size
-  }
-  else {
-    cs<-parameters$Chamber.Size
-  }
-  if(cs==1)
-    FeedingMeanDuration.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(cs==2)
-    FeedingMeanDuration.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else
-    stop("Feeding lick plots not implemented for this DFM type.")    
-}
-Feeding.MeanTimeBtwPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE){
-  if(is.list(parameters[[1]])){
-    cs <- parameters[[1]]$Chamber.Size
-  }
-  else {
-    cs<-parameters$Chamber.Size
-  }
-  if(cs==1)
-    FeedingMeanTimeBtw.OneWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
-  else if(cs==2)
-    FeedingMeanTimeBtw.TwoWell.Trt(monitors,parameters,expDesign,range,divisions,SaveToFile)
+    DivisionPlots.TwoWell(monitors,parameters,expDesign,range,divisions,Type,SaveToFile,TransformLicks)
   else
     stop("Feeding lick plots not implemented for this DFM type.")    
 }
 
-
-###################################
-## Will output Feeding.Summary data for each chamber in each monitor
-## over the specified range to a .csv file.
-
-
-PlotTotalLicks.Monitors<-function(monitors, p, range=c(0,0),TransformLicks=TRUE){
-  tmp2<-Feeding.Summary.Monitors(monitors,p,range=range,TransformLicks)$Results
-  
-  ylabel="Licks"
-  if(TransformLicks==TRUE) {
-    ylabel="Transformed Licks"
+##### Data output ######
+OutputData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),Type="Data",filename=NA){
+  if(Type=="Data"){
+    if(is.na(filename)){
+      OutputBaselinedData.Monitors(monitors,parameters,range)
+    }
+    else{
+      OutputBaselinedData.Monitors(monitors,parameters,range,filename)
+    }
   }
-  
-  tmp2$DFM<-factor(tmp2$DFM)
-  
-  if("LicksA" %in% names(tmp2)){
-    tmp2<-tmp2[,c("DFM","LicksA","LicksB")]
-    tmp2<-melt(tmp2,id.vars="DFM",value.name="Licks", variable.name="Well")
-    gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=Well)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
-      ylab(ylabel)
+  else if(Type=="Durations"){
+    if(is.na(filename)){
+      OutputDurationData.Monitors(monitors,parameters,expDesign,range)
+    }
+    else{
+      OutputDurationData.Monitors(monitors,parameters,expDesign,range,filename)
+    }
   }
-  else {
-    gp<-ggplot(tmp2,aes(x=DFM,y=Licks,fill=DFM)) + geom_dotplot(binaxis='y',stackdir='center',stackratio=1.5, dotsize=0.7) +
-      ylab(ylabel)
+  else if(Type=="TimeBtw"){
+    if(is.na(filename)){
+      OutputIntervalData.Monitors(monitors,parameters,expDesign,range) 
+    }
+    else{
+      OutputIntervalData.Monitors(monitors,parameters,expDesign,range,filename) 
+    }
   }
-  gp
-}
-## This function will output the baselined (and cleaned) analog
-## values (along with minutes, parameter values, etc) to a 
-## separate .csv file for each chamber in each of the specified monitors.
-
-
-
-OutputBaselinedData.Monitors<-function(monitors,parameters,range=c(0,0),filename="Baselined"){
-  individ.params<-FALSE
-  ## Check to determine whether parameters is a signle parameter object
-  ## or a list of them.  If it is a single one, then we use the same one for all
-  ## if it is a list, then we use a different one for each.
-  if(is.list(parameters[[1]])==TRUE){
-    if(length(parameters)!=length(monitors))
-      stop("If individuals parameter objects are specified, there must be one for each DFM.")
-    individ.params<-TRUE
-  }
-  
-  for(j in 1:length(monitors)){
-    print(paste("Outputting Baselined Data for DFM ",monitors[j],".",sep=""))
-    flush.console()
-    monitor<-monitors[j]
-    if(individ.params==TRUE)
-      p<-parameters[[j]]
-    else
-      p<-parameters
-    dfm<-DFMClass(monitor,p)
-    OutputBaselinedData.DFM(dfm,range,filename)
-  }
-}
-OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="IntervalData"){
-  individ.params<-FALSE
-  ## Check to determine whether parameters is a signle parameter object
-  ## or a list of them.  If it is a single one, then we use the same one for all
-  ## if it is a list, then we use a different one for each.
-  if(is.list(parameters[[1]])==TRUE){
-    if(length(parameters)!=length(monitors))
-      stop("If individuals parameter objects are specified, there must be one for each DFM.")
-    individ.params<-TRUE
-  }
-  for(j in 1:length(monitors)){
-    ##print(paste("Outputting Interval Data for DFM ",monitors[j],".",sep=""))
-    ##flush.console()
-    monitor<-monitors[j]
-    if(individ.params==TRUE)
-      p<-parameters[[j]]
-    else
-      p<-parameters
-    dfm<-DFMClass(monitor,p)
-    tmp2<-GetIntervalData.DFM(dfm,range)
-    if(is.data.frame(expDesign))
-      tmp2<-AppendTreatmentonResultsFrame(tmp2,expDesign)
-    if(j==1){
-      result<-tmp2
+  else if(Type=="TotalFeeding"){
+    if(is.na(filename)){
+      OutputTotalFeeding.Monitors(monitors,parameters,expDesign,range)
     }
     else {
-      result<-rbind(result,tmp2)
+      OutputTotalFeeding.Monitors(monitors,parameters,expDesign,range,filename)
     }
   }
-  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
-  write.csv(result,file=filename,row.names=FALSE)  
+  else {
+    stop("Plot type does not exist.")
+  }
 }
 
-
-OutputDurationData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="DurationsData"){
-  individ.params<-FALSE
-  ## Check to determine whether parameters is a signle parameter object
-  ## or a list of them.  If it is a single one, then we use the same one for all
-  ## if it is a list, then we use a different one for each.
-  if(is.list(parameters[[1]])==TRUE){
-    if(length(parameters)!=length(monitors))
-      stop("If individuals parameter objects are specified, there must be one for each DFM.")
-    individ.params<-TRUE
-  }
-  for(j in 1:length(monitors)){
-    ##print(paste("Outputting Interval Data for DFM ",monitors[j],".",sep=""))
-    ##flush.console()
-    monitor<-monitors[j]
-    if(individ.params==TRUE)
-      p<-parameters[[j]]
-    else
-      p<-parameters
-    dfm<-DFMClass(monitor,p)
-    tmp2<-GetDurationData.DFM(dfm,range)
-    if(is.data.frame(expDesign))
-      tmp2<-AppendTreatmentonResultsFrame(tmp2,expDesign)
-    if(j==1){
-      result<-tmp2
-    }
-    else {
-      result<-rbind(result,tmp2)
-    }
-  }
-  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
-  write.csv(result,file=filename,row.names=FALSE)  
-}
-
-
-## This fucntion will output for each well in each chamber for each monitor
-## the total amount of time spend drinking over the perscribed range.
-OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="TotalFeedingTime"){
-  individ.params<-FALSE
-  ## Check to determine whether parameters is a signle parameter object
-  ## or a list of them.  If it is a single one, then we use the same one for all
-  ## if it is a list, then we use a different one for each.
-  if(is.list(parameters[[1]])==TRUE){
-    if(length(parameters)!=length(monitors))
-      stop("If individuals parameter objects are specified, there must be one for each DFM.")
-    individ.params<-TRUE
-  }
-  
-  for(j in 1:length(monitors)){
-    print(paste("Outputting TotalFeeding Data for DFM ",monitors[j],".",sep=""))
-    flush.console()
-    monitor<-monitors[j]
-    x<-1:12
-    if(individ.params==TRUE)
-      p<-parameters[[j]]
-    else
-      p<-parameters
-    dfm<-DFMClass(monitor,p)
-    parameter.vector<-GetParameterVector(p)
-    pnames<-Get.Parameter.Names(p)
-    tmp<-Feeding.Summary.DFM(dfm,range)
-    if(p$Chamber.Size==1){
-      atotal<-tmp$Events*tmp$MeanDuration
-      d<-tmp$DFM
-      c<-tmp$Chamber
-      tmp2<-matrix(rep(parameter.vector,length(d)),ncol=length(parameter.vector),byrow=TRUE)
-      tmp3<-data.frame(d,c,atotal,tmp2)
-      names(tmp3)<-c("DFM","Chamber","TotalSec",pnames)
-      if(j==1){
-        result<-tmp3
-      }
-      else {
-        result<-rbind(result,tmp3)  
-      }
-    }
-    else if(p$Chamber.Size==2){
-      atotal<-tmp$EventsA*tmp$MeanDurationA
-      btotal<-tmp$EventsB*tmp$MeanDurationB
-      d<-tmp$DFM
-      c<-tmp$Chamber
-      tmp2<-matrix(rep(parameter.vector,length(d)),ncol=length(parameter.vector),byrow=TRUE)
-      tmp3<-data.frame(d,c,atotal,btotal,tmp2)
-      names(tmp3)<-c("DFM","Chamber","ATotalSec","BTotalSec",pnames)
-      if(j==1){
-        result<-tmp3
-      }
-      else {
-        result<-rbind(result,tmp3)  
-      }      
-    }
-    else 
-      stop("Feeding Summary not implemented for this DFM type.")    
-  }
-  
-  if(is.data.frame(expDesign))
-    result<-AppendTreatmentonResultsFrame(result,expDesign)
-  
-  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
-  write.csv(result,file=filename,row.names=FALSE)  
-}
-
-
-##### Functions for Exploring Individual DFMs ######
-
+##### Data functions for Exploring Individual DFMs ######
 Feeding.Summary.DFM<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     Feeding.Summary.OneWell(dfm,range,TransformLicks)
@@ -508,7 +331,6 @@ BinnedFeeding.Summary.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=
   }
   result
 }
-
 GetIntervalData.DFM<-function(dfm,range){
   for(i in 1:12){
     tmp<-GetIntervalData.Well(dfm,i,range)
@@ -530,6 +352,7 @@ GetDurationData.DFM<-function(dfm,range){
   result
 }
 
+##### Plots for Exploring Individual DFMs ######
 BinnedLicksPlot.DFM<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size==1)
     PlotBins.Licks.DFM.OneWell(dfm,binsize.min,range,TransformLicks)
