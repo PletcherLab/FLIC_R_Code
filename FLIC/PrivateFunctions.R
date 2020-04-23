@@ -374,7 +374,7 @@ Thresholds.Well<-function(dfm,well,range=c(0,0)){
   cname=paste("W",well,sep="")
   tmp<-dfm$Thresholds[[cname]]
   if(sum(range)!=0) {
-    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<range[2]),]
+    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<=range[2]),]
   }    
   tmp  
 }
@@ -382,14 +382,14 @@ BaselinedData.Well<-function(dfm,well,range=c(0,0)) {
   cname=paste("W",well,sep="")
   tmp<-dfm$BaselineData[,cname]  
   if(sum(range)!=0) {
-    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<range[2])]
+    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<=range[2])]
   }    
   tmp  
 }
 BaselinedData<-function(dfm,range=c(0,0)) {   
   tmp<-dfm$BaselineData
   if(sum(range)!=0) {
-    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<range[2]),]
+    tmp<- tmp[(dfm$BaselineData$Minutes>range[1]) & (dfm$BaselineData$Minutes<=range[2]),]
   }    
   tmp  
 }
@@ -413,7 +413,7 @@ TastingData.Well<-function(dfm,well,range=c(0,0)){
   cname=paste("W",well,sep="")
   tmp<-dfm$TastingData[,cname]  
   if(sum(range)!=0) {
-    tmp<- tmp[(tmp$Minutes>range[1]) & (tmp$Minutes<range[2])]
+    tmp<- tmp[(tmp$Minutes>range[1]) & (tmp$Minutes<=range[2])]
   }   
   tmp    
 }
@@ -425,14 +425,14 @@ TastingData.Well.Events<-function(dfm,well,range=c(0,0)){
 TastingData.Events<-function(dfm,range=c(0,0)){
   data<-dfm$TastingEventData  
   if(sum(range)!=0) {
-    data<- data[(data$Minutes>range[1] & data$Minutes<range[2]),]
+    data<- data[(data$Minutes>range[1] & data$Minutes<=range[2]),]
   }    
   data
 }
 FeedingData.Licks<-function(dfm,range=c(0,0)){
   data<-dfm$LickData  
   if(sum(range)!=0) {
-    data<- data[(data$Minutes>range[1] & data$Minutes<range[2]),]
+    data<- data[(data$Minutes>range[1] & data$Minutes<=range[2]),]
   }    
   data
 }
@@ -443,14 +443,14 @@ FeedingData.Licks<-function(dfm,range=c(0,0)){
 FeedingData.Events<-function(dfm,range=c(0,0)){
   data<-dfm$EventData  
   if(sum(range)!=0) {
-    data<- data[(data$Minutes>range[1] & data$Minutes<range[2]),]
+    data<- data[(data$Minutes>range[1] & data$Minutes<=range[2]),]
   }    
   data
 }
 TastingData<-function(dfm,range=c(0,0)){
   data<-dfm$TastingData  
   if(sum(range)!=0) {
-    data<- data[(data$Minutes>range[1] & data$Minutes<range[2]),]
+    data<- data[(data$Minutes>range[1] & data$Minutes<=range[2]),]
   }    
   data
 }
@@ -514,7 +514,7 @@ Feeding.IntervalSummary.Well<-function(dfm,well,range=c(0,0)){
       aa<-0
     }
     else {
-      adurs<-adurs[(adurs$Minutes>range[1]) & (adurs$Minutes<range[2]),]  
+      adurs<-adurs[(adurs$Minutes>range[1]) & (adurs$Minutes<=range[2]),]  
       if(nrow(adurs)==0){
         a<-0
         aa<-0
@@ -550,7 +550,7 @@ Feeding.DurationSummary.Well<-function(dfm,well,range=c(0,0)){
       aa<-0
     }
     else {
-      adurs<-adurs[(adurs$Minutes>range[1]) & (adurs$Minutes<range[2]),]  
+      adurs<-adurs[(adurs$Minutes>range[1]) & (adurs$Minutes<=range[2]),]  
       if(nrow(adurs)==0){
         a<-0
         aa<-0
@@ -580,23 +580,29 @@ Feeding.DurationSummary.Well<-function(dfm,well,range=c(0,0)){
 }
 Feeding.IntensitySummary.Well<-function(dfm,well,range=c(0,0)){
   d<-BaselineData.Well(dfm,well,range)
-  l<-FeedingData.Well.Licks(dfm,well,range)
+  l<-Expand.Events(FeedingData.Well.Events(dfm,well,range))
   
   da<-d[l]
   
   if(length(da)==0){
     a<-0
     aa<-0
+    aaa<-0
+    aaaa<-0
   }
   else {
     a<-mean(da)  
     aa<-median(da)
+    aaa<-min(da)
+    aaaa<-max(da)
   }
   
-  tmp<-data.frame(a,aa)
-  names(tmp)<-c("MeanInt","MedianInt")
+  tmp<-data.frame(a,aa,aaa,aaaa)
+  names(tmp)<-c("MeanInt","MedianInt","MinInt","MaxInt")
   tmp
 }
+
+
 BaselinedData.Range.Well<-function(dfm,well,range=c(0,0)){
   tmp<-BaselinedData.Well(dfm,well,range)
   x1<-min(tmp)
@@ -775,7 +781,7 @@ Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
     }      
   }
   names(result)<-c("DFM","Chamber","Licks","Events","MeanDuration","MedDuration",
-                   "MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","StartMin","EndMin")
+                   "MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","MinInt","MaxInt","StartMin","EndMin")
   if(TransformLicks==TRUE)
     result$Licks<-result$Licks^0.25
   result    
@@ -821,8 +827,8 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   }
   names(result)<-c("DFM","Chamber","PI","EventPI","LicksA","LicksB","EventsA","EventsB","MeanDurationA","MedDurationA",
                    "MeanDurationB","MedDurationB","MeanTimeBtwA","MedTimeBtwA",
-                   "MeanTimeBtwB","MedTimeBtwB","MeanIntA","MedianIntA",
-                   "MeanIntB","MedianIntB","StartMin","EndMin")
+                   "MeanTimeBtwB","MedTimeBtwB","MeanIntA","MedianIntA","MinIntA","MaxIntA",
+                   "MeanIntB","MedianIntB","MinIntB","MaxIntB","StartMin","EndMin")
   if(TransformLicks==TRUE){
     result$LicksA<-result$LicksA^0.25
     result$LicksB<-result$LicksB^0.25
@@ -830,6 +836,69 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   result    
   
 }
+
+
+SimpleDataPlot.OneWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
+  results<-summaryResults$Results
+  results<-subset(results,Treatment!="None")
+  
+  if(Type=="Licks") {
+    filename<-paste("SimpleLicksPlot.pdf",sep="")
+    ylabel<-"Licks"
+    r<-"Licks"
+    gp<-(ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    analysis<-data.frame(results$Treatment,results$Licks)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else if(Type=="Events") {
+    filename<-paste("SimpleEventsPlot.pdf",sep="")
+    ylabel<-"Events"
+    r<-"Events"
+    gp<-(ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+           ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    analysis<-data.frame(results$Treatment,results$Events)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else if(Type=="Durations") {
+    filename<-paste("SimpleDurationsPlot.pdf",sep="")
+    ylabel<-"Duration (sec)"
+    r<-"Duration"
+    gp<-(ggplot(results, aes(results$Treatment, results$MeanDuration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+           ylim(c(min(results$MeanDuration),max(results$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    analysis<-data.frame(results$Treatment,results$MeanDuration)
+    names(analysis)<-c("Treatment","Y")
+    
+  }
+  else if(Type=="MinInt") {
+    filename<-paste("SimpleMinIntPlot.pdf",sep="")
+    ylabel<-"Minimum Event Intensity"
+    r<-"Min Intensity"
+    gp<-(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+           ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    analysis<-data.frame(results$Treatment,results$MinInt)
+    names(analysis)<-c("Treatment","Y")
+    
+  }
+  else if(Type=="MeanTimeBtw") {
+    filename<-paste("SimpleMeantTimeBtwPlot.pdf",sep="")
+    ylabel<-"Time Between Events (sec)"
+    r<-"Time Btw"
+    gp<-(ggplot(results, aes(results$Treatment, results$MeanTimeBtw)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+           ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
+    analysis<-data.frame(results$Treatment,results$MeanTimeBtw)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else {
+    stop("Plot type does not exist.")
+  }
+  show(gp)
+  r2<-paste("\n** ",r," **\n")
+  cat(r2)
+  print(summary(aov(Y~Treatment,data=analysis)))
+}
+
+
 FeedingLicks.OneWell.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE){
   if(SaveToFile==TRUE){
     filename<-paste("FeedingLicksBoxPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
@@ -1382,257 +1451,6 @@ FeedingMeanTimeBtw.TwoWell.Trt<-function(monitors,parameters,expDesign,range=c(0
   
 } 
 
-BinnedFeeding.Summary.OneWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
-  if(dfm$Parameters$Chamber.Size!=1)
-    stop("This function is for single chambers only")
-  result<-BinLicks.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
-  tmp<-BinEvents.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
-  Events<-tmp$Events
-  tmp<-BinDurations.Well(dfm,1,binsize.min,range,StartTimeMin,EndTimeMin)
-  if(length(tmp)==1 && tmp[1]==0){
-    Duration<-rep(0,length(Events))
-  }
-  else {
-    Duration<-tmp$Duration
-  }
-  
-  result<-data.frame(result,Events,Duration)
-  Well<-factor(rep(1,nrow(result)))
-  DFM<-factor(rep(dfm$ID,nrow(result)))
-  result<-data.frame(result,DFM,Well)
-  
-  for(i in 2:12) {
-    tmp<-BinLicks.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
-    tmp2<-BinEvents.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
-    tmp3<-BinDurations.Well(dfm,i,binsize.min,range,StartTimeMin,EndTimeMin)
-    Events<-tmp2$Events
-    if(length(tmp3)==1 && tmp3[1]==0){
-      Duration<-rep(0,length(Events))
-    }
-    else {
-      Duration<-tmp3$Duration
-    }
-   
-    tmp<-data.frame(tmp,Events,Duration)
-    Well<-factor(rep(i,nrow(tmp)))
-    DFM<-factor(rep(dfm$ID,nrow(tmp)))
-    tmp<-data.frame(tmp,DFM,Well)
-    result<-rbind(result,tmp)
-  }
-  StartMin<-rep(range[1],nrow(result))
-  EndMin<-rep(range[2],nrow(result))
-  result<-data.frame(result,StartMin,EndMin)
-  names(result)<-c("Interval","Min","Licks","Events","Duration","DFM","Chamber","StartMin","EndMin")
-  ## Note that transformation occurs after the summation.
-  if(TransformLicks==TRUE)
-    result$Licks<-result$Licks^0.25
-  result  
-}
-BinnedFeeding.Summary.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks=TRUE,StartTimeMin=NA,EndTimeMin=NA){
-  
-  if(dfm$Parameters$Chamber.Size!=2)
-    stop("This function is for two-chamber DFM only")
-  
-  if(dfm$Parameters$PI.Multiplier==1){
-    wellA<-dfm$Parameters$Chamber.Sets[1,1]
-    wellB<-dfm$Parameters$Chamber.Sets[1,2] 
-  }
-  else {
-    wellB<-dfm$Parameters$Chamber.Sets[1,1]
-    wellA<-dfm$Parameters$Chamber.Sets[1,2] 
-  }
-  
-  ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
-  ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
-  etmp<-BinEvents.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
-  etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
-  dtmp<-BinDurations.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
-  dtmp2<-BinDurations.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
-  
-  if(length(dtmp)==1 && dtmp[1]==0){
-    DurationA<-rep(0,length(etmp$Events))
-  }
-  else {
-    DurationA<-dtmp$Duration
-  }
-  
-  if(length(dtmp2)==1 && dtmp2[1]==0){
-    DurationB<-rep(0,length(etmp2$Events))
-  }
-  else {
-    DurationB<-dtmp2$Duration
-  }
-  
-  
-  Chamber<-factor(rep(1,nrow(ltmp)))
-  DFM<-factor(rep(dfm$ID,nrow(ltmp)))
-  
-  result<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DurationA,DurationB,DFM,Chamber)
-  
-  for(i in 2:nrow(dfm$Parameters$Chamber.Sets)) {
-    if(dfm$Parameters$PI.Multiplier==1){
-      wellA<-dfm$Parameters$Chamber.Sets[i,1]
-      wellB<-dfm$Parameters$Chamber.Sets[i,2] 
-    }
-    else {
-      wellB<-dfm$Parameters$Chamber.Sets[i,1]
-      wellA<-dfm$Parameters$Chamber.Sets[i,2] 
-    }
-    
-    ltmp<-BinLicks.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
-    ltmp2<-BinLicks.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
-    etmp<-BinEvents.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
-    etmp2<-BinEvents.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
-    
-    dtmp<-BinDurations.Well(dfm,wellA,binsize.min,range,StartTimeMin,EndTimeMin)
-    dtmp2<-BinDurations.Well(dfm,wellB,binsize.min,range,StartTimeMin,EndTimeMin)
-    
-    if(length(dtmp)==1 && dtmp[1]==0){
-      DurationA<-rep(0,length(etmp$Events))
-    }
-    else {
-      DurationA<-dtmp$Duration
-    }
-    
-    if(length(dtmp2)==1 && dtmp2[1]==0){
-      DurationB<-rep(0,length(etmp2$Events))
-    }
-    else {
-      DurationB<-dtmp2$Duration
-    }
-    
-    Chamber<-factor(rep(i,nrow(ltmp)))
-    DFM<-factor(rep(dfm$ID,nrow(ltmp)))
-    tmp<-data.frame(ltmp,ltmp2$Licks,etmp$Events,etmp2$Events,DurationA,DurationB,DFM,Chamber)
-    result<-rbind(result,tmp)
-  }
-  StartMin<-rep(range[1],nrow(result))
-  EndMin<-rep(range[2],nrow(result))
-  result<-data.frame(result,StartMin,EndMin)
-  names(result)<-c("Interval","Min","LicksA","LicksB","EventsA","EventsB","DurationA","DurationB","DFM","Chamber","StartMin","EndMin")
-  ## Note that transformation occurs after the summation.
-  if(TransformLicks==TRUE){
-    result$LicksA<-result$LicksA^0.25
-    result$LicksB<-result$LicksB^0.25
-  }
-  result  
-}
-BinEvents.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
-  tmp<-FeedingData.Events(dfm,range)
-  cname=paste("W",well,sep="")
-  
-  tmp<-tmp[,c("Minutes",cname)]
-  ## Remember that Event data include duration, but we aren't interested
-  ## in that.  Set values >0 to 1.
-  tmp[tmp[,cname]>1,cname]<-1
-  
-  if(is.na(StartMin)){
-    m.min<-0
-  }
-  else {
-    m.min<-StartMin
-  }
-  
-  if(is.na(EndMin)){
-    m.max<-max(tmp$Minutes)  
-  }
-  else {
-    m.max<-EndMin
-  }
-  
-  y<-seq(m.min,m.max,by=binsize.min)
-  if(y[length(y)]<m.max)
-    y<-c(y,m.max)
-  
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE,dig.lab=8)
-  
-  r.min<-aggregate(tmp$Minutes~z,FUN=mean)
-  r.A<-aggregate(tmp[,cname]~z,FUN=sum)
-  
-  results<-data.frame(r.min,r.A[,2])
-  names(results)<-c("Interval","Min","Events")
-  results
-}
-BinLicks.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
-  tmp<-FeedingData.Licks(dfm,range)
-  cname=paste("W",well,sep="")
-  
-  tmp<-tmp[,c("Minutes",cname)]
-  
-  if(is.na(StartMin)){
-    m.min<-0
-  }
-  else {
-    m.min<-StartMin
-  }
-  
-  if(is.na(EndMin)){
-    m.max<-max(tmp$Minutes)  
-  }
-  else {
-    m.max<-EndMin
-    
-  }
-  
-  y<-seq(m.min,m.max,by=binsize.min)
-  if(y[length(y)]<m.max)
-    y<-c(y,m.max)
-  
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE,dig.lab=8)
-  
-  r.min<-aggregate(tmp$Minutes~z,FUN=mean)
-  r.A<-aggregate(tmp[,cname]~z,FUN=sum)
-  
-  results<-data.frame(r.min,r.A[,2])
-  names(results)<-c("Interval","Min","Licks")
-  
-  #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
-  
-  
-  results
-}
-BinDurations.Well<-function(dfm,well,binsize.min,range=c(0,0),StartMin=NA,EndMin=NA){
-  tmp<-Feeding.Durations.Well(dfm,well)
-  if(length(tmp)==1 && tmp[1]==0){
-    return(0)
-  }
-  
-  if(is.na(StartMin)){
-    m.min<-0
-  }
-  else {
-    m.min<-StartMin
-  }
-  
-  if(is.na(EndMin)){
-    tmp2<-FeedingData.Events(dfm,range)
-    m.max<-max(tmp2$Minutes)  
-  }
-  else {
-    m.max<-EndMin
-  }
-  
-  y<-seq(m.min,m.max,by=binsize.min)
-  if(y[length(y)]<m.max)
-    y<-c(y,m.max)
-  
-  z<-cut(tmp$Minutes,y,include.lowest=TRUE,dig.lab=8)
-  
-  if(sum(!is.na(z))==0){
-    navec<-rep(NA,length(levels(z)))
-    results<-data.frame(levels(z),navec,navec)
-  }
-  else {
-    r.min<-aggregate(tmp$Minutes~z,FUN=mean,drop=FALSE)
-    r.A<-aggregate(tmp$Duration~z,FUN=mean,drop=FALSE)
-    results<-data.frame(r.min,r.A[,2])
-  }
-  names(results)<-c("Interval","Min","Duration")
-  
-  #tmp<-aggregate(tmp$ElapsedHours,by=list(Channel=tmp$Channel),max)
-  
-  results
-}
 ## This function accepts a data frame that is assumed to 
 ## hold results with a column called treatment, that indicates
 ## treatment
@@ -1644,41 +1462,25 @@ AggregateTreatmentsBinnedData<-function(results){
   
   ## This just indicates a two well chamber
   if("LicksA" %in% names(results)){
-    
-    tmp<-names(trt.summary1)[4:9]
+    tmp<-names(trt.summary1)[4:25]
     tmps<-paste(tmp,"SEM",sep="")
     tmp<-names(trt.summary1)
-    tmp<-c(tmp[1:9],tmps,tmp[10:ncol(trt.summary1)])
+    tmp<-c(tmp[1:25],tmps,tmp[26:ncol(trt.summary1)])
     tmp[1]<-"Interval"
     tmp[2]<-"Treatment"
-    trt.summary<-data.frame(trt.summary1[,1:9],trt.summary2[,4:9],trt.summary1[,10:ncol(trt.summary1)])
+    trt.summary<-data.frame(trt.summary1[,1:25],trt.summary2[,4:25],trt.summary1[,26:ncol(trt.summary1)])
     names(trt.summary)<-tmp
-    tmp<-1:ncol(trt.summary)
-    tmp<-tmp[-2]
-    tmp<-c(2,tmp)
-    tmp<-trt.summary[,tmp]
   }
   else {
-    trt.summary<-data.frame(trt.summary1[,1:6],trt.summary2[,4:6],trt.summary1[,7:ncol(trt.summary1)])
-    tmp<-names(trt.summary)
-    tmp[1]<-"Interval"
-    tmp[2]<-"Treatment"
-    tmp[4]<-"Licks"
-    tmp[5]<-"Events"
-    tmp[6]<-"Duration"
-    tmp[7]<-"LicksSEM"
-    tmp[8]<-"EventsSEM"
-    tmp[9]<-"DurationSEM"
-    names(trt.summary)<-tmp
-    tmp<-1:ncol(trt.summary)
-    tmp<-tmp[-2]
-    tmp<-c(2,tmp)
-    tmp<-trt.summary[,tmp]
+    trt.summary<-data.frame(trt.summary1[,1:13],trt.summary2[,4:13],trt.summary1[,14:ncol(trt.summary1)])
+    names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Interval"
+    names(trt.summary1)[names(trt.summary1) == "Group.2"] <- "Treatment"
+    tmp<-names(trt.summary1)[4:13]
+    tmp<-paste(tmp,"SEM",sep="")
+    names(trt.summary)<-c(names(trt.summary1)[1:13],tmp,names(trt.summary1)[14:ncol(trt.summary1)])
   }
-  tmp
+  trt.summary
 }
-
-
 
 GetTCWellFromWell<-function(dfm,well){
   if(dfm$Parameters$Chamber.Size==1){
@@ -1725,27 +1527,25 @@ GetChamberFromWell<-function(dfm,well){
   }
   chamber
 }
-
-
 AggregateTreatments<-function(results){
-  trt.summary1<-aggregate(results,by=list(results$Treatment),mean) 
+  trt.summary1<-aggregate(results,by=list(results$Treatment),mean, na.rm=TRUE) 
   trt.summary2<-aggregate(results,by=list(results$Treatment),mySEM)
   trt.summary1<-trt.summary1[,-grep("Treatment|DFM|Chamber",colnames(trt.summary1))]
   trt.summary2<-trt.summary2[,-grep("Treatment|DFM|Chamber",colnames(trt.summary2))]
   
   if("LicksA" %in% names(results)){
     names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Treatment"
-    tmp<-names(trt.summary1)[2:19]
+    tmp<-names(trt.summary1)[2:23]
     tmp<-paste(tmp,"SEM",sep="")
-    trt.summary<-data.frame(trt.summary1[,1:19],trt.summary2[,2:19],trt.summary1[,20:ncol(trt.summary1)])
-    names(trt.summary)<-c(names(trt.summary1)[1:19],tmp,names(trt.summary1)[20:ncol(trt.summary1)])
+    trt.summary<-data.frame(trt.summary1[,1:23],trt.summary2[,2:23],trt.summary1[,24:ncol(trt.summary1)])
+    names(trt.summary)<-c(names(trt.summary1)[1:23],tmp,names(trt.summary1)[24:ncol(trt.summary1)])
   }
   else {
     names(trt.summary1)[names(trt.summary1) == "Group.1"] <- "Treatment"
-    tmp<-names(trt.summary1)[2:9]
+    tmp<-names(trt.summary1)[2:11]
     tmp<-paste(tmp,"SEM",sep="")
-    trt.summary<-data.frame(trt.summary1[,1:9],trt.summary2[,2:9],trt.summary1[,10:ncol(trt.summary1)])
-    names(trt.summary)<-c(names(trt.summary1)[1:9],tmp,names(trt.summary1)[10:ncol(trt.summary1)])
+    trt.summary<-data.frame(trt.summary1[,1:11],trt.summary2[,2:11],trt.summary1[,12:ncol(trt.summary1)])
+    names(trt.summary)<-c(names(trt.summary1)[1:11],tmp,names(trt.summary1)[12:ncol(trt.summary1)])
   }
   
   
@@ -1755,6 +1555,8 @@ AggregateTreatments<-function(results){
   #names(trt.summary)<-tmp
   trt.summary
 }
+
+
 PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min=30,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
@@ -1812,9 +1614,6 @@ PlotBins.Durations.DFM.TwoWell<-function(dfm,binsize.min,range=c(0,0)){
   show(gp)
 }
 
-
-
-
 ## These functions will output the intervals
 GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   nameA<-paste("W",well,sep="")
@@ -1822,6 +1621,14 @@ GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   pnames<-Get.Parameter.Names(dfm$Parameters)
   
   theData<-dfm$Intervals[[nameA]]
+  if(length(theData)==1 && theData[1]==0){
+    theData<-data.frame(matrix(rep(NA,8),nrow=1))
+  }
+  else {
+    if(sum(range)!=0) {
+      theData<- theData[(theData$Minutes>range[1] & theData$Minutes<=range[2]),]
+    }
+  }
   
   Well<-rep(well,nrow(theData))
   chamber<-rep(GetChamberFromWell(dfm,well),nrow(theData))
@@ -1838,7 +1645,6 @@ GetIntervalData.Well<-function(dfm,well, range=c(0,0)){
   
   tmp3
 }
-
 GetDurationData.Well<-function(dfm,well, range=c(0,0)){
   nameA<-paste("W",well,sep="")
   parameter.vector<-GetDFMParameterVector(dfm)
@@ -1847,8 +1653,17 @@ GetDurationData.Well<-function(dfm,well, range=c(0,0)){
   theData<-dfm$Durations[[nameA]]
   if(length(theData)==1 && theData[1]==0){
     theData<-data.frame(matrix(rep(NA,8),nrow=1))
-    
   }
+  else {
+    if(sum(range)!=0) {
+      theData<- theData[(theData$Minutes>range[1] & theData$Minutes<=range[2]),]
+    }
+    if(nrow(theData)==0){
+      theData<-data.frame(matrix(rep(NA,8),nrow=1))
+    }
+  }
+  
+ 
   
   Well<-rep(well,nrow(theData))
   chamber<-rep(GetChamberFromWell(dfm,well),nrow(theData))
@@ -1858,7 +1673,7 @@ GetDurationData.Well<-function(dfm,well, range=c(0,0)){
   tmpA<-data.frame(DFM,chamber,TCWell,Well,theData)
   tmp2<-matrix(rep(parameter.vector,nrow(tmpA)),ncol=length(parameter.vector),byrow=TRUE)
   tmp3<-data.frame(tmpA,tmp2)
-  names(tmp3)<-c("DFM","Chamber","TCWell","Well","Minutes","Sample","Duration",pnames)
+  names(tmp3)<-c("DFM","Chamber","TCWell","Well","Minutes","Licks","Duration","TotalIntensity","AvgIntensity","MinIntensity","MaxIntensity","VarIntensity",pnames)
   
   if(dfm$Parameters$Chamber.Size==1)
     tmp3<-tmp3[,!names(tmp3) %in% "TCWell"]
@@ -1866,194 +1681,140 @@ GetDurationData.Well<-function(dfm,well, range=c(0,0)){
   tmp3
 }
 
-
-BinnedLicksPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
+## Plotting functions that will plot different statistics all the same way.
+BinnedPlot.OneWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
+  tmp<-binnedDataResult$Stats
   
-  if(TransformLicks==TRUE){
-    ylabel<-"Transformed Licks"
+  pd <- position_dodge(5) # move them .05 to the left and right
+ 
+  if(Type=="Licks") {
+    ylabel<-"Licks"
+    gp<-ggplot(tmp,aes(x=Minutes,y=Licks,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) +
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
+    filename<-paste("BinnedLicksPlots.pdf",sep="")
+    analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$Licks)
+    names(analysis)<-c("Interval","Treatment","Y")
+  }
+  else if(Type=="Events") {
+    ylabel<-"Events"
+    gp<-ggplot(tmp,aes(x=Minutes,y=Events,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=Events-EventsSEM, ymax=Events+EventsSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) +
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Events")
+    filename<-paste("BinnedEventsPlots.pdf",sep="")
+    analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$Events)
+    names(analysis)<-c("Interval","Treatment","Y")
+  }
+  else if(Type=="Durations") {
+    gp<-ggplot(tmp,aes(x=Minutes,y=MeanDuration,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=MeanDuration-MeanDurationSEM, ymax=MeanDuration+MeanDurationSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) +
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Mean Event Duration")
+    filename<-paste("BinnedDurationPlots.pdf",sep="")
+    analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$MeanDuration)
+    names(analysis)<-c("Interval","Treatment","Y")
+  }
+  else if(Type=="MinInt") {
+    gp<-ggplot(tmp,aes(x=Minutes,y=MinInt,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=MinInt-MinIntSEM, ymax=MinInt+MinIntSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) +
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Min Event Intensity")
+    filename<-paste("BinnedMinIntPlots.pdf",sep="")
+    analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$MinInt)
+    names(analysis)<-c("Interval","Treatment","Y")
   }
   else {
-    ylabel<-"Licks"
+    stop("Plot type does not exist.")
   }
-  
-  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)  
-  tmpA<-data.frame(data$Stats[,c("Treatment","Min","LicksA","LicksASEM")],rep("WellA",nrow(data$Stats)))
-  names(tmpA)<-c("Treatment","Min","Licks","LicksSEM","Well")
-  tmpB<-data.frame(data$Stats[,c("Treatment","Min","LicksB","LicksBSEM")],rep("WellB",nrow(data$Stats)))
-  names(tmpB)<-c("Treatment","Min","Licks","LicksSEM","Well")
-  
-  newData<-rbind(tmpA,tmpB)
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(newData,aes(x=Min,y=Licks,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) + facet_wrap(~Well)+
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
   show(gp)
-  
   if(SaveToFile==TRUE){
-    filename<-paste("BinnedLicksPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     ggsave(filename,gp)
   }
   
-  tmp2<-data$Results
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksA ~ Treatment)
-  cat("\n\n\n** Interval specific ANOVA results for Well A **\n\n")
-  print(lapply(l,summary))
+  tmp2<-binnedDataResult$Results
+  l<-lapply(split(analysis, analysis$Interval), aov, formula=Y ~ Treatment)
+  cat("** Interval specific ANOVA results **\n\n")
+  lapply(l,summary)
   
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksB ~ Treatment)
-  cat("\n\n\n** Interval specific ANOVA results for Well B **\n\n")
-  print(lapply(l,summary))
 }
-BinnedLicksPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE){
-  if(parameters$Chamber.Size!=1)
-    stop("This function is for one chamber DFM only")
+BinnedPlot.TwoWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
+  stats<-binnedDataResult$Stats
+  results<-binnedDataResult$Results
   
-  if(TransformLicks==TRUE){
-    ylabel<-"Transformed Licks"
+  tmp<-c("LicksA","EventsA","MeanDurationA","MedDurationA","MeanTimeBtwA","MedTimeBtwA","MeanIntA","MedianIntA","MinIntA","MaxIntA")
+  tmp2<-paste(tmp,"SEM",sep="")
+  a.wells<-c("Treatment","Minutes",tmp,tmp2)
+  
+  tmp<-c("LicksB","EventsB","MeanDurationB","MedDurationB","MeanTimeBtwB","MedTimeBtwB","MeanIntB","MedianIntB","MinIntB","MaxIntB")
+  tmp2<-paste(tmp,"SEM",sep="")
+  b.wells<-c("Treatment","Minutes",tmp,tmp2)
+   
+  tmp<-c("Licks","Events","MeanDuration","MedDuration","MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","MinInt","MaxInt")
+  tmp2<-paste(tmp,"SEM",sep="")
+  new.names<-c("Treatment","Minutes",tmp,tmp2,"Well")
+  tmpA<-data.frame(stats[,a.wells],rep("WellA",nrow(stats)))
+  tmpB<-data.frame(stats[,b.wells],rep("WellB",nrow(stats)))
+  names(tmpA)<-new.names
+  names(tmpB)<-new.names
+  newData<-rbind(tmpA,tmpB)
+
+  pd <- position_dodge(5) # move them .05 to the left and right
+  
+  if(Type=="Licks") {
+    ylabel<-"Licks"
+    gp<-ggplot(newData,aes(x=Minutes,y=Licks,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + facet_wrap(~Well)+
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
+    filename<-paste("BinnedLicksPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$LicksA,results$LicksB)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
+  }
+  else if(Type=="Events") {
+    ylabel<-"Events"
+    gp<-ggplot(newData,aes(x=Minutes,y=Events,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=Events-EventsSEM, ymax=Events+EventsSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + facet_wrap(~Well)+
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Events")
+    filename<-paste("BinnedEventsPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$EventsA,results$EventsB)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
+  }
+  else if(Type=="Durations") {
+    gp<-ggplot(newData,aes(x=Minutes,y=MeanDuration,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=MeanDuration-MeanDurationSEM, ymax=MeanDuration+MeanDurationSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + facet_wrap(~Well)+
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Event Duration (sec)")
+    filename<-paste("BinnedDurationPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$MeanDurationA,results$MeanDurationB)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
+  }
+  else if(Type=="MinInt") {
+    gp<-ggplot(newData,aes(x=Minutes,y=MinInt,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=MinInt-MinIntSEM, ymax=MinInt+MinIntSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + facet_wrap(~Well)+
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Min Event Intensity")
+    filename<-paste("BinnedMinIntPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$MinIntA,results$MinIntB)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
   }
   else {
-    ylabel<-"Licks"
+    stop("Plot type does not exist.")
   }
-  
-  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)  
-  tmp<-data$Stats
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(tmp,aes(x=Min,y=Licks,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) +
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
   show(gp)
-  
-  
   if(SaveToFile==TRUE){
-    filename<-paste("BinnedLicksPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
     ggsave(filename,gp)
   }
-  
-  
-  tmp2<-data$Results
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=Licks ~ Treatment)
-  cat("** Interval specific ANOVA results **\n\n")
-  lapply(l,summary)
-}
-
-BinnedEventsPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
-  
-  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
-  tmpA<-data.frame(data$Stats[,c("Treatment","Min","EventsA","EventsASEM")],rep("WellA",nrow(data$Stats)))
-  names(tmpA)<-c("Treatment","Min","Events","EventsSEM","Well")
-  tmpB<-data.frame(data$Stats[,c("Treatment","Min","EventsB","EventsBSEM")],rep("WellB",nrow(data$Stats)))
-  names(tmpB)<-c("Treatment","Min","Events","EventsSEM","Well")
-  
-  newData<-rbind(tmpA,tmpB)
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(newData,aes(x=Min,y=Events,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Events-EventsSEM, ymax=Events+EventsSEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) + facet_wrap(~Well)+
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Events")
-  show(gp)
-  
-  if(SaveToFile==TRUE){
-    filename<-paste("BinnedEventsPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
-    ggsave(filename,gp)
-  }
-  
-  tmp2<-data$Results
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksA ~ Treatment)
+  l<-lapply(split(analysis, analysis$Interval), aov, formula=YA ~ Treatment)
   cat("\n\n\n** Interval specific ANOVA results for Well A **\n\n")
   print(lapply(l,summary))
   
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=LicksB ~ Treatment)
+  l<-lapply(split(analysis, analysis$Interval), aov, formula=YB ~ Treatment)
   cat("\n\n\n** Interval specific ANOVA results for Well B **\n\n")
   print(lapply(l,summary))
 }
-BinnedEventsPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
-  
-  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
-  tmp<-data$Stats
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(tmp,aes(x=Min,y=Events,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Events-EventsSEM, ymax=Events+EventsSEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) +
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Events")
-  show(gp)
-  
-  
-  if(SaveToFile==TRUE){
-    filename<-paste("BinnedEventsPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
-    ggsave(filename,gp)
-  }
-  
-  
-  tmp2<-data$Results
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=Licks ~ Treatment)
-  cat("** Interval specific ANOVA results **\n\n")
-  lapply(l,summary)
-}
-
-BinnedDurationsPlot.TwoWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
-  
-  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
-  tmpA<-data.frame(data$Stats[,c("Treatment","Min","DurationA","DurationASEM")],rep("WellA",nrow(data$Stats)))
-  names(tmpA)<-c("Treatment","Min","Duration","DurationSEM","Well")
-  tmpB<-data.frame(data$Stats[,c("Treatment","Min","DurationB","DurationBSEM")],rep("WellB",nrow(data$Stats)))
-  names(tmpB)<-c("Treatment","Min","Duration","DurationSEM","Well")
-  
-  newData<-rbind(tmpA,tmpB)
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(newData,aes(x=Min,y=Duration,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Duration-DurationSEM, ymax=Duration+DurationSEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) + facet_wrap(~Well)+
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Event Duration")
-  show(gp)
-  
-  if(SaveToFile==TRUE){
-    filename<-paste("BinnedEventsPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
-    ggsave(filename,gp)
-  }
-  
-  tmp2<-data$Results
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=DurationA ~ Treatment)
-  cat("\n\n\n** Interval specific ANOVA results for Well A **\n\n")
-  print(lapply(l,summary))
-  
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=DurationB ~ Treatment)
-  cat("\n\n\n** Interval specific ANOVA results for Well B **\n\n")
-  print(lapply(l,summary))
-}
-
-BinnedDurationsPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE){
-  
-  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile)  
-  tmp<-data$Stats
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(tmp,aes(x=Min,y=Duration,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Duration-DurationSEM, ymax=Duration+DurationSEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) +
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Event Duration")
-  show(gp)
-  
-  
-  if(SaveToFile==TRUE){
-    filename<-paste("BinnedDurationPlots_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
-    ggsave(filename,gp)
-  }
-  
-  
-  tmp2<-data$Results
-  l<-lapply(split(tmp2, tmp2$Interval), aov, formula=Duration ~ Treatment)
-  cat("** Interval specific ANOVA results **\n\n")
-  lapply(l,summary)
-}
-
-
-
 
 
 ## Private Utilities

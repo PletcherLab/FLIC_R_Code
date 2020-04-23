@@ -4,13 +4,46 @@ source("DFM.R")
 source("MiscFunctions.R")
 
 
-p<-ParametersClass.SingleWell()
-dfm<-DFMClassV3(1,p)
-dfm<-DFMClassV3(2,p)
-dfm<-DFMClassV3(3,p)
+p1<-ParametersClass.SingleWell()
+p2<-ParametersClass.TwoWell()
+dfm1<-DFMClass(1,p1)
+dfm2<-DFMClass(2,p1)
+dfm2<-DFMClass(3,p1)
+dfm2<-DFMClass(4,p1)
 
 
+dfm<-DFMClass(11,p2)
+dfm<-DFMClass(12,p2)
+dfm<-DFMClass(13,p2)
+dfm<-DFMClass(14,p2)
+dfm<-DFMClass(15,p2)
+dfm<-DFMClass(16,p2)
+dfm<-DFMClass(17,p2)
 
+expDesign<-read.csv("ExpDesign.csv")
+
+monitors<-c(1,2,3,4)
+monitors2<-c(11,12,13,14,15,16,17)
+
+
+fs1<-Feeding.Summary.DFM(dfm1)
+fs2<-Feeding.Summary.DFM(dfm2)
+
+bfs1<-BinnedFeeding.Summary.DFM(dfm1,60)
+bfs2<-BinnedFeeding.Summary.DFM(dfm2,60)
+
+bfs1[bfs1$Chamber==1,]
+bfs2[bfs2$Chamber==1,]
+
+fsm<-Feeding.Summary.Monitors(monitors,p1,expDesign = expDesign)
+bfsm<-BinnedFeeding.Summary.Monitors(monitors,p1,60,expDesign = expDesign)
+
+
+fsm2<-Feeding.Summary.Monitors(c(11,12,13,14),p2,expDesign = expDesign)
+bfsm2<-BinnedFeeding.Summary.Monitors(c(11,12,13,14),p2,60,expDesign = expDesign)
+
+BinnedPlot.OneWell.Trt(monitors,p1,60,ExpDesign)
+BinnedPlot.OneWell.Trt(bfsm2)
 
 
 
@@ -36,39 +69,30 @@ dfm<-DFMClass(4,p)
 
 
 
-tmp<-dfm$LickData$W1
 
 
-
-Link.Events<-function(z,thresh){
-  zz<-z
-  tmp<-rle(z)
-  for(i in 1:(length(tmp$lengths)-1){
-    if(tmp$values[i]==FALSE && tmp$lengths[i]<thresh){
-      zz[tmp$lengths[i]:tmp$lengths[i+1]-1]<-TRUE
-    }
-  }
-  zz
-}
-
-Link.Events<-function(z,thresh){
-  tmp<-rle(z)
-  result<-c(FALSE)
-  for(i in 1:length(tmp$lengths)){
-    if(tmp$values[i]){
-      tmp2<-rep(TRUE,tmp$lengths[i])
-      result<-c(result,tmp2)
+BinnedPlot.OneWell.Trt<-function(monitors,parameters,binsize.min=30,expDesign,range=c(0,0),Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
+  if(parameters$Chamber.Size!=1)
+    stop("This function is for one chamber DFM only")
+  
+  data<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range,SaveToFile,TransformLicks)  
+  tmp<-data$Stats
+  pd <- position_dodge(5) # move them .05 to the left and right
+  
+  
+  
+  if(Type=="Licks") {
+    if(TransformLicks==TRUE){
+      ylabel<-"Transformed Licks"
     }
     else {
-      if(tmp$lengths[i]>thresh){
-        tmp2<-rep(FALSE,tmp$lengths[i])
-        result<-c(result,tmp2)
-      }
-      else {
-        tmp2<-rep(TRUE,tmp$lengths[i])
-        result<-c(result,tmp2)
-      }
+      ylabel<-"Licks"
     }
+    gp<-ggplot(tmp,aes(x=Min,y=Licks,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=Licks-LicksSEM, ymax=Licks+LicksSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) +
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab(ylabel)
   }
-  result[-1]
-}
+  else if(Type=="Licks") {
+    
+  }
