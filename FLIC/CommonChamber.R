@@ -207,6 +207,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
 
 ##### Simple Experiment Plotting Functions ######
 ## These functions take the output of the experimental analysis functions and rapidly plot different measures.
+## Current Type options are (case sensitive): Licks, Events, Durations, MinInt
 BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
   if("LicksA" %in% names(binnedDataResult$Results)){
     BinnedPlot.TwoWell.Trt(binnedDataResult,Type,SaveToFile)
@@ -215,9 +216,11 @@ BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
     BinnedPlot.OneWell.Trt(binnedDataResult,Type,SaveToFile)
   }
 }
+
+## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw
 DataPlot<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
   if("LicksA" %in% names(summaryResults$Results)){
-    stop("Not implemented!")
+    SimpleDataPlot.TwoWell(summaryResults,Type,SaveToFile)
   }
   else {
     SimpleDataPlot.OneWell(summaryResults,Type,SaveToFile)
@@ -236,6 +239,7 @@ DataPlot<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
 ## both wells.  In the future this should probably present values for each well, adjusted for the PI multiplier.
 
 ## These plots are slower than the simple plots because analysis calculations are required.
+## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw
 DivisionPlots.Monitors<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size
@@ -252,8 +256,9 @@ DivisionPlots.Monitors<-function(monitors,parameters,expDesign,range=c(0,0),divi
 }
 
 ##### Data output ######
+## Current Type options are (case sensitive): BaselinedData, Durations, TimeBtw, TotalFeeding
 OutputData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),Type="Data",filename=NA){
-  if(Type=="Data"){
+  if(Type=="BaselinedData"){
     if(is.na(filename)){
       OutputBaselinedData.Monitors(monitors,parameters,range)
     }
@@ -286,7 +291,7 @@ OutputData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),Type
     }
   }
   else {
-    stop("Plot type does not exist.")
+    stop("Data output type does not exist.")
   }
 }
 

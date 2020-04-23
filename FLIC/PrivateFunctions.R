@@ -936,7 +936,7 @@ OutputIntervalData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
       result<-rbind(result,tmp2)
     }
   }
-  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
+  filename<-paste(filename,".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
 OutputDurationData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),filename="DurationsData"){
@@ -968,7 +968,7 @@ OutputDurationData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
       result<-rbind(result,tmp2)
     }
   }
-  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
+  filename<-paste(filename,".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
 ## This fucntion will output for each well in each chamber for each monitor
@@ -1033,7 +1033,7 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   if(is.data.frame(expDesign))
     result<-AppendTreatmentonResultsFrame(result,expDesign)
   
-  filename<-paste(filename,"_DFM",monitors[1],"_",monitors[length(monitors)],".csv",sep="") 
+  filename<-paste(filename,".csv",sep="") 
   write.csv(result,file=filename,row.names=FALSE)  
 }
 
@@ -1080,6 +1080,15 @@ BinnedPlot.OneWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE)
       geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Min Event Intensity")
     filename<-paste("BinnedMinIntPlots.pdf",sep="")
     analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$MinInt)
+    names(analysis)<-c("Interval","Treatment","Y")
+  }
+  else if(Type=="TimeBtw") {
+    gp<-ggplot(tmp,aes(x=Minutes,y=MeanTimeBtw,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=MeanTimeBtw-MeanTimeBtwSEM, ymax=MeanTimeBtw+MeanTimeBtwSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) +
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Time Between Events (sec)")
+    filename<-paste("BinnedMeanTimeBtwPlots.pdf",sep="")
+    analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$MeanTimeBtw)
     names(analysis)<-c("Interval","Treatment","Y")
   }
   else {
@@ -1157,6 +1166,15 @@ BinnedPlot.TwoWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE)
     analysis<-data.frame(results$Interval,results$Treatment,results$MinIntA,results$MinIntB)
     names(analysis)<-c("Interval","Treatment","YA","YB")
   }
+  else if(Type=="TimeBtw") {
+    gp<-ggplot(newData,aes(x=Minutes,y=MeanTimeBtw,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=MeanTimeBtw-MeanTimeBtwSEM, ymax=MeanTimeBtw+MeanTimeBtwSEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + facet_wrap(~Well)+
+      geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Time Between Events (sec)")
+    filename<-paste("BinnedMeanTimeBtwPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$MeanTimeBtwA,results$MeanTimeBtwB)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
+  }
   else {
     stop("Plot type does not exist.")
   }
@@ -1214,7 +1232,7 @@ SimpleDataPlot.OneWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
     names(analysis)<-c("Treatment","Y")
     
   }
-  else if(Type=="MeanTimeBtw") {
+  else if(Type=="TimeBtw") {
     filename<-paste("SimpleMeantTimeBtwPlot.pdf",sep="")
     ylabel<-"Time Between Events (sec)"
     r<-"Time Btw"
@@ -1231,6 +1249,75 @@ SimpleDataPlot.OneWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
   cat(r2)
   print(summary(aov(Y~Treatment,data=analysis)))
 }
+SimpleDataPlot.TwoWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
+  results<-summaryResults$Results
+  results<-subset(results,Treatment!="None")
+  
+  if(Type=="Licks") {
+    filename<-paste("SimpleLicksPlot.pdf",sep="")
+    ylabel<-"Licks (A+B)"
+    r<-"Licks"
+    Licks<-results$LicksA+results$LicksB
+    results<-data.frame(results,Licks)
+    gp<-ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$Licks)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else if(Type=="Events") {
+    filename<-paste("SimpleEventsPlot.pdf",sep="")
+    ylabel<-"Events (A+B)"
+    r<-"Licks"
+    Events<-results$EventsA+results$EventsB
+    results<-data.frame(results,Events)
+    gp<-ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+      ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$Events)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else if(Type=="Durations") {
+    filename<-paste("SimpleDurationsPlot.pdf",sep="")
+    ylabel<-"Duration (sec) (wmean(A,B))"
+    r<-"Duration"
+    Duration<-rowMeans(cbind(results$MeanDurationA, results$MeanDurationB), na.rm=TRUE)
+    results<-data.frame(results,Duration)
+    gp<-ggplot(results, aes(results$Treatment, results$Duration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+      ylim(c(min(results$Duration),max(results$Duration))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$Duration)
+    names(analysis)<-c("Treatment","Y")
+    
+  }
+  else if(Type=="MinInt") {
+    filename<-paste("SimpleMinIntPlot.pdf",sep="")
+    ylabel<-"Minimum Event Intensity (min(A,B))"
+    r<-"Min Intensity"
+    MinInt<-pmin(results$MinIntA,results$MinIntB)
+    results<-data.frame(results,MinInt)
+    gp<-ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+      ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$MinInt)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else if(Type=="TimeBtw") {
+    filename<-paste("SimpleMeantTimeBtwPlot.pdf",sep="")
+    ylabel<-"Time Between Events (sec) (wmean(A,B))"
+    r<-"Time Btw"
+    timebtw<-rowMeans(cbind(results$MeanTimeBtwA, results$MeanTimeBtwB), na.rm=TRUE)
+    results<-data.frame(results,timebtw)
+    gp<-ggplot(results, aes(results$Treatment, results$timebtw)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+      ylim(c(min(results$timebtw),max(results$timebtw))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$timebtw)
+    names(analysis)<-c("Treatment","Y")
+  }
+  else {
+    stop("Plot type does not exist.")
+  }
+  show(gp)
+  r2<-paste("\n** ",r," **\n")
+  cat(r2)
+  print(summary(aov(Y~Treatment,data=analysis)))
+}
+
 
 ## Functions used for cumulative division plots of basic stats.
 DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
@@ -1295,12 +1382,16 @@ DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
       print(summary(aov(MeanDuration~Treatment,data=results)))
     }
     else if(Type=="TimeBtw"){
-      MeanTimeBtw <- ((results$MeanTimeBtwA*results$EventsA)+ (results$MeanTimeBtwB*results$EventsB))/(results$EventsA+results$EventsB)
-      results<-data.frame(results,MeanTimeBtw)
       r<-paste("Time Btw -- Range(min): (",range[1],",",range[2],")",sep="")
       print(ggplot(results, aes(results$Treatment, results$MeanTimeBtw)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-              ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab("Time Between") + guides(fill=FALSE))
+              ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab("Mean Time Between Events (sec)") + guides(fill=FALSE))
       print(summary(aov(MeanTimeBtw~Treatment,data=results)))
+    }
+    else if(Type=="MinInt"){
+      r<-paste("Min Intensity -- Range(min): (",range[1],",",range[2],")",sep="")
+      print(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+              ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
+      print(summary(aov(MinInt~Treatment,data=results)))
     }
     else {
       if(SaveToFile==TRUE){
@@ -1348,8 +1439,14 @@ DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
         else if(Type=="TimeBtw"){
           r<-paste("Time Btw -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
           p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MeanTimeBtw)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-                      ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab("Time Between") + guides(fill=FALSE))
+                      ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab("Mean Time Between Events (sec)") + guides(fill=FALSE))
           print(summary(aov(MeanTimeBtw~Treatment,data=results)))
+        }
+        else if(Type=="MinInt"){
+          r<-paste("Min Intensity -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+          p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+                      ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
+          print(summary(aov(MinInt~Treatment,data=results)))
         }
         else {
           if(SaveToFile==TRUE){
@@ -1449,6 +1546,14 @@ DivisionPlots.TwoWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
               ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab("Time Between") + guides(fill=FALSE))
       print(summary(aov(MeanTimeBtw~Treatment,data=results)))
     }
+    else if(Type=="MinInt"){
+      MinInt<-pmin(results$MinIntA,results$MinIntB)
+      results<-data.frame(results,MinInt)
+      r<-paste("Min Intensity -- Range(min): (",range[1],",",range[2],")",sep="")
+      print(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+              ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
+      print(summary(aov(MinInt~Treatment,data=results)))
+    }
     else {
       if(SaveToFile==TRUE){
         graphics.off()
@@ -1509,6 +1614,14 @@ DivisionPlots.TwoWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
           p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MeanTimeBtw)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                       ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab("Time Between") + guides(fill=FALSE))
           print(summary(aov(MeanTimeBtw~Treatment,data=results)))
+        }
+        else if(Type=="MinInt"){
+          MinInt<-pmin(results$MinIntA,results$MinIntB)
+          results<-data.frame(results,MinInt)
+          r<-paste("Min Intensity -- Range(min): (",ranges[i,1],",",ranges[i,2],")",sep="")
+          p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+                      ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
+          print(summary(aov(MinInt~Treatment,data=results)))
         }
         else {
           if(SaveToFile==TRUE){
