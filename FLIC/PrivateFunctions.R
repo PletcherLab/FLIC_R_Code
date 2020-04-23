@@ -1387,7 +1387,6 @@ SimpleDataPlot.TwoWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
   print(summary(aov(YB~Treatment,data=analysis)))
 }
 
-
 ## Functions used for cumulative division plots of basic stats.
 DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
   ranges<-matrix(rep(NA,divisions*2),ncol=2)

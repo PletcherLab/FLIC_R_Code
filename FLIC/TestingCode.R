@@ -120,3 +120,5 @@ OutputData.Monitors(monitors2,p.choice.list,expDesign,Type="TotalFeeding",filena
 
 DivisionPlots.Monitors(monitors2,p.choice.list,expDesign,divisions=4,Type="EventPI",SaveToFile=FALSE,TransformLicks=TRUE)
 
+CumulativeEventPIPlots(monitors2,p.choice.list,expDesign)
+
