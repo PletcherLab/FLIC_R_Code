@@ -113,3 +113,10 @@ OutputData.Monitors(monitors2,p.choice.list,expDesign,Type="TimeBtw",filename="T
 
 OutputData.Monitors(monitors,p1,expDesign,Type="TotalFeeding")
 OutputData.Monitors(monitors2,p.choice.list,expDesign,Type="TotalFeeding",filename="TFChoice")
+
+
+
+
+
+DivisionPlots.Monitors(monitors2,p.choice.list,expDesign,divisions=4,Type="EventPI",SaveToFile=FALSE,TransformLicks=TRUE)
+

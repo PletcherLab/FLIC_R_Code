@@ -217,7 +217,7 @@ BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
   }
 }
 
-## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw
+## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw, PI, EventPI (latter 2 for choice chambers only).
 DataPlot<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
   if("LicksA" %in% names(summaryResults$Results)){
     SimpleDataPlot.TwoWell(summaryResults,Type,SaveToFile)
@@ -239,7 +239,8 @@ DataPlot<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
 ## both wells.  In the future this should probably present values for each well, adjusted for the PI multiplier.
 
 ## These plots are slower than the simple plots because analysis calculations are required.
-## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw
+## Division plots are not optimized for choice chambers because it combines well data at the moment (4/23/2020).
+## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw, PI, EventPI (latter 2 for choice chambers only).
 DivisionPlots.Monitors<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size

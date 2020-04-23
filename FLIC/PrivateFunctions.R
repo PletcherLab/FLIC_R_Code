@@ -1241,6 +1241,12 @@ SimpleDataPlot.OneWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
     analysis<-data.frame(results$Treatment,results$MeanTimeBtw)
     names(analysis)<-c("Treatment","Y")
   }
+  else if(Type=="PI") {
+    stop("Plot type not supported for single-well chambers.")
+  }
+  else if(Type=="EventPI") {
+    stop("Plot type not supported for single-well chambers.")
+  }
   else {
     stop("Plot type does not exist.")
   }
@@ -1253,69 +1259,104 @@ SimpleDataPlot.TwoWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
   results<-summaryResults$Results
   results<-subset(results,Treatment!="None")
   
+  a.wells<-c("Treatment","LicksA","EventsA","MeanDurationA","MedDurationA","MeanTimeBtwA","MedTimeBtwA","MeanIntA","MedianIntA","MinIntA","MaxIntA")
+  b.wells<-c("Treatment","LicksB","EventsB","MeanDurationB","MedDurationB","MeanTimeBtwB","MedTimeBtwB","MeanIntB","MedianIntB","MinIntB","MaxIntB")
+  new.names<-c("Treatment","Licks","Events","MeanDuration","MedDuration","MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","MinInt","MaxInt","Well")
+  tmpA<-data.frame(results[,a.wells],rep("WellA",nrow(results)))
+  tmpB<-data.frame(results[,b.wells],rep("WellB",nrow(results)))
+  names(tmpA)<-new.names
+  names(tmpB)<-new.names
+  newData<-rbind(tmpA,tmpB)
+  
   if(Type=="Licks") {
     filename<-paste("SimpleLicksPlot.pdf",sep="")
-    ylabel<-"Licks (A+B)"
+    ylabel<-"Licks"
     r<-"Licks"
-    Licks<-results$LicksA+results$LicksB
-    results<-data.frame(results,Licks)
-    gp<-ggplot(results, aes(results$Treatment, results$Licks)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-            ylim(c(min(results$Licks),max(results$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
-    analysis<-data.frame(results$Treatment,results$Licks)
-    names(analysis)<-c("Treatment","Y")
+    gp<-ggplot(newData, aes(newData$Treatment, newData$Licks)) + geom_boxplot(aes(fill = newData$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
+            ylim(c(min(newData$Licks),max(newData$Licks))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$LicksA,results$LicksB)
+    names(analysis)<-c("Treatment","YA","YB")
   }
   else if(Type=="Events") {
     filename<-paste("SimpleEventsPlot.pdf",sep="")
-    ylabel<-"Events (A+B)"
-    r<-"Licks"
-    Events<-results$EventsA+results$EventsB
-    results<-data.frame(results,Events)
-    gp<-ggplot(results, aes(results$Treatment, results$Events)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-      ylim(c(min(results$Events),max(results$Events))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
-    analysis<-data.frame(results$Treatment,results$Events)
-    names(analysis)<-c("Treatment","Y")
+    ylabel<-"Events"
+    r<-"Events"
+    gp<-ggplot(newData, aes(newData$Treatment, newData$Events)) + geom_boxplot(aes(fill = newData$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
+      ylim(c(min(newData$Events),max(newData$Events))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$EventsA,results$EventsB)
+    names(analysis)<-c("Treatment","YA","YB")
   }
   else if(Type=="Durations") {
     filename<-paste("SimpleDurationsPlot.pdf",sep="")
-    ylabel<-"Duration (sec) (wmean(A,B))"
+    ylabel<-"Duration (sec))"
     r<-"Duration"
-    Duration<-rowMeans(cbind(results$MeanDurationA, results$MeanDurationB), na.rm=TRUE)
-    results<-data.frame(results,Duration)
-    gp<-ggplot(results, aes(results$Treatment, results$Duration)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-      ylim(c(min(results$Duration),max(results$Duration))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
-    analysis<-data.frame(results$Treatment,results$Duration)
-    names(analysis)<-c("Treatment","Y")
+    gp<-ggplot(newData, aes(newData$Treatment, newData$MeanDuration)) + geom_boxplot(aes(fill = newData$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
+      ylim(c(min(newData$MeanDuration),max(newData$MeanDuration))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$MeanDurationA,results$MeanDurationB)
+    names(analysis)<-c("Treatment","YA","YB")
     
   }
   else if(Type=="MinInt") {
     filename<-paste("SimpleMinIntPlot.pdf",sep="")
-    ylabel<-"Minimum Event Intensity (min(A,B))"
+    ylabel<-"Minimum Event Intensity"
     r<-"Min Intensity"
-    MinInt<-pmin(results$MinIntA,results$MinIntB)
-    results<-data.frame(results,MinInt)
-    gp<-ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-      ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
-    analysis<-data.frame(results$Treatment,results$MinInt)
-    names(analysis)<-c("Treatment","Y")
+    gp<-ggplot(newData, aes(newData$Treatment, newData$MinInt)) + geom_boxplot(aes(fill = newData$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
+      ylim(c(min(newData$MinInt),max(newData$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$MinIntA,results$MinIntB)
+    names(analysis)<-c("Treatment","YA","YB")
   }
   else if(Type=="TimeBtw") {
     filename<-paste("SimpleMeantTimeBtwPlot.pdf",sep="")
     ylabel<-"Time Between Events (sec) (wmean(A,B))"
     r<-"Time Btw"
-    timebtw<-rowMeans(cbind(results$MeanTimeBtwA, results$MeanTimeBtwB), na.rm=TRUE)
-    results<-data.frame(results,timebtw)
-    gp<-ggplot(results, aes(results$Treatment, results$timebtw)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
-      ylim(c(min(results$timebtw),max(results$timebtw))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
-    analysis<-data.frame(results$Treatment,results$timebtw)
-    names(analysis)<-c("Treatment","Y")
+    gp<-ggplot(newData, aes(newData$Treatment, newData$MeanTimeBtw)) + geom_boxplot(aes(fill = newData$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
+      ylim(c(min(newData$MeanTimeBtw),max(newData$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
+    analysis<-data.frame(results$Treatment,results$MeanTimeBtwA,results$MeanTimeBtwB)
+    names(analysis)<-c("Treatment","YA","YB")
+  }
+  else if(Type=="PI") {
+    filename<-paste("SimplePIPlot.pdf",sep="")
+    ylabel<-"Licks PI"
+    
+    Licks<-results$LicksA+results$LicksB
+    results<-data.frame(results,Licks)
+    results<-results[Licks>0,]
+    
+    r<-"PI (Licks)"
+    gp<-ggplot(results, aes(results$Treatment, results$PI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(aes(color = Licks),size=3,height=0) +
+            ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE)
+    
+    analysis<-data.frame(results$Treatment,results$PI,results$PI)
+    names(analysis)<-c("Treatment","YA","YB")
+  }
+  else if(Type=="EventPI") {
+    filename<-paste("SimpleEventPIPlot.pdf",sep="")
+    ylabel<-"Event PI"
+    
+    Events<-results$EventsA+results$EventsB
+    results<-data.frame(results,Events)
+    results<-results[Events>0,]
+    
+    r<-"PI (Events)"
+    gp<-ggplot(results, aes(results$Treatment, results$EventPI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(aes(color = Events),size=3,height=0) +
+      ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("Event PI") + guides(fill=FALSE)
+    
+    analysis<-data.frame(results$Treatment,results$EventPI,results$EventPI)
+    names(analysis)<-c("Treatment","YA","YB")
   }
   else {
     stop("Plot type does not exist.")
   }
   show(gp)
+  
+  
   r2<-paste("\n** ",r," **\n")
   cat(r2)
-  print(summary(aov(Y~Treatment,data=analysis)))
+  cat("\nANOVA results for Well A\n")
+  print(summary(aov(YA~Treatment,data=analysis)))
+  
+  cat("\n\nANOVA results for Well B\n")
+  print(summary(aov(YB~Treatment,data=analysis)))
 }
 
 
@@ -1393,6 +1434,12 @@ DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
               ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
       print(summary(aov(MinInt~Treatment,data=results)))
     }
+    else if(Type=="PI"){
+      stop("Plot type not supported for single-well chambers.")
+    }
+    else if(Type=="EventPI"){
+      stop("Plot type not supported for single-well chambers.")
+    }
     else {
       if(SaveToFile==TRUE){
         graphics.off()
@@ -1447,6 +1494,12 @@ DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
           p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                       ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
           print(summary(aov(MinInt~Treatment,data=results)))
+        }
+        else if(Type=="PI"){
+          stop("Plot type not supported for single-well chambers.")
+        }
+        else if(Type=="EventPI"){
+          stop("Plot type not supported for single-well chambers.")
         }
         else {
           if(SaveToFile==TRUE){
@@ -1554,6 +1607,24 @@ DivisionPlots.TwoWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
               ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
       print(summary(aov(MinInt~Treatment,data=results)))
     }
+    else if(Type=="PI"){
+      Licks<-results$LicksA+results$LicksB
+      results<-data.frame(results,Licks)
+      results<-results[Licks>0,]
+      r<-paste("PI -- Range: (",range[1],",",range[2],")",sep="")
+      print(ggplot(results, aes(results$Treatment, results$PI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(aes(color = Licks),size=3,height=0) +
+              ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE))
+      print(summary(aov(PI~Treatment,data=results)))
+    }
+    else if(Type=="EventPI"){
+      Events<-results$EventsA+results$EventsB
+      results<-data.frame(results,Events)
+      results<-results[Events>0,]
+      r<-paste("Event PI -- Range: (",range[1],",",range[2],")",sep="")
+      print(ggplot(results, aes(results$Treatment, results$EventPI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(aes(color = Events),size=3,height=0) +
+              ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("Event PI") + guides(fill=FALSE))
+      print(summary(aov(EventPI~Treatment,data=results)))
+    }
     else {
       if(SaveToFile==TRUE){
         graphics.off()
@@ -1622,6 +1693,24 @@ DivisionPlots.TwoWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
           p[[i]]<<-(ggplot(results, aes(results$Treatment, results$MinInt)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
                       ylim(c(min(results$MinInt),max(results$MinInt))) + ggtitle(r) + xlab("Treatment") +ylab("Min Event Intensity") + guides(fill=FALSE))
           print(summary(aov(MinInt~Treatment,data=results)))
+        }
+        else if(Type=="PI"){
+          Licks<-results$LicksA+results$LicksB
+          results<-data.frame(results,Licks)
+          results<-results[Licks>0,]
+          r<-paste("PI -- Range: (",ranges[i,1],",",ranges[i,2],")",sep="")
+          p[[i]]<<-(ggplot(results, aes(results$Treatment, results$PI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(aes(color = Licks),size=3,height=0) +
+                  ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("PI") + guides(fill=FALSE))
+          print(summary(aov(PI~Treatment,data=results)))
+        }
+        else if(Type=="EventPI"){
+          Events<-results$EventsA+results$EventsB
+          results<-data.frame(results,Events)
+          results<-results[Events>0,]
+          r<-paste("Event PI -- Range: (",ranges[i,1],",",ranges[i,2],")",sep="")
+          p[[i]]<<-(ggplot(results, aes(results$Treatment, results$EventPI)) + geom_boxplot(aes(fill = results$Treatment),outlier.size=-1) + geom_jitter(aes(color = Events),size=3,height=0) +
+                      ylim(c(-1.05,1.05)) + ggtitle(r) + xlab("Treatment") +ylab("Event PI") + guides(fill=FALSE))
+          print(summary(aov(EventPI~Treatment,data=results)))
         }
         else {
           if(SaveToFile==TRUE){
