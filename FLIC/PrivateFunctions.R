@@ -1091,6 +1091,12 @@ BinnedPlot.OneWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE)
     analysis<-data.frame(binnedDataResult$Results$Interval,binnedDataResult$Results$Treatment,binnedDataResult$Results$MeanTimeBtw)
     names(analysis)<-c("Interval","Treatment","Y")
   }
+  else if(Type=="PI") {
+    stop("Plot type not supported for single-well chambers.")
+  }
+  else if(Type=="EventPI") {
+    stop("Plot type not supported for single-well chambers.")
+  }
   else {
     stop("Plot type does not exist.")
   }
@@ -1173,6 +1179,28 @@ BinnedPlot.TwoWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE)
       geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("Time Between Events (sec)")
     filename<-paste("BinnedMeanTimeBtwPlots.pdf",sep="")
     analysis<-data.frame(results$Interval,results$Treatment,results$MeanTimeBtwA,results$MeanTimeBtwB)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
+  }
+  else if(Type=="PI"){
+    Licks<-stats$LicksA+stats$LicksB
+    stats<-data.frame(stats,Licks)
+    gp<-ggplot(stats,aes(x=Minutes,y=PI,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=PI-PISEM, ymax=PI+PISEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + ylim(c(-1.05,1.05)) +
+      geom_point(position=pd, size=4, shape=21, aes(fill = Licks)) +xlab("Minutes") + ylab("PI (Licks)")
+    filename<-paste("BinnedPIPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$PI,results$PI)
+    names(analysis)<-c("Interval","Treatment","YA","YB")
+  }
+  else if(Type=="EventPI"){
+    Events<-stats$EventsA+stats$EventsB
+    stats<-data.frame(stats,Events)
+    gp<-ggplot(stats,aes(x=Minutes,y=EventPI,color=Treatment,group=Treatment)) + 
+      geom_errorbar(aes(ymin=EventPI-EventPISEM, ymax=EventPI+EventPISEM,color=Treatment), width=.1, position=pd) +
+      geom_line(position=pd,size=1) + ylim(c(-1.05,1.05)) +
+      geom_point(position=pd, size=4, shape=21,  aes(fill = Events)) +xlab("Minutes") + ylab("Event PI")
+    filename<-paste("BinnedEventPIPlots.pdf",sep="")
+    analysis<-data.frame(results$Interval,results$Treatment,results$EventPI,results$EventPI)
     names(analysis)<-c("Interval","Treatment","YA","YB")
   }
   else {

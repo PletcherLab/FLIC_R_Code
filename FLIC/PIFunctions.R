@@ -106,66 +106,6 @@ Feeding.CumulativeEventPIPlots.Trt<-function(monitors,parameters,expDesign,event
     return(results)
 }
 
-BinnedFeeding.PIPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=FALSE){
-  mystderr <- function(x, na.rm=FALSE) {
-    if (na.rm) x <- na.omit(x)
-    sqrt(var(x)/length(x))
-  }
-  tmp<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range, SaveToFile=FALSE, TransformLicks = FALSE)
-  licksA<-tmp$Results$LicksA
-  licksB<-tmp$Results$LicksB
-  licksPI1<-(licksA-licksB)/(licksA+licksB)
-  tmp2<-data.frame(tmp$Results$Treatment,tmp$Results$Interval,tmp$Results$Min,licksPI1,licksA+licksB)
-  names(tmp2)<-c("Treatment","Interval","Min","PI","Licks")
-  
-  tmp3.mean<-aggregate(tmp2$PI,by=list(tmp2$Min,tmp2$Treatment),mean,na.rm=TRUE)
-  tmp3.sem<-aggregate(tmp2$PI,by=list(tmp2$Min,tmp2$Treatment),mystderr,na.rm=TRUE)
-  tmp3.licks<-aggregate(tmp2$Licks,by=list(tmp2$Min,tmp2$Treatment),mean,na.rm=TRUE)
-  
-  tmp3<-data.frame(tmp3.mean[,1:3],tmp3.sem[,3],tmp3.licks[,3])
-  names(tmp3)<-c("Min","Treatment","Mean","SEM","Licks")
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(tmp3,aes(x=Min,y=Mean,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Mean-SEM, ymax=Mean+SEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) +
-    geom_point(position=pd, size=4, shape=21, fill="White") +xlab("Minutes") + ylab("PI") + ylim(c(-1,1)) 
-  if(SaveToFile==TRUE){
-    filename<-paste("BinnedFeedingPI_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
-    ggsave(filename,gp)
-  }
-  show(gp)
-}
-BinnedFeeding.EventPIPlot.Trt<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=FALSE){
-  mystderr <- function(x, na.rm=FALSE) {
-    if (na.rm) x <- na.omit(x)
-    sqrt(var(x)/length(x))
-  }
-  tmp<-BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min,expDesign,range, SaveToFile=FALSE, TransformLicks = FALSE)
-  licksA<-tmp$Results$EventsA
-  licksB<-tmp$Results$EventsB
-  licksPI1<-(licksA-licksB)/(licksA+licksB)
-  tmp2<-data.frame(tmp$Results$Treatment,tmp$Results$Interval,tmp$Results$Min,licksPI1)
-  names(tmp2)<-c("Treatment","Interval","Min","EventPI")
-  
-  tmp3.mean<-aggregate(tmp2$EventPI,by=list(tmp2$Min,tmp2$Treatment),mean,na.rm=TRUE)
-  tmp3.sem<-aggregate(tmp2$EventPI,by=list(tmp2$Min,tmp2$Treatment),mystderr,na.rm=TRUE)
-  
-  tmp3<-data.frame(tmp3.mean[,1:3],tmp3.sem[,3])
-  names(tmp3)<-c("Min","Treatment","Mean","SEM")
-  
-  pd <- position_dodge(5) # move them .05 to the left and right
-  gp<-ggplot(tmp3,aes(x=Min,y=Mean,color=Treatment,group=Treatment)) + 
-    geom_errorbar(aes(ymin=Mean-SEM, ymax=Mean+SEM,color=Treatment), width=.1, position=pd) +
-    geom_line(position=pd,size=1) +
-    geom_point(position=pd, size=4, shape=21, fill="white") +xlab("Minutes") + ylab("PI (Events)") + ylim(c(-1,1))
-  if(SaveToFile==TRUE){
-    filename<-paste("BinnedFeedingEventPI_TRT",monitors[1],"_",monitors[length(monitors)],".pdf",sep="")
-    ggsave(filename,gp)
-  }
-  show(gp)
-}
-
 Feeding.CumulativePI.DFM<-function(dfm, range=c(0,0), ShowPlots=TRUE, SinglePlot=FALSE){
   ## Get the Feeding.PI
   chambers<-1:nrow(dfm$Parameters$Chamber.Sets)
