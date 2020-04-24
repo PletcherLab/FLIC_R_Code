@@ -985,8 +985,6 @@ OutputTotalFeeding.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0
   }
   
   for(j in 1:length(monitors)){
-    print(paste("Outputting TotalFeeding Data for DFM ",monitors[j],".",sep=""))
-    flush.console()
     monitor<-monitors[j]
     x<-1:12
     if(individ.params==TRUE)
@@ -1279,6 +1277,8 @@ SimpleDataPlot.OneWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
     stop("Plot type does not exist.")
   }
   show(gp)
+  if(SaveToFile==TRUE)
+    ggsave(filename = filename)
   r2<-paste("\n** ",r," **\n")
   cat(r2)
   print(summary(aov(Y~Treatment,data=analysis)))
@@ -1376,7 +1376,8 @@ SimpleDataPlot.TwoWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
     stop("Plot type does not exist.")
   }
   show(gp)
-  
+  if(SaveToFile==TRUE)
+    ggsave(filename = filename)
   
   r2<-paste("\n** ",r," **\n")
   cat(r2)
@@ -1547,9 +1548,6 @@ DivisionPlots.OneWell<-function(monitors,parameters,expDesign,range=c(0,0),divis
   }
   if(SaveToFile==TRUE)
     graphics.off()
-  
-  
-  
 }
 DivisionPlots.TwoWell<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
   ranges<-matrix(rep(NA,divisions*2),ncol=2)
@@ -1772,7 +1770,7 @@ PlotBins.Licks.DFM.OneWell<-function(dfm,binsize.min=30,range=c(0,0),TransformLi
     ylabel<-"Transformed Licks"
     ttl<-paste("DFM:",dfm$ID," (Transformed)")
   }
-  gp<-ggplot(binnedData,aes(x=Min,y=Licks,fill=Chamber)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+  gp<-ggplot(binnedData,aes(x=Minutes,y=Licks,fill=Chamber)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
     theme(legend.position = "none") + ylab(ylabel) + xlab(xlabel)
   show(gp)
 }
@@ -1787,9 +1785,9 @@ PlotBins.Licks.DFM.TwoWell<-function(dfm,binsize.min,range=c(0,0),TransformLicks
     ylabel<-"Transformed Licks"
     ttl<-paste("DFM:",dfm$ID," (Transformed)")
   }
-  tmp2<-melt(binnedData,id.vars=c("Min","Chamber"),measure.vars=c("LicksA","LicksB"))
+  tmp2<-melt(binnedData,id.vars=c("Minutes","Chamber"),measure.vars=c("LicksA","LicksB"))
   names(tmp2)[3]<-"Well"
-  gp<-ggplot(tmp2,aes(x=Min,y=value,fill=Well)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+  gp<-ggplot(tmp2,aes(x=Minutes,y=value,fill=Well)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
     ylab(ylabel) + xlab(xlabel)
   show(gp)
 }
@@ -1800,7 +1798,7 @@ PlotBins.Durations.DFM.OneWell<-function(dfm,binsize.min=30,range=c(0,0)){
   ylabel<-"Avg Duration"
   xlabel<-"Minutes"
   ttl<-paste("DFM:",dfm$ID)
-  gp<-ggplot(binnedData,aes(x=Min,y=Duration,fill=Chamber)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+  gp<-ggplot(binnedData,aes(x=Minutes,y=Duration,fill=Chamber)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
     theme(legend.position = "none") + ylab(ylabel) + xlab(xlabel)
   show(gp)
 }
@@ -1811,9 +1809,9 @@ PlotBins.Durations.DFM.TwoWell<-function(dfm,binsize.min,range=c(0,0)){
   ylabel<-"Avg Duration"
   xlabel<-"Minutes"
   ttl<-paste("DFM:",dfm$ID)
-  tmp2<-melt(binnedData,id.vars=c("Min","Chamber"),measure.vars=c("DurationA","DurationB"))
+  tmp2<-melt(binnedData,id.vars=c("Minutes","Chamber"),measure.vars=c("DurationA","DurationB"))
   names(tmp2)[3]<-"Well"
-  gp<-ggplot(tmp2,aes(x=Min,y=value,fill=Well)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
+  gp<-ggplot(tmp2,aes(x=Minutes,y=value,fill=Well)) + geom_bar(stat="identity") + facet_grid(Chamber ~ .) + ggtitle(paste("DFM:",dfm$ID)) +
     ylab(ylabel) + xlab(xlabel)
   show(gp)
 }

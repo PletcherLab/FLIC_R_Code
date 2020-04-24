@@ -123,7 +123,7 @@ Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0)
     }
   }
   else if(SaveToFile==TRUE){
-    filename<-paste(filename,"_DFM.csv",sep="")
+    filename<-paste(filename,".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
@@ -193,7 +193,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
     }
   }
   else if(SaveToFile==TRUE){
-    filename<-paste(filename,"_DFM.csv",sep="")
+    filename<-paste(filename,".csv",sep="")
     write.csv(results,file=filename,row.names=FALSE)
   }
   
@@ -207,7 +207,7 @@ BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expD
 
 ##### Simple Experiment Plotting Functions ######
 ## These functions take the output of the experimental analysis functions and rapidly plot different measures.
-## Current Type options are (case sensitive): Licks, Events, Durations, MinInt
+## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw, PI, EventPI (latter 2 for choice chambers only).
 BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE){
   if("LicksA" %in% names(binnedDataResult$Results)){
     BinnedPlot.TwoWell.Trt(binnedDataResult,Type,SaveToFile)
@@ -241,7 +241,7 @@ DataPlot<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
 ## These plots are slower than the simple plots because analysis calculations are required.
 ## Division plots are not optimized for choice chambers because it combines well data at the moment (4/23/2020).
 ## Current Type options are (case sensitive): Licks, Events, Durations, MinInt, TimeBtw, PI, EventPI (latter 2 for choice chambers only).
-DivisionPlots.Monitors<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
+DivisionPlots<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE){
   if(is.list(parameters[[1]])){
     cs <- parameters[[1]]$Chamber.Size
   }
@@ -360,7 +360,7 @@ CumulativeEventPIPlots<-function(monitors,parameters,expDesign,events.limit=NA,b
 
 ##### Data output ######
 ## Current Type options are (case sensitive): BaselinedData, Durations, TimeBtw, TotalFeeding
-OutputData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),Type="Data",filename=NA){
+OutputData.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),Type="BaselinedData",filename=NA){
   if(Type=="BaselinedData"){
     if(is.na(filename)){
       OutputBaselinedData.Monitors(monitors,parameters,range)
@@ -439,7 +439,7 @@ BinnedFeeding.Summary.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=
   }
   result
 }
-GetIntervalData.DFM<-function(dfm,range){
+GetIntervalData.DFM<-function(dfm,range=c(0,0)){
   for(i in 1:12){
     tmp<-GetIntervalData.Well(dfm,i,range)
     if(i==1)
@@ -449,7 +449,7 @@ GetIntervalData.DFM<-function(dfm,range){
   }
   result
 }
-GetDurationData.DFM<-function(dfm,range){
+GetDurationData.DFM<-function(dfm,range=c(0,0)){
   for(i in 1:12){
     tmp<-GetDurationData.Well(dfm,i,range)
     if(i==1)
@@ -555,7 +555,6 @@ CumulativeLicksPlots.DFM<-function(dfm,SinglePlot=FALSE,TransformLicks=TRUE){
       ggtitle(paste("DFM",dfm$ID))+ ylab(ylabel)+ labs(color="Chamber")
   }
   show(gp)
-  tmp
 }
 
 

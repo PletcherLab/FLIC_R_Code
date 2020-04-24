@@ -199,9 +199,7 @@ RawData=function(dfm,range=c(0,0)) {
   tmp
 }
 CleanDFM<-function(){
-  tmp<-ls(pattern="DFM.",pos=1)
-  rm(list=tmp,pos=1)
-  tmp<-ls(pattern="DFM..",pos=1)
+  tmp<-ls(pattern="DFM[0-9]",pos=1)
   rm(list=tmp,pos=1)
 }
 ChangeParameterObject<-function(dfm,newP) {
