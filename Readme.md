@@ -1,6 +1,6 @@
 ## R code for simple FLIC analyses
 
-### Version 4.0-beta (September April 23, 2020)
+### Version 4.0-beta (April 23, 2020)
 
 In this repository you will find the latest R Code used by the Pletcher laboratory to analyze FLIC data. Functions are provided to examine interactions with food (termed 'licks' and 'events') for single-well and food choice experiments. 
 
