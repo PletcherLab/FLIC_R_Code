@@ -115,16 +115,23 @@ PlotSingleSampleEvent<-function(dfm,wellnum,eventnum){
   show(gp)
 }
 
+
+
+GetCircMin<-function(a){
+  
+}
+
 # THis accepts the startTime as MM/DD/YYYY HH:MM:SS in military time
 # The data frame argument must have a column entitled "Minutes", which
 # is assumed to be the elapsed time of the experiment.
-AddRealTimeColumn<-function(data,startTimeString){
+AddRealTimeColumns<-function(data,startTimeString){
   dtm<-strptime(startTimeString, format = "%m/%d/%Y %H:%M:%S")
   secs<-data$Minutes*60
-  realTimes<-dtm+secs
+  realTimes<-as.POSIXlt(dtm+secs)
   tmp<-names(data)
-  tmp<-c("RealTime",tmp)
-  r<-data.frame(realTimes,data)
+  cm<-realTimes$hour*60+realTimes$min+realTimes$sec/60
+  tmp<-c("RealTime","CircMinutes",tmp)
+  r<-data.frame(realTimes,cm,data)
   names(r)<-tmp
   r
 }

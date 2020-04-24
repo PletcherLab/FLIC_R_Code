@@ -1,8 +1,7 @@
 ## Testing the new V3.5 version of the code
 
 rm(list=ls())
-source("CommonChamber.R")
-source("DFM.R")
+source("FLICUserFunctions.R")
 source("MiscFunctions.R")
 
 
