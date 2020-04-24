@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 2: Grouped Analysis and Treatments"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "04/20/2020"
+date: "04/20/2020 (Version 4.x)"
 output: html_document
 ---
 
@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 
-This document describes the most common functions that we have written to manage groups of DFMs, which may or may not be associated with each other as part of an experimental design. Function whose name ends in *.Monitors()* act on groups of DFM and may or may not accept an optional experimental design argument  Functions whose name ends in *.Trt()* require an experimental design argument and present additional analysis of different treatments, across DFMs and chambers.
+This document describes the most common functions that we have written to manage groups of DFMs, which may or may not be associated with each other as part of an experimental design. Function whose name ends in *.Monitors()* act on groups of DFM and may or may not accept an optional experimental design argument. Most other high-level analysis functions will require an experimental design argument and will allow more complicated representation of different treatments, across DFMs and chambers.
 
 As with all FLIC R code, this is a work in progress. If you decide to extend this code and wish to share it with the community, please contact [Scott](mailto:spletch@umich.edu).
 
@@ -30,9 +30,9 @@ attach("FLICFunctions",pos=2)
 When *Monitors* functions are used without an experimental design argument, they effectively serve to batch process the functions that operate on individual DFMs, which are described in the *Getting Started* document.
 For these functions you must provide a vector of integers whose elements enumerate the DFM IDs that you wish to analyze. You must also supply either a single parameters object or a list of parameters objects. If a single parameters object is provided, then it will be applied to all of the monitors in the list.  If a list of parameters objects is provided, then it must be the same length as the monitors list, and each parameter object will be applied to its respective DFM. As usual, a range may be specificed (in minutes) if desired.  These batch functions can take a significant amount of time to run (sometimes many hours) if you have several DFMs and more than 48 hours of data. Remember that each DFM reports 5,184,000 signal values in 24 hours (it actually samples from the feeding pad 200x more often than that)!
 
-The examples in this document we use DFM data from two different experiments.  First, we will examine the data from a single-well experiment that used four DFMs (DFM1 - DFM4). This experiment lasted 1080 minutes (18 hours). The second experiment that we will examine is a choice experiment that used seven DFMs (DFM11 - DFM17). It lasted 360 minutes (6 hours). 
+The examples in this document use actual DFM data from two different experiments.  First, we will examine the data from a single-well experiment that used four DFMs (DFM1 - DFM4). This experiment lasted 1080 minutes (18 hours). The second experiment that we will examine is a choice experiment that used seven DFMs (DFM11 - DFM17). It lasted 360 minutes (6 hours). 
 
-It is important to recognize three terms in this document and in the relevant data output, all of which refer in some way to the individual food wells or the overall feeding environment.  First,*Well Number* refers to the physical position of the food well on the DFM.  For any specific well, this number does not change and is independent of the type of experiment or lid. At present, there is a single model of DFM and the wells are numbered 1-12 from left to right and top to bottom. Second, the term *Chamber* refers to the physical space that a fly (or small number of flies) experience.  When obtained from our laboratory or from Sable Systems, the FLIC system includes lids that define 12 chambers (one food well in each chamber) or six chambers (choice chambers with two food wells in each chamber, one on the left and one on the right). Third, choice experiments (but not single-well experiments) identify *WellA* and *WellB*, where a preference index of PI = 1 indicates feeding 100% from *WellA*, and PI = -1 indicates 100% feeding on *WellB*. These wells are defined based on the *PI.Multiplier* parameter in a parameters object for a particular DFM.  *WellA* will be the left well of a two-well chamber if *PI.Multiplier* = 1, and it will be the right well if *PI.Multiplier* = -1.
+It is important to recognize three terms in this document and in the relevant data output, all of which refer in some way to the individual food wells or the overall feeding environment.  First,*Well Number* refers to the physical position of the food well on the DFM.  For any specific well, this number does not change and is independent of the type of experiment or lid. At present, for all DFM versions the wells are numbered 1-12 from left to right and top to bottom. Second, the term *Chamber* refers to the physical space that a fly (or small number of flies) experience.  When obtained from our laboratory or from Sable Systems, the FLIC system includes lids that define 12 chambers (one food well in each chamber) or six chambers (choice chambers with two food wells in each chamber, one on the left and one on the right). Third, choice experiments (but not single-well experiments) identify *WellA* and *WellB*, where a preference index of PI = 1 indicates feeding 100% from *WellA*, and PI = -1 indicates 100% feeding on *WellB*. These wells are defined based on the *PI.Multiplier* parameter in a parameters object for a particular DFM.  *WellA* will be the left well of a two-well chamber if *PI.Multiplier* = 1, and it will be the right well if *PI.Multiplier* = -1.
 
 Let's first load in the data for our two experiments.  For the single-well experiment we will accept the default set of parameters and define the list of monitors
 
@@ -43,7 +43,7 @@ monitors.single<-c(1,2,3,4)
 
 The choice experiment followed good design principles and swapped the food wells (sucrose vs. denatonium) on different DFM. On DFMs 11, 13, 15, and 17, denatonium food was made available from the right well in each chamber with standard sucrose food on the left.  In DFMs 12, 14, and 16, the food was switched such that denatonium was present on the left side and sucrose on the right. We will choose to present the data in terms of preference FOR denatonium, because flies normally will avoid this bitter substance.  Thus, we will set PI.Multiplier to 1 when denatonium is present in the left well and -1 when it is present in the right well. As a result, 'WellA' will always refer to wells with denatonium ('WellB' will always refer to sucrose only), regardless of the physical position of the well in the specific DFM.
 
-To accomplish this we will create two different parameters objects that will be identical except for the PI.Multiplier. Then we will define a list of parameter objects that will be associated with each monitor, repectively.
+To accomplish this we will create two different parameters objects that will be identical except for the PI.Multiplier. Then we will define a list of parameter objects whose components will be associated with each monitor, repectively.
 
 ```{r}
 p.choice.one<-ParametersClass.TwoWell()
@@ -53,60 +53,57 @@ monitors.choice<-c(11,12,13,14,15,16,17)
 p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice.two)
 ```
 
-In general, *.Monitors()* and *.Trt()* functions will automatically read in DFM data if needed (i.e., if a background DFM object is not already present). So there is no need to load them with separate *DFMClass()* statements.  The functions will also update background DFM objects with new parameter valuesif those specified are different from those in the existing DFM object.  These functions effectively call *DFMClass()* for each monitor (see *Getting Started* documentation for details).
+In general, *.Monitors()* functions will automatically read in DFM data if needed (i.e., if a background DFM object is not already present). So there is no need to load them with separate *DFMClass()* statements.  The functions will also update background DFM objects with new parameter values if those specified are different from those in the existing DFM object.  Behind the scences, these functions effectively call *DFMClass()* for each monitor (see *Getting Started* documentation for details).
 
 Currently, single-well and choice experiments can not be analyzed in a single list. They must be analyzed as separate groups such that any single function call manages only single-well or only choice DFMs.  If you have a mixture, simply examine them separately as we do in this example.
 
-To output the baselined data for a group of DFM use the *OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0))* function.  Because these *.csv* files can be very large, a separate file is saved for each DFM.  The files will be formatted similarly for single-well and choice experiments. Data columns in the output file are self-explanatory. Console output will report progress because the functions can take quite some time to complete.
+To output the baselined data for a group of DFM use the *OutputData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),Type="BaselinedData",filename=NA)* function and accept the default data *Type="BaselinedData"*.  Because these *.csv* files can be very large, a separate file is saved for each DFM.  The files will be formatted similarly for single-well and choice experiments. Data columns in the output file are self-explanatory. Console output will report progress because the functions can take quite some time to complete.
 ```{r}
-OutputBaselinedData.Monitors(monitors.single,p.single)
+OutputData.Monitors(monitors.single,p.single)
 ## The next call applies parameters objects to DFM objects elementwise.
-OutputBaselinedData.Monitors(monitors.choice,p.choice.list, range=c(0,15)) 
+OutputData.Monitors(monitors.choice,p.choice.list, range=c(0,15)) 
 ```
 
 
-Other aspects of the data can also be saved to a *.csv* file in the same manner through their corresponding *.Monitors()* functions, such as the durations or intervals between events:
+Other aspects of the data can also be saved to a *.csv* file in the same manner by changing the *Type* argument in the function call. Available options (as of version 4.0) are *"BaselinedData"*, *"Durations"*, *"TimeBtw"*, and *"TotalFeeding"*. *Durations* describes details about individual events, focussing on thier lenght in seconds. *TimeBtw* describes details of the intervals that separate feeding events, and *TotalFeeding* outputs the total time flies interacted with each food well over entire experiment (or timer period defined by the *range* argument). Examples are given below. As with most functions, a range parameter can be provided to limit the output to a specific time period in the experiment.  A filename can also be given if the default is not adequate.
 
 ```{r}
-OutputDurationData.Monitors(monitors.single,p.single)
-OutputDurationData.Monitors(monitors.choice,p.choice.list)
+OutputData.Monitors(monitors.single,p.single,Type="Durations",filename="SingleDurations")
+OutputData.Monitors(monitors.choice,p.choice.list,Type="Durations",filename="ChoiceDurations")
 ```
 
 
 ```{r}
-OutputIntervalData.Monitors(monitors.single,p.single)
-OutputIntervalData.Monitors(monitors.choice,p.choice.list)
+OutputData.Monitors(monitors.single,p.single,Type="TimeBtw",filename="SingleIntervals")
+OutputData.Monitors(monitors.choice,p.choice.list,Type="TimeBtw",filename="ChoiceIntervals")
 ```
 
-
-
-Because the data in these files is more condensed, this function collects multiple DFMs into a single file and appends a column to indicate the appropriate DFM.  Both functions also report data for Well Number, which represents the physical location of the well and which is not adjusted for PI.Multiplier. For choice chambers, there is a TCWell column that has incorporated the PI.Multiplier information and therefore indicates values of 'WellA' or 'WellB'.   
-
-The *OutputTotalFeeding.Monitors(monitors,parameters,expDesign=NA,range=c(0,0))* function will save the total feeding time (in seconds) for each well. Data from choice experiments are adjusted for the PI.Multiplier as indicated by the column names that include reference to WellA and WellB.
 ```{r}
-OutputTotalFeeding.Monitors(monitors.single,p.single)
-OutputTotalFeeding.Monitors(monitors.choice,p.choice.list)
+OutputData.Monitors(monitors.single,p.single,range=c(0,600),Type="TotalFeeding",filename="SingleTotal")
+OutputData.Monitors(monitors.choice,p.choice.list,range=c(0,600),Type="TotalFeeding",filename="ChoiceTotal")
 ```
 
-The feeding summary data for a group of DFMs can be output to a .csv file (if *SaveToFile=TRUE*) and/or returned as an object. For reasons that will become clear when we introduce treatment-based analyses below, the results are obtained from the *$Results* component of the returned object.
+*Durations*, *TimeBtw*, and *TotalFeeding* data is more condensed than the raw data, so these options collect multiple DFMs into a single file and append a column to indicate the appropriate DFM.  Both functions also report data for Well Number, which represents the physical location of the well and which is not adjusted for PI.Multiplier. For choice chambers, there is a TCWell column that has incorporated the PI.Multiplier information and therefore indicates values of 'WellA' or 'WellB'.   
+
+*Feeding.Summary.Monitors* is the first of two key analysis functions. This function calculates feeding summary data for a group of DFMs, which can optionally be output to a .csv file (if *SaveToFile=TRUE*) and/or returned as an object. For reasons that will become clear when we introduce treatment-based analyses below, the results are obtained from the *$Results* component of the returned object.
 ```{r}
 f.summary<-Feeding.Summary.Monitors(monitors.single,p.single,SaveToFile = TRUE)
 f.summary2<-Feeding.Summary.Monitors(monitors.choice,p.choice.list,SaveToFile = TRUE)
-head(f.summary$Results[,1:10])
+head(f.summary$Results[,1:12])
 ```
 Please remember that the default behavior here is to transform the number of licks to the 0.25 power. Refer to the *Getting Started* document for an explanation of each summary metric in the returned objects.  For choice chambers, there are values included for WellA and WellB that are adjusted for PI.Multiplier. 
 
 ```{r}
-head(f.summary2$Results[,c(1:20)])
+head(f.summary2$Results[,c(1:24)])
 ```
 
 Notice that each DFM has an PI.Multiplier referenced as part of the output. It is good to check this to ensure the parameters objects were assigned correctly.
 
 ```{r}
-f.summary2$Results[,c(1,44)]
+head(f.summary2$Results)
 ```
 
-One strength of the FLIC system is to monitor time-dependent behavior and to identify differences in feeding behaviors as a function of time of day or before and after a specific manipulation. We saw a simple implementation of this in the *Getting Started* document using the *BinnedLicksPlot.DFM()* and *BinnedFeeding.Summary.DFM()* functions. By extending this to batch process groups of monitors, *BinnedFeeding.Summary.Monitors()* works similarly to *Feeding.Summary.Monitors()*, but it groups (i.e., adds together) Licks and Events that occur together withing fixed sized bins. Bin size is defined in minutes and passed as a required *binsize.min* argument. 
+One strength of the FLIC system is to monitor time-dependent behavior and to identify differences in feeding behaviors as a function of time of day or before and after a specific manipulation. We saw a simple implementation of this in the *Getting Started* document using the *BinnedLicksPlot.DFM()* and *BinnedFeeding.Summary.DFM()* functions. By extending this to batch process groups of monitors, *BinnedFeeding.Summary.Monitors()*, which is the second of the two key analysis functions, works similarly to *Feeding.Summary.Monitors()*, but it groups (i.e., adds together) Licks and Events that occur together within fixed sized bins. Bin size is defined in minutes and passed as a required *binsize.min* argument. 
 
 ```{r}
 f.binsummary<-BinnedFeeding.Summary.Monitors(monitors.single,p.single,binsize.min=30,SaveToFile = TRUE)
@@ -115,28 +112,34 @@ head(f.binsummary$Results[,1:6])
 head(f.binsummary2$Results[,1:8])
 ```
 
-The *Interval* column contains the boundary times in minutes for each interval (open on the left and closed on the right). The *Min* column contains the midpoints of the intervals (in minutes).
+The *Interval* column contains the boundary times in minutes for each interval (open on the left and closed on the right). The *Minutes* column contains the midpoints of the intervals (in minutes).
 
-**NOTE:** It is absolutely critical that you understand how parameters objects are assigned to DFMs and that you get the parameter values and PI.Multipliers correct for each DFM.  Otherwise, your feeding data will be incorrect, and differences among chambers and among treatments will be obfuscated. If you do get it wrong, it will not necessarily be obvious from the plots or from the data output, given the size and complexity of the FLIC data. Please evaluate the summary data and ensure that it matches your expectations and the expectations generated from examination of the individual DFMs, as described in the *Getting Started* document. It is at this point that you should take your time and be certain the data are properly loaded and summarized. Only after you are comfortable should you move on to explore the experiments in different ways using the treatment-based functions (below), the functions that evaluate preference (see *Analysis of Choice Experiments* document), and the advanced functions for specialized analyses (see *Additional Analyses* document).
+**NOTE:** It is absolutely critical that you understand how parameters objects are assigned to DFMs and that you get the parameter values and PI.Multipliers correct for each DFM.  Otherwise, your feeding data will be incorrect, and differences among chambers and among treatments will be obfuscated. If you do get it wrong, it will not necessarily be obvious from the plots or from the data output, given the size and complexity of the FLIC data. Please evaluate the summary data and ensure that it matches your expectations and the expectations generated from examination of the individual DFMs, as described in the *Getting Started* document. It is at this point that you should take your time and be certain the data are properly loaded and summarized. Only after you are comfortable should you move on to explore the experiments in different ways using the higher-level functions (described below), the functions that evaluate preference (see *Analysis of Choice Experiments* document), and the advanced functions for specialized analyses (see *Additional Analyses* document).
 
 ## Treatment-Based Analysis
 
 #### Feeding Summary
 
-Some *.Monitors()* functions and all *.Trt()* functions accept an experimental design data.frame for treatment-based analysis (*.Trt()* functions require this argument). *.Monitor()* functions that accept this as an optional parameter can be identified by the presence of a *expDesign=NA* argument in their function definition.  For example,
+Some *.Monitors()* functions accept an experimental design data frame for treatment-based analysis. Most other *front-end* functions in the *FLICUserFunctions.R* file require it as well. Functions that accept this as an optional parameter can be identified by the presence of a *expDesign=NA* argument in their function definition.  For example,
 ```{r}
 head(Feeding.Summary.Monitors)
 ```
+
+Others that require it, will list the argument with the *NA*:
+```{r}
+head(DivisionPlots)
+```
+
 In short, adding an experimental design argument to these functions modifies the output files to make it easier to analyze treatment-level differences in other software and to provide simple plotting capabilities that visualize differences among different genotypes, environments, and other manipulations.   
 
-An experimental design file must be defined, usually by creating a .csv file that contains several rows (one each for each chamber for each DFM in the experiment) and three columns, which are defined as
+An experimental design object is usually derived from a .csv file that contains several rows (one each for each chamber for each DFM in the experiment) and three columns, which are defined as
 
 DFM              |   Chamber                          | Treatment
 -----------------|------------------------------------| ----------------------------------------------------
 DFMID (integer)  | Chamber number (integer,1-6/1-12)  | Treatment name (no whitespace or special characters)
 
 
-There must be one and only one row for each chamber in the experiment.  Single-well experiments will have twelve rows per DFM (in this case the chamber number is equal to the well number and ranges from 1-12).  For choice experiments, there will be six chambers, numbered 1-6 from the top of the DFM to the bottom.  You may have extra rows in the file as long as these extra rows do not duplicate DFM IDs or chamber numbers.  So, for our example, we have created a single experimental design file for both our single-well and choice experiments.  The DFM IDs are all different so this does not create any conflicts.  The easiest way to create the design file is to use excel or other spreadsheet software and then save the files as *.csv*.  The design is then read into R using the *read.csv()* function.
+There must be one and only one row for each chamber in the experiment.  Single-well experiments will have twelve rows per DFM (in this case the chamber number is equal to the well number and ranges from 1-12).  For choice experiments, there will be six chambers, numbered 1-6 from the top of the DFM to the bottom.  You may have extra rows in the file as long as these extra rows do not duplicate DFM IDs or chamber numbers.  So, for our example, we have created a single experimental design file for both our single-well and choice experiments.  The DFM IDs are all different so this does not create any conflicts.  The easiest way to create the design file is to use excel or other spreadsheet software and to  save the files as *.csv*.  The design is then read into R using the *read.csv()* function.
 
 ```{r}
 expDesign<-read.csv("ExpDesign.csv")
@@ -148,12 +151,24 @@ For those that are interested, these experiments were executed using the FLIC Op
 Executing the *Feeding.Summary.Monitors()* function with an experimental design argument creates a second output file (if *SaveToFile=TRUE*) and adds more information to the returned object.
 
 ```{r}
+#Function Definition
+#Feeding.Summary.Monitors<-function(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummary")
 f.summary<-Feeding.Summary.Monitors(monitors.single,p.single,expDesign=expDesign,SaveToFile = TRUE)
 f.summary2<-Feeding.Summary.Monitors(monitors.choice,p.choice.list,,expDesign=expDesign,SaveToFile = TRUE)
 head(f.summary$Results[,1:10])
 ```
 
-The *f.summary* and *f.summary2* objects contain two elements. The *$Results* element is similar to what we examined for the function call without a design argument (see above), with one exception.  A specific treatment is now associated with each chamber in each DFM, and this information is encoded as a new column in the data frame. The new column is encoded as a factor and can be used in simple ANOVA and other analyses to determine whether there are significant differences among treatments for any of the individual behavior metrics.
+Argument        |   Default Value  | Description
+----------------|------------------| -----------------------------------------------------------------------------
+monitors        | NA (required)    | Integer vector listing DFM IDs for the analysis.
+parameters      | NA (required)    | Single parameters object or list of parameters of the same length as monitors.
+expDesign       | NA               | data frame with required format as described above
+range           | c(0,0)           | minutes (start, end) to included in the analysis (0,0) = entire experiments
+SaveToFile      | FALSE            | Whether to save the plot to a .pdf or .png file.
+TransformLicks  | TRUE             | Whether to transform licks to the 0.25 power.
+Filename        | FeedingSummary   | Specify the name of the output pdf file.
+
+The *f.summary* and *f.summary2* objects contain two elements. The *$Results* element is similar to what we examined for the function call without a design argument (see above), with one exception.  A specific treatment is now associated with each chamber in each DFM, and this information is encoded as a new column in the data frame. The new column is a "factor" and can be used in simple ANOVA and other analyses to determine whether there are significant differences among treatments for any of the individual behavior metrics.
 
 ```{r}
 summary(aov(Licks~Treatment,data=f.summary$Results))
@@ -167,7 +182,7 @@ If you are interested in asking whether there are significant differences among 
 summary(aov(Licks~DFM,data=f.summary$Results))
 ```
 
-Notice only one degree of freedom for DFM, despite there being four DFM in the single-well experiment. The correct way to do it is to ensure R treats DFM as a factor (a similar procedure should be used for Chamber or Well numbers also).
+Notice only one degree of freedom for DFM, despite there being four DFM in the single-well experiment. The correct way to do this analysis is to ensure R treats DFM as a factor (a similar procedure should be used for Chamber or Well numbers also).
 
 ```{r}
 summary(aov(Licks~factor(DFM),data=f.summary$Results))
@@ -181,13 +196,15 @@ head(f.summary$Stats)
 head(f.summary2$Stats)
 ```
 
-Columns for each metric are given for the mean values and columns in which 'SEM' is appended represent the SEM for that given metric.  Notice that for choice experiments, each metric is given with respect to Well A and Well B, which are adjusted for the PI.Multiplier. As always, the current parameter values are appended as additional columns to each output for reference.
+Columns for each metric are given for the mean values and the standard error of the mean (SEM).  Notice that for choice experiments, each metric is given with respect to Well A and Well B, which are adjusted for the PI.Multiplier. As always, the current parameter values are appended as additional columns to each output for reference.
 
 #### Binned Feeding Summary
 
 As discussed above, the *BinnedFeeding.Summary.Monitors()* function extends *Feeding.Summary.Monitors()*, and it can also accept an experimental design argument to append treatments to outputs and to provide summary statistics for each interval. If *SaveToFile=TRUE*, data and summary *.csv* files are saved.
 
 ```{r}
+#Function Definition
+#BinnedFeeding.Summary.Monitors<-function(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="BinnedSummary")
 f.binsummary<-BinnedFeeding.Summary.Monitors(monitors.single,p.single,binsize.min=30,expDesign=expDesign,SaveToFile = TRUE)
 f.binsummary2<-BinnedFeeding.Summary.Monitors(monitors.choice,p.choice.list,binsize.min=30,expDesign=expDesign,SaveToFile = TRUE)
 head(f.binsummary$Results[,1:7])
@@ -196,7 +213,19 @@ head(f.binsummary$Stats[,1:7])
 head(f.binsummary2$Stats[,1:11])
 ```
 
-These results can be used for plotting in R (see below) or in other software, and for interval analysis. For example, to apply an ANOVA to each of the first five 30 min intervals (this doesn't correct P values for multiple tests or for *a posteriori* inference)
+Argument        |   Default Value  | Description
+----------------|------------------| -----------------------------------------------------------------------------
+monitors        | NA (required)    | Integer vector listing DFM IDs for the analysis.
+parameters      | NA (required)    | Single parameters object or list of parameters of the same length as monitors.
+binsize.min     | 30               | Size of the bin (in minutes) to group/sum licks or events.
+expDesign       | NA               | data frame with required format as described above
+range           | c(0,0)           | minutes (start, end) to included in the analysis (0,0) = entire experiments
+SaveToFile      | FALSE            | Whether to save the plot to a .pdf or .png file.
+TransformLicks  | TRUE             | Whether to transform licks to the 0.25 power.
+Filename        | BinnedSummary    | Specify the name of the output pdf file.
+
+
+These results can be used for plotting in R (see below) or in other software, and for interval analysis. For example, to apply an ANOVA to each of the first five 30 min intervals (note that this doesn't correct for multiple tests or for *a posteriori* inference):
 
 ```{r}
 for(i in levels(f.binsummary$Results$Interval)[1:5]){
@@ -210,164 +239,107 @@ for(i in levels(f.binsummary$Results$Interval)[1:5]){
 
 
 ## Plotting Treatment Effects
-Several functions are available for plotting data with respect to treatments. These functions all require an experimental design argument as well as most other arguments that we have seen before. The output of the plots will often depend on whether the experiment involves single-well or choice chambers. 
+Several functions are available for plotting data with respect to treatments. These functions all require an experimental design argument as well as most of the other arguments that we have seen before. The output of the plots will often depend on whether the experiment involves single-well or choice chambers. In most cases, the user does not need to specify, the functions will determine the format automatically.
 
 
-
-To display a dot plot and box plot of replicate flies for each treatment in a single-well experiment for the entire experiment (i.e., when *range=c(0,0)*) and save the plot to a file use *Feeding.LicksPlot.Trt()*. If *SaveToFile=TRUE* then no plots will be produced in the R window, and all existing graphics windows will be closed. Plots are saved as either a *.pdf* or *.png* file.
+To display a variety of different metrics as dot plots and box plot of replicate flies for each treatment for the entire experiment (i.e., when *range=c(0,0)*) and save the plot to a file use *DataPlot*, which results the data frame results of *Feeding.Summary.Monitors()* as an argument. If *SaveToFile=TRUE* then the plot will also be saved as a *.pdf* or *.png* file. 
 
 ```{r}
-Feeding.LicksPlot.Trt(monitors.single,p.single,expDesign, SaveToFile=TRUE)
+DataPlot(f.summary,Type="Licks",SaveToFile=TRUE)
 ```
 
 
 This function also returns a summary one-way ANOVA applied across treatments for the total licks through the given range.
 
-The full definition of this plot is:
-*Feeding.LicksPlot.Trt(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE,TransformLicks=TRUE)* with the following argument details: 
+This same function can be used to plot different behavior metrics.  Current options are *Licks*, *Events*, *Durations*, *MinInt*, and *TimeBtw*. Measures of preference index (e.g., PI and EventPI) are available for choice experiments only.  These options are discussed in the *ChoiceChamberAnalysis.html* documentation file.
 
-Argument        |   Default Value  | Description
-----------------|------------------| -----------------------------------------------------------------------------
-monitors        | NA (required)    | Integer vector listing DFM IDs for the analysis.
-parameters      | NA (required)    | Single parameters object or list of parameters of the same length as monitors.
-expDesign       | NA (required)    | data frame with required format as described above
-range           | c(0,0)           | minutes (start, end) to included in the analysis (0,0) = entire experiments
-divisions       | 1                | Number of divisions in the range to apply for the analysis
-SaveToFile      | FALSE            | Whether to save the plot to a .png file.
-TransformLicks  | TRUE             | Whether to transform licks to the 0.25 power.
-
-
-To split the first 100 minutes into four divisions, each consisting of an additional 25 min, you must override the default *divisions* parameter.  Please note that this option does not split the range into non-overlapping regions (that would be more appropriate for binned plots, which are described below).  Instead, each division includes the beginning of the range and a different end point.
-
-A box plot for each division is created, and a summary one-way ANOVA for each is output to the console.
-
-```{r, fig.height=7.5}
-Feeding.LicksPlot.Trt(monitors.single,p.single,expDesign, range=c(0,100),divisions=4)
-```
-
-For choice experiments, licks are combined from both wells and represented with a similar plot. The one-way ANOVA is also executed on total licks. For choice experiments, these plots are likely to have limited use.
-
-```{r, fig.height=7.5}
-Feeding.LicksPlot.Trt(monitors.choice,p.choice.list,expDesign, range=c(0,100),divisions=4)
-```
-
-The same plots are available for Events and for mean Event Durations, rather than Licks, and they are accompanied by a summary of one-way ANOVA results as well. As of 4/20/2020 ANOVA results will fail for analysis of mean Duration if intervals have zero events.
-
-```{r, fig.height=7.5}
-Feeding.EventsPlot.Trt(monitors.single,p.single,expDesign, range=c(0,100),divisions=4)
-```
-
-```{r, fig.height=7.5}
-Feeding.EventsPlot.Trt(monitors.choice,p.choice.list,expDesign, range=c(0,100),divisions=4)
-```
-
-To visualize binned data, use *Feeding.BinnedLicksPlot.Trt()*, *Feeding.BinnedEventsPlot.Trt()*, and *Feeding.BinnedDurationsPlot.Trt()* with the following arguments.
-
-Argument        |   Default Value  | Description
-----------------|------------------| -----------------------------------------------------------------------------
-monitors        | NA (required)    | Integer vector listing DFM IDs for the analysis.
-parameters      | NA (required)    | Single parameters object or list of parameters of the same length as monitors.
-binsize.min     | 20               | Size of the bin (in minutes) to group/sum licks or events.
-expDesign       | NA (required)    | data frame with required format as described above
-range           | c(0,0)           | minutes (start, end) to included in the analysis (0,0) = entire experiments
-SaveToFile      | FALSE            | Whether to save the plot to a .png file.
-TransformLicks  | TRUE             | Whether to transform licks to the 0.25 power (for licks function only).
-
-```{r, fig.height=5.5}
-Feeding.BinnedLicksPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
-```
-
-For each bin, a one-way ANOVA summary across treatments is output to the console. Note that in this example the two treatments in which specific fly neurons were activated exhibited a persistant increase in feeding throughout experiment.  Control animals exhibited a characteristic increase in feeding near the start of the experiment, which coincided with their evening meal, that decreased with time, eventually becoming quite low in darkness.
-
-or choice experiments, the plots are faceted such that feeding interactions in Well A are presented separately from those in Well B. Remember, these have been corrected for PI.Multiplier. 
-
-```{r, fig.height=5.5, fig.width=8}
-Feeding.BinnedLicksPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDesign)
-```
-
-In this experiment, activated flies received optostimulation when feeding from Well A, but not from Well B for the first 180 minutes of the experiment.  For the second 180 minutes, no stimulation was provided. The binned data clearly show that optostimulation specifically promotes feeding from Well A, and this preference declines to near control levels by 360 min (P=0.59 from the one-way ANOVA for the final interval in Well A).
-
-The same plots can be produced for events and durations, rather than licks.
-
-```{r, fig.height=5.5}
-Feeding.BinnedEventsPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
-
-```
-
-```{r, fig.height=5.5}
-Feeding.BinnedDurationsPlot.Trt(monitors.single,p.single,binsize.min=30,expDesign)
-```
-
-```{r, fig.width=5, fig.height=5.5, fig.width=8}
-Feeding.BinnedEventsPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDesign)
-
-```
-
-```{r, fig.height=5.5, fig.width=8}
-Feeding.BinnedDurationsPlot.Trt(monitors.choice,p.choice.list,binsize.min=30,expDesign)
-```
-
-
-The mean/average duration of each feeding interaction event over the entire experiment can be displayed for each treatment. 
-```{r}
-Feeding.MeanDurationsPlot.Trt(monitors.single,p.single,expDesign)
-Feeding.MeanDurationsPlot.Trt(monitors.choice,p.choice.list,expDesign)
-```
-
-The mean/average time between events can be displated similarly.
 
 ```{r}
-Feeding.MeanTimeBtwPlot.Trt(monitors.single,p.single,expDesign)
-Feeding.MeanTimeBtwPlot.Trt(monitors.choice,p.choice.list,expDesign)
+DataPlot(f.summary,Type="Events",SaveToFile=FALSE)
+DataPlot(f.summary,Type="Durations",SaveToFile=FALSE)
+DataPlot(f.summary,Type="MinInt",SaveToFile=FALSE)
+DataPlot(f.summary,Type="TimeBtw",SaveToFile=FALSE)
+```
+
+The same function is used to plot the *Feeding.Summary.Monitors()* results from choice experiments, but the output is separated into Well A and Well B, which have been adjusted for the PI.Multiplier and thus groups similar treatments.
+
+```{r}
+DataPlot(f.summary2,Type="Licks",SaveToFile=TRUE)
+DataPlot(f.summary2,Type="Events",SaveToFile=TRUE)
+```
+
+Note that the range over which the data are analyzed, as well as the relevant parameter values use to identify interactions, are specified when the *Feeding.Summary.Monitors()* function is called.  *DataPlot()* simply allows you to visualize those results.
+
+A slightly more complicated version of these output plots is provided by the function *DivisionPlots()*, which divides the experiment (or the defined range) into a set number of divisions of equal durations and plots the relevant behavioral metric from the start of the range to the end of each division interval.
+
+For example, to split the first 100 minutes of an experiment into four divisions, each consisting of an additional 25 min, you would set the *range=c(0,100)* and *divisions=1*. This would calculate the relevant statistic over the intervals *(0,25)*, *(0,50)*, *(0,75)*, and *(0,100)*.  Please note that this function does not split the range into non-overlapping regions (that would be more appropriate for binned plots, which are described below).  Instead, each division includes the beginning of the range and a different (successively later) end point.
+
+A box plot for each division is created, and a summary one-way ANOVA for each is output to the console. Because of the additional computation involved, the results from *Feeding.Summary.Monitors()* is not provided.  This function must be called several times within the *DivisionPlots()* function.  Therefore, a complete set of parameter arguments is required.
+
+```{r, fig.height=7.5}
+#Function Definition
+#DivisionPlots<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE)
+DivisionPlots(monitors.single,p.single,expDesign=expDesign,range=c(0,100),divisions=4,Type="Licks")
+DivisionPlots(monitors.choice,p.choice.list,expDesign,range=c(0,100),divisions=4,Type="Licks")
+```
+
+For choice experiments, licks are combined in a reasonable way from both wells. The one-way ANOVA is also executed on total licks. For choice experiments, these plots are likely to have limited use.
+
+As with *DataPlot()* different behavior measures can be visualized by changing the *Type* parameter.  Current options are *Licks*, *Events*, *Durations*, *MinInt*, and *TimeBtw*. Measures of preference index (e.g., PI and EventPI) are available for choice experiments only.  These options are discussed in the *ChoiceChamberAnalysis.html* documentation file.
+
+To visualize binned data, the *BinnedDataPlot()* function parallels the *DataPlot()* function, but it instead takes as its first argument the data frame output from *BinnedFeeding.Summary.Monitors()*.
+
+```{r, fig.height=5.5}
+# Function Definition
+#BinnedDataPlot<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE)
+BinnedDataPlot(f.binsummary,Type="Licks",SaveToFile=TRUE)
+```
+
+For each bin, a one-way ANOVA summary across treatments is output to the console. Note that in this example the two treatments in which specific fly neurons were activated exhibited a persistant increase in feeding throughout experiment.  Control animals exhibited a characteristic increase in feeding near the start of the experiment, which coincided with their evening meal, which decreased with time and eventually became quite low in darkness.
+
+For choice experiments, the plots are faceted such that feeding interactions in Well A are presented separately from those in Well B. Remember, these have been corrected for PI.Multiplier. 
+
+```{r, fig.height=5.5, fig.width=8}
+BinnedDataPlot(f.binsummary2,Type="Licks",SaveToFile=FALSE)
+```
+
+In this experiment, activated flies received optostimulation when feeding from Well A, but not from Well B for the first 180 minutes of the experiment.  For the second 180 minutes, no stimulation was provided. The binned data clearly show that optostimulation specifically promotes feeding from Well A, and this preference declines to near control levels by 360 min (P=0.592 from the one-way ANOVA for the final interval in Well A).
+
+As with *DataPlot()* different behavior measures can be visualized by changing the *Type* parameter.  Current options are *Licks*, *Events*, *Durations*, *MinInt*, and *TimeBtw*. Measures of preference index (e.g., PI and EventPI) are available for choice experiments only. 
+
+```{r, fig.height=5.5}
+BinnedDataPlot(f.binsummary2,Type="Durations",SaveToFile=FALSE)
+```
+
+```{r, fig.height=5.5}
+BinnedDataPlot(f.binsummary,Type="Events",SaveToFile=FALSE)
 ```
 
 ## Other Useful Functions
 
-You can plot the total licks over the duration of an experiment for each Well, grouped by DFM (and, for choice experiments, colored by Well) using the *PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE)* function. Arguments are similar to those for *Feeding.Summary.Montiors()*.
+You can plot the total licks over the duration of an experiment for each Well, grouped by DFM (and, for choice experiments, colored by Well) using the *PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE)* function. Arguments are similar to those for *Feeding.Summary.Montiors()*. This is useful for identifying specific DFM effects, which may lead to overall higher or lower feeding values for all wells in a specific DFM. For choice experiments, Wells are corrected for the *PI.Multiplier* and therefore are grouped as "Well A" and "Well B".
 
 ```{r}
 PlotTotalLicks.Monitors(monitors.single,p.single)
 PlotTotalLicks.Monitors(monitors.choice,p.choice.list)
 ```
 
-The average duration of each feeding interaction event can be displayed for each treatment. 
-```{r}
-
-Feeding.MeanDurationsPlot.Trt(monitors.single,p.single,expDesign)
-```
-Feeding.MeanDurationsPlot.Trt<-function(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE)
 
 ## Function Definition Reference
 Listed below are the functions used in this document along with their argument list showing optional parameters and their default values.  You should know what each of these functions does and what each argument represents before moving on to the remaining documentation. It is important that these functions, and the larger set of R Code for the FLIC, are not treated as a black box. In our experience the FLIC system provides remarkable insights, but the data sets are large and complex and must be managed carefully to ensure that mistakes are avoided.
 
 ``` {r, eval=FALSE}
-Feeding.Summary.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummary")
-
 BinnedFeeding.Summary.Monitors(monitors,parameters,binsize.min=30,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="BinnedSummary")
 
-PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE,filename="LicksPlots")
+BinnedDataPlot(binnedDataResult,Type="Licks",SaveToFile=FALSE)
 
-OutputBaselinedData.Monitors(monitors,parameters,range=c(0,0),filename="Baselined")
+DataPlot(summaryResults,Type="Licks",SaveToFile=FALSE)
 
-OutputIntervalData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="IntervalData")
+DivisionPlots(monitors,parameters,expDesign,range=c(0,0),divisions=1,Type="Licks",SaveToFile=FALSE,TransformLicks=TRUE)
 
-OutputDurationData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="DurationData")
+Feeding.Summary.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummary")
 
-OutputTotalFeeding.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),filename="TotalFeedingTime")
+OutputData.Monitors(monitors,parameters,expDesign=NA,range=c(0,0),Type="BaselinedData",filename=NA)
 
-CumulativeLicksPlots.DFM(dfm,SinglePlot=FALSE,TransformLicks=TRUE)
-
-Feeding.LicksPlot.Trt(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE)
-
-Feeding.EventsPlot.Trt(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE)
-
-Feeding.MeanDurationsPlot.Trt(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE)
-
-Feeding.MeanTimeBtwPlot.Trt(monitors,parameters,expDesign,range=c(0,0),divisions=1,SaveToFile=FALSE)
-
-Feeding.BinnedLicksPlot.Trt(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE,TransformLicks=TRUE)
-
-Feeding.BinnedEventsPlot.Trt(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE)
-
-Feeding.BinnedDurationsPlot.Trt(monitors,parameters,binsize.min=20,expDesign,range=c(0,0),SaveToFile=FALSE)
+PlotTotalLicks.Monitors(monitors, p, range=c(0,0),TransformLicks=TRUE)
 ```

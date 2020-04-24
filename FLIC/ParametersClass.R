@@ -23,7 +23,7 @@ ParametersClass.SingleWell=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10  
-  Tasting.Interval=c(10,20)
+  Tasting.Interval=c(5,20)
   Feeding.Minevents=1
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -41,7 +41,7 @@ ParametersClass.TwoWell=function(){
   Baseline.Window.Minutes=3
   Feeding.Threshold=20
   Feeding.Minimum=10
-  Tasting.Interval=c(10,20)
+  Tasting.Interval=c(5,20)
   Feeding.Minevents=1
   Tasting.Minevents=1
   Samples.Per.Second=5
@@ -57,7 +57,7 @@ ParametersClass.TwoWell=function(){
 }
 
 ## change the initial values using this function
-SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feeding.Minimum=NA, Tasting.Interval=NA,
+SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feeding.Minimum=NA, Tasting.Interval=c(NA,NA),
                        Feeding.Minevents=NA,Tasting.Minevents=NA,
                        Samples.Per.Sec=NA, Chamber.Size=NA, Feeding.Event.Link.Gap=NA,PI.Multiplier=NA){
   tmp.O<-options()
@@ -72,7 +72,7 @@ SetParameter<-function(p,Baseline.Window.Minutes=NA,Feeding.Threshold=NA, Feedin
   if(!is.na(Feeding.Minimum)) {
     p$Feeding.Minimum=Feeding.Minimum
   }
-  if(!is.na(Tasting.Interval)) {
+  if(sum(is.na(Tasting.Interval))!=2) {
     p$Tasting.Minimum=Tasting.Interval[1]
     p$Tasting.Maximum=Tasting.Interval[2]
   }
