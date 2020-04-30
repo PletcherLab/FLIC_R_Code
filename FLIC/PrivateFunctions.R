@@ -715,16 +715,16 @@ Feeding.DurationSummary.Well<-function(dfm,well,range=c(0,0)){
   }
   else {
     if(!is.data.frame(adurs)){
-      a<-0
-      aa<-0
+      a<-NA
+      aa<-NA
     } else {
       a<-mean(adurs$Duration)  
       aa<-median(adurs$Duration)
     }
   }
   
-  if(is.na(a)||is.nan(a)) a<-0
-  if(is.na(aa)||is.nan(aa)) aa<-0
+  if(is.na(a)||is.nan(a)) a<-NA
+  if(is.na(aa)||is.nan(aa)) aa<-NA
   tmp<-data.frame(a,aa)
   
   names(tmp)<-c("MeanDur","MedianDur")
@@ -737,10 +737,10 @@ Feeding.IntensitySummary.Well<-function(dfm,well,range=c(0,0)){
   da<-d[l]
   
   if(length(da)==0){
-    a<-0
-    aa<-0
-    aaa<-0
-    aaaa<-0
+    a<-NA
+    aa<-NA
+    aaa<-NA
+    aaaa<-NA
   }
   else {
     a<-mean(da)  
