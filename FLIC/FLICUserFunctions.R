@@ -424,7 +424,7 @@ BinnedFeeding.Summary.DFM<-function(dfm,binsize.min,range=c(0,0),TransformLicks=
     y<-c(y,m.max)
   
   tmpMatrix<-cbind(y[-length(y)],y[-1])
-  intervals<-cut(y+1,y,include.lowest=TRUE,dig.lab=8)
+  intervals<-cut(y+0.000001,y,include.lowest=TRUE,dig.lab=8)
   intervals<-intervals[-length(intervals)]
   result<-Feeding.Summary.DFM(dfm,range=tmpMatrix[1,],TransformLicks)
   Interval<-rep(intervals[1],nrow(result))
