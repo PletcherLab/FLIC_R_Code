@@ -1102,8 +1102,7 @@ BinnedPlot.OneWell.Trt<-function(binnedDataResult,Type="Licks",SaveToFile=FALSE)
   if(SaveToFile==TRUE){
     ggsave(filename,gp)
   }
-  analysis
-  tmp2<-binnedDataResult$Results
+ 
   l<-lapply(split(analysis, analysis$Interval), aov, formula=Y ~ Treatment)
   cat("** Interval specific ANOVA results **\n\n")
   lapply(l,summary)
