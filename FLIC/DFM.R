@@ -66,9 +66,18 @@ DFMClassV3<-function(id,parameters,range=c(0,0)) {
   ## If doesn't exist, get and create
   if(found==0) {
     
-    file<-paste("DFM",id,"_0.csv",sep="")
-    dfm<-read.csv(file,header=TRUE)  
+    tmp<-paste("DFM",id,"_.*[.]csv",sep="")
+    files<-list.files(pattern=tmp)
     
+    dfm<-read.csv(files[1],header=TRUE)  
+    print(paste("Reading DFM File:",files[1]))
+    if(length(files)>1){
+      for(i in 2:length(files)){ 
+        print(paste("Reading DFMV3 File:",files[i]))
+        tmp<-read.csv(files[i],header=TRUE)  
+        dfm<-rbind(dfm,tmp)
+      }
+    }
     ## Get Minutes from Sample column only if ElapsedTime is not
     ## there
     if('Seconds' %in% colnames(dfm)) {
