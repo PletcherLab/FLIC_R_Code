@@ -135,3 +135,231 @@ AddRealTimeColumns<-function(data,startTimeString){
   names(r)<-tmp
   r
 }
+
+
+## Beta Code for examining summary feeding parameters by a fixed number of
+## events rather than a fixed time interval.
+GetEventRangeInMinutes.Well.OneWell<-function(dfm,well,events=c(0,0)){
+  tmp<-FeedingData.Events(dfm)
+  cname=paste("W",well,sep="")
+  data<-tmp[,cname]  
+  min<-tmp$Minutes
+  data<-cumsum(data>0)
+  if(sum(events)!=0) {
+    start<-events[1]
+    end<-events[2]
+    #print(data[data>=start & data<=end])
+    min2<-min[data>=start & data<=end]
+  }
+  if(length(min2)==0){
+    result<-c(min[length(min)],min[length(min)])  
+  }
+  else {
+    result<-c(min2[1],min2[length(min2)])
+  }
+  
+  result
+}
+GetEventRangeInMinutes.Well.TwoWell<-function(dfm,chamber,events=c(0,0)){
+  tmp<-FeedingData.Events(dfm)
+  if(chamber==1){
+    d1<-tmp[,"W1"]
+    d2<-tmp[,"W2"]
+  }else if(chamber==2){
+    d1<-tmp[,"W3"]
+    d2<-tmp[,"W4"]
+  }else if(chamber==3){
+    d1<-tmp[,"W5"]
+    d2<-tmp[,"W6"]
+  }else if(chamber==4){
+    d1<-tmp[,"W7"]
+    d2<-tmp[,"W8"]
+  }else if(chamber==5){
+    d1<-tmp[,"W9"]
+    d2<-tmp[,"W10"]
+  }else if(chamber==6){
+    d1<-tmp[,"W11"]
+    d2<-tmp[,"W12"]
+  }
+  data<-d1+d2
+  min<-tmp$Minutes
+  data<-cumsum(data>0)
+  if(sum(events)!=0) {
+    start<-events[1]
+    end<-events[2]
+    #print(data[data>=start & data<=end])
+    min2<-min[data>=start & data<=end]
+  }
+  if(length(min2)==0){
+    result<-c(min[length(min)],min[length(min)])  
+  }
+  else {
+    result<-c(min2[1],min2[length(min2)])
+  }
+  
+  result
+}
+Feeding.Summary.TwoWell.ByEvents<-function(dfm,events=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size!=2)
+    stop("This function is for two-chamber DFM only")
+  
+  for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
+    range<-GetEventRangeInMinutes.Well.TwoWell(dfm,i,events)
+    # Need a small correction here to avoid missing the first event
+    range[1]<-range[1]-0.0034
+    
+    
+    if(dfm$Parameters$PI.Multiplier==1){
+      wellA<-dfm$Parameters$Chamber.Sets[i,1]
+      wellB<-dfm$Parameters$Chamber.Sets[i,2] 
+    }
+    else {
+      wellB<-dfm$Parameters$Chamber.Sets[i,1]
+      wellA<-dfm$Parameters$Chamber.Sets[i,2] 
+    }
+    
+    interval.a<-Feeding.IntervalSummary.Well(dfm,wellA,range)
+    intensity.a<-Feeding.IntensitySummary.Well(dfm,wellA,range)
+    dur.a<-Feeding.DurationSummary.Well(dfm,wellA,range)  
+    FLicks.a<-Feeding.TotalLicks.Well(dfm,wellA,range)
+    FEvents.a<-Feeding.TotalEvents.Well(dfm,wellA,range)    
+    
+    interval.b<-Feeding.IntervalSummary.Well(dfm,wellB,range)
+    intensity.b<-Feeding.IntensitySummary.Well(dfm,wellB,range)
+    dur.b<-Feeding.DurationSummary.Well(dfm,wellB,range)  
+    FLicks.b<-Feeding.TotalLicks.Well(dfm,wellB,range)
+    FEvents.b<-Feeding.TotalEvents.Well(dfm,wellB,range) 
+    
+    FPIs<-c((FLicks.a-FLicks.b)/(FLicks.a+FLicks.b),(FEvents.a-FEvents.b)/(FEvents.a+FEvents.b))
+    if(i==1){
+      result<-data.frame(matrix(c(dfm$ID,i,FPIs,FLicks.a,FLicks.b,FEvents.a,FEvents.b,unlist(dur.a),unlist(dur.b),unlist(interval.a),
+                                  unlist(interval.b),unlist(intensity.a),unlist(intensity.b),range[1],range[2]),nrow=1))    
+      
+    }
+    else {
+      tmp<-data.frame(matrix(c(dfm$ID,i,FPIs,FLicks.a,FLicks.b,FEvents.a,FEvents.b,unlist(dur.a),unlist(dur.b),unlist(interval.a),
+                               unlist(interval.b),unlist(intensity.a),unlist(intensity.b),range[1],range[2]),nrow=1))
+      result<-rbind(result,tmp)      
+    }
+  }
+  names(result)<-c("DFM","Chamber","PI","EventPI","LicksA","LicksB","EventsA","EventsB","MeanDurationA","MedDurationA",
+                   "MeanDurationB","MedDurationB","MeanTimeBtwA","MedTimeBtwA",
+                   "MeanTimeBtwB","MedTimeBtwB","MeanIntA","MedianIntA","MinIntA","MaxIntA",
+                   "MeanIntB","MedianIntB","MinIntB","MaxIntB","StartMin","EndMin")
+  if(TransformLicks==TRUE){
+    result$LicksA<-result$LicksA^0.25
+    result$LicksB<-result$LicksB^0.25
+  }
+  result    
+  
+}
+Feeding.Summary.OneWell.ByEvents<-function(dfm,events=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size!=1)
+    stop("This function is for single chambers only")
+  
+  for(i in 1:12 ){
+    range<-GetEventRangeInMinutes.Well.OneWell(dfm,i,events)
+    # Need a small correction here to avoid missing the first event
+    range[1]<-range[1]-0.0034
+    interval<-Feeding.IntervalSummary.Well(dfm,i,range)
+    intensity<-Feeding.IntensitySummary.Well(dfm,i,range)
+    dur<-Feeding.DurationSummary.Well(dfm,i,range)  
+    FLicks<-Feeding.TotalLicks.Well(dfm,i,range)
+    FEvents<-Feeding.TotalEvents.Well(dfm,i,range)    
+    if(i==1)
+      result<-data.frame(matrix(c(dfm$ID,i,FLicks,FEvents,unlist(dur),unlist(interval),unlist(intensity),range[1],range[2]),nrow=1))  
+    else {
+      tmp<-data.frame(matrix(c(dfm$ID,i,FLicks,FEvents,unlist(dur),unlist(interval),unlist(intensity),range[1],range[2]),nrow=1))  
+      result<-rbind(result,tmp)
+    }      
+  }
+  names(result)<-c("DFM","Chamber","Licks","Events","MeanDuration","MedDuration",
+                   "MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","MinInt","MaxInt","StartMin","EndMin")
+  if(TransformLicks==TRUE)
+    result$Licks<-result$Licks^0.25
+  result    
+}
+Feeding.Summary.DFM.ByEvents<-function(dfm,events=c(0,0),TransformLicks=TRUE){
+  if(dfm$Parameters$Chamber.Size==1)
+    Feeding.Summary.OneWell.ByEvents(dfm,events,TransformLicks)
+  else if(dfm$Parameters$Chamber.Size==2)
+    Feeding.Summary.TwoWell.ByEvents(dfm,events,TransformLicks)
+  else
+    stop("Feeding Summary not implemented for this DFM type.")    
+}
+
+BinnedFeeding.Summary.DFM.ByEvents<-function(dfm,binsize.Enum,TransformLicks=TRUE){
+  tmp<-Feeding.TotalEvents(dfm)
+  y<-seq(0,max(tmp),by=binsize.Enum)
+  
+  tmpMatrix<-cbind(y[-length(y)],y[-1])
+  tmpMatrix[,1]<-tmpMatrix[,1]+1
+  intervals<-cut(y+0.000001,y,include.lowest=TRUE,dig.lab=8)
+  intervals<-intervals[-length(intervals)]
+  result<-Feeding.Summary.DFM.ByEvents(dfm,events=tmpMatrix[1,],TransformLicks)
+  Interval<-rep(intervals[1],nrow(result))
+  Minutes<-rep(mean(tmpMatrix[1,]),nrow(result))
+  result<-data.frame(Interval,Minutes,result)
+  for(i in 2:nrow(tmpMatrix)){
+    tmp<-Feeding.Summary.DFM.ByEvents(dfm,events=tmpMatrix[i,],TransformLicks)
+    Interval<-rep(intervals[i],nrow(tmp))
+    Minutes<-rep(mean(tmpMatrix[i,]),nrow(tmp))
+    tmp<-data.frame(Interval,Minutes,tmp)
+    result<-rbind(result,tmp)
+  }
+  result
+}
+BinnedFeeding.Summary.Monitors.ByEvents<-function(monitors,parameters,binsize.Enum=5,expDesign=NA,SaveToFile=TRUE,TransformLicks=TRUE,filename="BinnedSummaryByEvents"){
+  individ.params<-FALSE
+  ## Check to determine whether parameters is a signle parameter object
+  ## or a list of them.  If it is a single one, then we use the same one for all
+  ## if it is a list, then we use a different one for each.
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+ 
+  for(j in 1:length(monitors)){
+    monitor<-monitors[j]
+    if(individ.params==TRUE)
+      p<-parameters[[j]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitor,p)  
+    parameter.vector<-matrix(GetParameterVector(p),nrow=1)
+    pnames<-Get.Parameter.Names(p)
+    tmp<-BinnedFeeding.Summary.DFM.ByEvents(dfm,binsize.Enum,TransformLicks)      
+    tmp2<-data.frame(tmp,parameter.vector)
+    names(tmp2)<-c(names(tmp),pnames)
+    if(j==1){
+      results<-tmp2
+    }
+    else {
+      results<-rbind(results,tmp2)  
+    }
+    
+  }  
+  if(is.data.frame(expDesign)) {
+    results<-AppendTreatmentonResultsFrame(results,expDesign)
+    trt.summary<-suppressWarnings(AggregateTreatmentsBinnedData(results))
+    if(SaveToFile==TRUE){
+      filename2<-paste(filename,"_Stats.csv",sep="")
+      write.csv(trt.summary,file=filename2,row.names=FALSE)
+      filename2<-paste(filename,"_Data.csv",sep="")
+      write.csv(results,file=filename2,row.names=FALSE)
+    }
+  }
+  else if(SaveToFile==TRUE){
+    filename<-paste(filename,".csv",sep="")
+    write.csv(results,file=filename,row.names=FALSE)
+  }
+  
+  if(is.data.frame(expDesign)) {
+    return(list(Results=results,Stats=trt.summary))
+  }
+  else {
+    return(list(Results=results))
+  }
+}
+
