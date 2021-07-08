@@ -1261,7 +1261,7 @@ SimpleDataPlot.OneWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
     filename<-paste("SimpleMeantTimeBtwPlot.pdf",sep="")
     ylabel<-"Time Between Events (sec)"
     r<-"Time Btw"
-    gp<-(ggplot(results, aes(reatment, MeanTimeBtw)) + geom_boxplot(aes(fill = Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
+    gp<-(ggplot(results, aes(Treatment, MeanTimeBtw)) + geom_boxplot(aes(fill = Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) +
            ylim(c(min(results$MeanTimeBtw),max(results$MeanTimeBtw))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE))
     analysis<-data.frame(results$Treatment,results$MeanTimeBtw)
     names(analysis)<-c("Treatment","Y")
@@ -1308,7 +1308,7 @@ SimpleDataPlot.TwoWell<-function(summaryResults,Type="Licks",SaveToFile=FALSE){
     filename<-paste("SimpleEventsPlot.pdf",sep="")
     ylabel<-"Events"
     r<-"Events"
-    gp<-ggplot(newData, aes(reatment, Events)) + geom_boxplot(aes(fill = Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
+    gp<-ggplot(newData, aes(Treatment, Events)) + geom_boxplot(aes(fill = Treatment),outlier.size=-1) + geom_jitter(size=3,height=0) + facet_wrap(~Well)+
       ylim(c(min(newData$Events),max(newData$Events))) + ggtitle(r) + xlab("Treatment") +ylab(ylabel) + guides(fill=FALSE)
     analysis<-data.frame(results$Treatment,results$EventsA,results$EventsB)
     names(analysis)<-c("Treatment","YA","YB")
