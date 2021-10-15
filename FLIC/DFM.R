@@ -1,8 +1,43 @@
 source("PrivateFunctions.R")
 source("ParametersClass.R")
 
+
+
+DFMClass<-function(id,parameters,range=c(0,0)){
+  if (!is.numeric(id) || !all(is.finite(id)))
+    stop("invalid arguments")
+  ## Need to figure out which function to call based on
+  ## DFM version and number of data files.
+  
+  ## First check if there are V3 files.
+  tmp<-paste("DFM",id,"_.*[.]csv",sep="")
+  files<-list.files(pattern=tmp)
+  if(length(files)>0){
+    DFMClassV3(id,parameters,range)
+  }
+  else {
+    tmp<-paste("DFM_",id,".csv",sep="")
+    files<-list.files(pattern=tmp)
+    if(length(files)>0){
+      DFMClassV2(id,parameters,range)
+    }
+    else {
+      tmp<-paste("DFM_",id,"_.*[.]csv",sep="")
+      files<-list.files(pattern=tmp)
+      if(length(files)>0){
+        DFMClassV2.LinkFiles(id,parameters,range)
+      }
+      else {
+        print("DFM data file(s) not found.")  
+      }
+    }
+  }
+}
+
+
+
 ## These are functions that are generally available to the user ##
-DFMClass<-function(id,parameters,range=c(0,0)) {
+DFMClassV2<-function(id,parameters,range=c(0,0)) {
   if (!is.numeric(id) || !all(is.finite(id)))
     stop("invalid arguments")
   
@@ -21,7 +56,7 @@ DFMClass<-function(id,parameters,range=c(0,0)) {
     
     file<-paste("DFM_",id,".csv",sep="")
     dfm<-read.csv(file,header=TRUE)  
-    
+    print(paste("Reading DFMV2 File:",file))
     ## Get Minutes from Sample column only if ElapsedTime is not
     ## there
     if('Seconds' %in% colnames(dfm)) {
@@ -68,7 +103,6 @@ DFMClassV3<-function(id,parameters,range=c(0,0)) {
     
     tmp<-paste("DFM",id,"_.*[.]csv",sep="")
     files<-list.files(pattern=tmp)
-    
     dfm<-read.csv(files[1],header=TRUE)  
     print(paste("Reading DFMV3 File:",files[1]))
     if(length(files)>1){
@@ -105,7 +139,7 @@ DFMClassV3<-function(id,parameters,range=c(0,0)) {
   data 
 }
 
-DFMClass.LinkFiles<-function(id,parameters,range=c(0,0)) {
+DFMClassV2.LinkFiles<-function(id,parameters,range=c(0,0)) {
   if (!is.numeric(id) || !all(is.finite(id)))
     stop("invalid arguments")
   
@@ -126,10 +160,10 @@ DFMClass.LinkFiles<-function(id,parameters,range=c(0,0)) {
     files<-list.files(pattern=tmp)
     
     dfm<-read.csv(files[1],header=TRUE)  
-    print(paste("Reading DFM File:",files[1]))
+    print(paste("Reading DFM V2 File:",files[1]))
     if(length(files)>1){
       for(i in 2:length(files)){ 
-        print(paste("Reading DFM File:",files[i]))
+        print(paste("Reading DFM V2 File:",files[i]))
         tmp<-read.csv(files[i],header=TRUE)  
         dfm<-rbind(dfm,tmp)
       }
