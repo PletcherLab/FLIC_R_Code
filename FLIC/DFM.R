@@ -218,6 +218,28 @@ FindDataBreaks<-function(dfm,multiplier=4,returnvals=TRUE){
   } 
   
 }
+
+FindDataBreaksV3<-function(dfm,multiplier=4,returnvals=TRUE){
+  diffs<-diff(dfm$RawData$Index)
+  diffs<-c(0,diffs)
+  thresh<-1
+  Index<-1:length(diffs)
+  Index<-Index[diffs>thresh]
+  diffs<-diffs[diffs>thresh]
+  if(returnvals==TRUE) {
+    if(length(diffs)==0)
+      c(NA)
+    else
+      cbind(Index,diffs,dfm$RawData[Index,])  
+  }
+  else {
+    if(length(diffs)==0)
+      c(NA)
+    else
+      c(1)
+  } 
+}
+
 LastSampleData<-function(dfm){
   tmp<-BaselinedData(dfm)
   nr<-nrow(tmp)
