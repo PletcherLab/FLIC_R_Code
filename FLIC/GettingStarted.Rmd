@@ -109,7 +109,7 @@ To load DFM data, you must create DFM classes for each. The *DFMClass()* functio
 
 The *DFMClass()* function takes the DFM ID as the first argument and a parameters object as the second argument.The associated .cvs files must be in the working/project directory. For the examples presented here, we will use data from two experiments: an 18-hour single-well feeding experiment in DFMs 1-4, and a 6 hour choice experiment in DFMs 11-17. To load data from a few of these DFMs, 
 ```{r}
-dfm.single<-DFMClass(3,p.single)
+dfm.single<-DFMClass(1,p.single)
 dfm.choice<-DFMClass(11,p.choice)
 dfm12<-DFMClass(12,p.choice)
 rm(dfm12) #Note that this does not remove the background object, DFM3.
