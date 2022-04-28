@@ -103,6 +103,7 @@ DFMClassV3<-function(id,parameters,range=c(0,0)) {
     
     tmp<-paste("DFM",id,"_.*[.]csv",sep="")
     files<-list.files(pattern=tmp)
+    files<-mixedsort(files)
     dfm<-read.csv(files[1],header=TRUE)  
     print(paste("Reading DFMV3 File:",files[1]))
     if(length(files)>1){
@@ -158,7 +159,7 @@ DFMClassV2.LinkFiles<-function(id,parameters,range=c(0,0)) {
     
     tmp<-paste("DFM_",id,"_.*[.]csv",sep="")
     files<-list.files(pattern=tmp)
-    
+    files<-mixedsort(files)
     dfm<-read.csv(files[1],header=TRUE)  
     print(paste("Reading DFM V2 File:",files[1]))
     if(length(files)>1){

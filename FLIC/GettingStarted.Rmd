@@ -1,7 +1,7 @@
 ---
 title: "FLIC: Data Analysis Part 1: Introduction and DFM Data (Version 4.x)"
 author: "Scott Pletcher and the Pletcher Lab"
-date: "4/23/2020"
+date: "4/27/2022"
 output: html_document
 ---
 
@@ -39,6 +39,7 @@ library(ggplot2)
 library(stats)
 library(gridExtra)
 library(reshape2)
+library(gtools)
 attach("FLICFunctions",pos=2)
 ```
 
@@ -109,10 +110,10 @@ To load DFM data, you must create DFM classes for each. The *DFMClass()* functio
 
 The *DFMClass()* function takes the DFM ID as the first argument and a parameters object as the second argument.The associated .cvs files must be in the working/project directory. For the examples presented here, we will use data from two experiments: an 18-hour single-well feeding experiment in DFMs 1-4, and a 6 hour choice experiment in DFMs 11-17. To load data from a few of these DFMs, 
 ```{r}
-dfm.single<-DFMClass(1,p.single)
+dfm.single<-DFMClass(3,p.single)
 dfm.choice<-DFMClass(11,p.choice)
 dfm12<-DFMClass(12,p.choice)
-rm(dfm12) #Note that this does not remove the background object, DFM3.
+rm(dfm12) #Note that this does not remove the background object, DFM12.
 ```
 In this case we passed the same parameters object to both DFM11 and DFM12, meaning the same thresholds will be applied to each of the chambers and wells in both DFM (after baseline normalization for each DFM individually). Note also that both PI.Multipliers are the same, implying the food on the left is WellA on each DFM (see the *ChoiceChamberAnalysis.html* documentation for details).
 
@@ -123,11 +124,8 @@ dfm.focussed<-DFMClass(2,p.single,range=c(0,120))
 rm(dfm.focussed) #Note that this does not remove the background object, DFM2.
 ```
 
-If you have experiments that run longer than one day, the MCU will save a file every 24 hours, creating multiple files for each DFM, such as DFM_2_1.csv, DFM2_2.csv.  To link several files into one DFM object, there is a special DFMClass function:  
-```{r, eval=FALSE}
-tmp<-DFMClass.LinkFiles(2,p)
-rm(tmp)
-```
+If you have experiments that run longer than one day, the MCU will save a file every 12/24 hours, creating multiple files for each DFM, such as DFM_2_1.csv, DFM2_2.csv.  These should be linked together with the standard DFMClass() function, which should also detect differences in V2 and V3 files.
+
 Please consult the advanced user documentation  for details.  Do not use this function for loading experiments that are shorter than 24hours.
 
 ## Feeding and Tasting Interactions
@@ -183,7 +181,7 @@ CleanDFM()
 If there are apparent lapses in data collection that amount to more than 1 sec (DFMs collect data at roughly 500Hz and report average signals every 200ms), a warning will be printed.  A closer examination of the problem can be had by using the *FindDataBreaks()* function. Data lapses can happen if the communication signals are noisy, for example when the DFMs are placed in an incubator. They are normally not a problem unless they reach several seconds to one minute. Large data breaks will be interpreted as periods of no feeding, so they need to be avoided. Most often they can not be corrected because they arise from a failure during data collection. Normally, they should not happen. Contact [Scott](mailto:spletch@umich.edu) if you receive this warning often.
 
 ```{r}
-FindDataBreaks(DFM3)
+FindDataBreaks(DFM11)
 ```
 A return value of *NA* indicates that there are no databreaks. 
 

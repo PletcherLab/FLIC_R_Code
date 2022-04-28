@@ -1,7 +1,7 @@
 source("DFM.R")
 require(ggplot2)
 require(reshape2)
-
+require(gtools)
 ##### QC Functions ######
 OutputBaselinedData.DFM<-function(dfm, range=c(0,0),filename="Baselined"){
   
