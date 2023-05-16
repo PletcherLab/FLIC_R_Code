@@ -294,6 +294,83 @@ Feeding.Summary.DFM.ByEvents<-function(dfm,events=c(0,0),TransformLicks=TRUE){
     stop("Feeding Summary not implemented for this DFM type.")    
 }
 
+Feeding.Summary.DFM.BySingleEvents<-function(dfm,events=c(1,2),TransformLicks=TRUE){
+  events<-events[1]:events[2]
+  for(i in 1:(length(events)-1)){
+    new.events<-c(events[i],events[i]+0.5)
+    if(dfm$Parameters$Chamber.Size==1)
+      tmp<-Feeding.Summary.OneWell.ByEvents(dfm,new.events,TransformLicks)
+    else if(dfm$Parameters$Chamber.Size==2)
+      tmp<-Feeding.Summary.TwoWell.ByEvents(dfm,new.events,TransformLicks)
+    else
+      stop("Feeding Summary not implemented for this DFM type.")    
+    EventNum<-rep(events[i],nrow(tmp))
+    tmp<-data.frame(EventNum,tmp)
+    if(i==1){
+      results<-tmp
+    }
+    else {
+      results<-rbind(results,tmp)
+    }
+  }
+  results
+}
+
+Feeding.Summary.Monitors.BySingleEvents<-function(monitors,parameters,events=c(1,2),expDesign=NA,SaveToFile=TRUE,TransformLicks=TRUE,filename="FeedingSummaryBySingleEvents"){
+  individ.params<-FALSE
+  ## Check to determine whether parameters is a signle parameter object
+  ## or a list of them.  If it is a single one, then we use the same one for all
+  ## if it is a list, then we use a different one for each.
+  if(is.list(parameters[[1]])==TRUE){
+    if(length(parameters)!=length(monitors))
+      stop("If individuals parameter objects are specified, there must be one for each DFM.")
+    individ.params<-TRUE
+  }
+  
+  for(j in 1:length(monitors)){
+    monitor<-monitors[j]
+    if(individ.params==TRUE)
+      p<-parameters[[j]]
+    else
+      p<-parameters
+    dfm<-DFMClass(monitor,p)  
+    parameter.vector<-matrix(GetParameterVector(p),nrow=1)
+    pnames<-Get.Parameter.Names(p)
+    tmp<-Feeding.Summary.DFM.BySingleEvents(dfm,events,TransformLicks)      
+    tmp2<-data.frame(tmp,parameter.vector)
+    names(tmp2)<-c(names(tmp),pnames)
+    if(j==1){
+      results<-tmp2
+    }
+    else {
+      results<-rbind(results,tmp2)  
+    }
+    
+  }  
+  if(is.data.frame(expDesign)) {
+    results<-AppendTreatmentonResultsFrame(results,expDesign)
+    trt.summary<-suppressWarnings(AggregateTreatments(results))
+    if(SaveToFile==TRUE){
+      filename2<-paste(filename,"_Stats.csv",sep="")
+      write.csv(trt.summary,file=filename2,row.names=FALSE)
+      filename2<-paste(filename,"_Data.csv",sep="")
+      write.csv(results,file=filename2,row.names=FALSE)
+    }
+  }
+  else if(SaveToFile==TRUE){
+    filename<-paste(filename,".csv",sep="")
+    write.csv(results,file=filename,row.names=FALSE)
+  }
+  
+  if(is.data.frame(expDesign)) {
+    return(list(Results=results,Stats=trt.summary))
+  }
+  else {
+    return(list(Results=results))
+  }
+}
+
+
 BinnedFeeding.Summary.DFM.ByEvents<-function(dfm,binsize.Enum,TransformLicks=TRUE){
   tmp<-Feeding.TotalEvents(dfm)
   y<-seq(0,max(tmp),by=binsize.Enum)

@@ -1977,6 +1977,8 @@ AppendTreatmentonResultsFrame<-function(results,expdesign){
   results$Treatment<-factor(results$Treatment)
   results
 }
+
+
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
   
