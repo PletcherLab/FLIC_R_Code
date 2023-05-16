@@ -296,7 +296,7 @@ Feeding.Summary.DFM.ByEvents<-function(dfm,events=c(0,0),TransformLicks=TRUE){
 
 Feeding.Summary.DFM.BySingleEvents<-function(dfm,events=c(1,2),TransformLicks=TRUE){
   events<-events[1]:events[2]
-  for(i in 1:(length(events)-1)){
+  for(i in 1:(length(events))){
     new.events<-c(events[i],events[i]+0.5)
     if(dfm$Parameters$Chamber.Size==1)
       tmp<-Feeding.Summary.OneWell.ByEvents(dfm,new.events,TransformLicks)
