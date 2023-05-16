@@ -9,6 +9,9 @@ monitors<-c(3,4,5)
 results<-Feeding.Summary.Monitors.BySingleEvents(monitors,p1,events=c(2,5))
 
 
+tmp<-read.csv("eventtest.csv")
+tmp<-separate(data = tmp, col = Treatment, into = c("A", "B","C"))
+
 
 p1<-ParametersClass.SingleWell()
 p2<-ParametersClass.TwoWell()
