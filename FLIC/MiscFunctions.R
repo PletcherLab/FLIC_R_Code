@@ -151,6 +151,9 @@ GetEventRangeInMinutes.Well.OneWell<-function(dfm,well,events=c(0,0)){
     #print(data[data>=start & data<=end])
     min2<-min[data>=start & data<=end]
   }
+  else {
+    min2<-min
+  }
   if(length(min2)==0){
     result<-c(min[length(min)],min[length(min)])  
   }
@@ -189,6 +192,9 @@ GetEventRangeInMinutes.Well.TwoWell<-function(dfm,chamber,events=c(0,0)){
     end<-events[2]
     #print(data[data>=start & data<=end])
     min2<-min[data>=start & data<=end]
+  }
+  else {
+    min2<-min
   }
   if(length(min2)==0){
     result<-c(min[length(min)],min[length(min)])  
