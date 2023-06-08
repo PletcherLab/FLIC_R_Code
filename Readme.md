@@ -50,4 +50,6 @@ As with all FLIC R code, this is a work in progress. If you decide to extend thi
 
 Let us know if you have an interesting use for the FLIC or if you have a request for a new implementation
 
+### Notes
+Portions of this code were used in the analyses presented in Weaver et al., eLife, 2023 (DOI: https://doi.org/10.7554/eLife.84537.3)
 
