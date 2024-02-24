@@ -756,7 +756,7 @@ Feeding.IntensitySummary.Well<-function(dfm,well,range=c(0,0)){
 Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=1)
     stop("This function is for single chambers only")
-  
+  lights.sec<-(apply(GetLightsInfo(dfm,range)[,2:13],2,sum))/dfm$Parameters$Samples.Per.Second
   for(i in 1:12 ){
     interval<-Feeding.IntervalSummary.Well(dfm,i,range)
     intensity<-Feeding.IntensitySummary.Well(dfm,i,range)
@@ -764,14 +764,15 @@ Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
     FLicks<-Feeding.TotalLicks.Well(dfm,i,range)
     FEvents<-Feeding.TotalEvents.Well(dfm,i,range)    
     if(i==1)
-      result<-data.frame(matrix(c(dfm$ID,i,FLicks,FEvents,unlist(dur),unlist(interval),unlist(intensity),range[1],range[2]),nrow=1))  
+      result<-data.frame(matrix(c(dfm$ID,i,FLicks,FEvents,unlist(dur),unlist(interval),unlist(intensity),lights.sec[i],range[1],range[2]),nrow=1))  
     else {
-      tmp<-data.frame(matrix(c(dfm$ID,i,FLicks,FEvents,unlist(dur),unlist(interval),unlist(intensity),range[1],range[2]),nrow=1))  
+      tmp<-data.frame(matrix(c(dfm$ID,i,FLicks,FEvents,unlist(dur),unlist(interval),unlist(intensity),lights.sec[i],range[1],range[2]),nrow=1))  
       result<-rbind(result,tmp)
     }      
   }
+  
   names(result)<-c("DFM","Chamber","Licks","Events","MeanDuration","MedDuration",
-                   "MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","MinInt","MaxInt","StartMin","EndMin")
+                   "MeanTimeBtw","MedTimeBtw","MeanInt","MedianInt","MinInt","MaxInt","OptoOn_sec","StartMin","EndMin")
   if(TransformLicks==TRUE)
     result$Licks<-result$Licks^0.25
   result    
@@ -780,6 +781,8 @@ Feeding.Summary.OneWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
 Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
   if(dfm$Parameters$Chamber.Size!=2)
     stop("This function is for two-chamber DFM only")
+  
+  lights.sec<-(apply(GetLightsInfo(dfm,range)[,2:13],2,sum))/dfm$Parameters$Samples.Per.Second
   
   for(i in 1:nrow(dfm$Parameters$Chamber.Sets)) {
     if(dfm$Parameters$PI.Multiplier==1){
@@ -803,22 +806,28 @@ Feeding.Summary.TwoWell<-function(dfm,range=c(0,0),TransformLicks=TRUE){
     FLicks.b<-Feeding.TotalLicks.Well(dfm,wellB,range)
     FEvents.b<-Feeding.TotalEvents.Well(dfm,wellB,range) 
     
+    lights.a<-lights.sec[wellA]
+    lights.b<-lights.sec[wellB]
+    
     FPIs<-c((FLicks.a-FLicks.b)/(FLicks.a+FLicks.b),(FEvents.a-FEvents.b)/(FEvents.a+FEvents.b))
+    
+    
+    
     if(i==1){
       result<-data.frame(matrix(c(dfm$ID,i,FPIs,FLicks.a,FLicks.b,FEvents.a,FEvents.b,unlist(dur.a),unlist(dur.b),unlist(interval.a),
-                                  unlist(interval.b),unlist(intensity.a),unlist(intensity.b),range[1],range[2]),nrow=1))    
+                                  unlist(interval.b),unlist(intensity.a),unlist(intensity.b),lights.a,lights.b,range[1],range[2]),nrow=1))    
       
     }
     else {
       tmp<-data.frame(matrix(c(dfm$ID,i,FPIs,FLicks.a,FLicks.b,FEvents.a,FEvents.b,unlist(dur.a),unlist(dur.b),unlist(interval.a),
-                               unlist(interval.b),unlist(intensity.a),unlist(intensity.b),range[1],range[2]),nrow=1))
+                               unlist(interval.b),unlist(intensity.a),unlist(intensity.b),lights.a,lights.b,range[1],range[2]),nrow=1))
       result<-rbind(result,tmp)      
     }
   }
   names(result)<-c("DFM","Chamber","PI","EventPI","LicksA","LicksB","EventsA","EventsB","MeanDurationA","MedDurationA",
                    "MeanDurationB","MedDurationB","MeanTimeBtwA","MedTimeBtwA",
                    "MeanTimeBtwB","MedTimeBtwB","MeanIntA","MedianIntA","MinIntA","MaxIntA",
-                   "MeanIntB","MedianIntB","MinIntB","MaxIntB","StartMin","EndMin")
+                   "MeanIntB","MedianIntB","MinIntB","MaxIntB","OptoOn_sec_A","OptoOn_sec_B","StartMin","EndMin")
   if(TransformLicks==TRUE){
     result$LicksA<-result$LicksA^0.25
     result$LicksB<-result$LicksB^0.25

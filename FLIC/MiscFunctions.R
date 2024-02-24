@@ -54,16 +54,19 @@ PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
 }
 
 
-GetLightsInfo<-function(dfm){
-  Column1<-dfm$RawData$OptoCol1
-  Column2<-dfm$RawData$OptoCol2
+GetLightsInfo<-function(dfm, range=c(0,0)){
+  rd<-RawData(dfm,range)
+  Column1<-rd$OptoCol1
+  Column2<-rd$OptoCol2
   data<-data.frame(Column1,Column2)
   data2<-apply(data,1,LightStatus)
   data2<-t(data2)
-  final.data<-data.frame(dfm$RawData$Minutes,data2,data)
+  final.data<-data.frame(rd$Minutes,data2,data)
   names(final.data)<-c("Minutes",paste("W",1:12,sep=""),"OptoCol1","OptoCol2")
   final.data
 }
+
+
 LightStatus<-function(cols){
   col1<-cols[1]
   col2<-cols[2]
