@@ -1960,6 +1960,16 @@ GetTreatmentForChamber<-function(dfmNum,chamberNum,expdesign){
   else
     return(as.character(tmp$Treatment))
 }
+
+GetExpDesignForChamber<-function(dfmNum,chamberNum,expdesign){
+  tmp<-subset(expdesign,DFM==dfmNum)
+  tmp<-subset(tmp,Chamber==chamberNum)
+  if(nrow(tmp)!=1)
+    return(NA)
+  else
+    return(tmp)
+}
+
 gt<-function(df,expDesign){
   return("hi")
 }
