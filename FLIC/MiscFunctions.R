@@ -53,7 +53,7 @@ PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
   gp
 }
 
-
+## as of 3/6/2024, this will only work for DFM3
 GetLightsInfo<-function(dfm, range=c(0,0)){
   rd<-RawData(dfm,range)
   if(nrow(rd)<1){
@@ -72,17 +72,32 @@ GetLightsInfo<-function(dfm, range=c(0,0)){
 }
 
 
-LightStatus<-function(cols){
-  col1<-cols[1]
-  col2<-cols[2]
-  lights<-rep(FALSE,12)
-  for(i in 0:5){
-    tmp<-bitwShiftL(1,i)
-    if(bitwAnd(tmp,col1)>0){
-      lights[i*2+1]<-TRUE
+LightStatus <- function(cols) {
+  DFMVERSION<-3
+  ## as of 3/6/2024, this will only work for DFM3
+  ## Optocol2 is not used anymore in this version.
+  if (DFMVERSION < 3) {
+    col1 <- cols[1]
+    col2 <- cols[2]
+    lights <- rep(FALSE, 12)
+    for (i in 0:5) {
+      tmp <- bitwShiftL(1, i)
+      if (bitwAnd(tmp, col1) > 0) {
+        lights[i * 2 + 1] <- TRUE
+      }
+      if (bitwAnd(tmp, col2) > 0) {
+        lights[i * 2 + 2] <- TRUE
+      }
     }
-    if(bitwAnd(tmp,col2)>0){
-      lights[i*2+2]<-TRUE
+  }
+  else {
+    col1 <- cols[1]
+    lights <- rep(FALSE, 12)
+    for (i in 0:11) {
+      tmp <- bitwShiftL(1, i)
+      if (bitwAnd(tmp, col1) > 0) {
+        lights[i+1] <- TRUE
+      }
     }
   }
   lights
