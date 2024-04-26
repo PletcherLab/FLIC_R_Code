@@ -5,7 +5,7 @@ source("FLICUserFunctions.R")
 source("MiscFunctions.R")
 
 p1<-ParametersClass.SingleWell()
-monitors<-c(3,4,5)
+monitors<-c(1,3)
 results<-Feeding.Summary.Monitors.BySingleEvents(monitors,p1,events=c(2,5))
 
 
@@ -26,7 +26,7 @@ p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice
 
 dfm1<-DFMClass(1,p1)
 dfm2<-DFMClass(2,p1)
-dfm2<-DFMClass(3,p1)
+dfm3<-DFMClass(3,p1)
 dfm2<-DFMClass(4,p1)
 
 
