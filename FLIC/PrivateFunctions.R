@@ -61,22 +61,81 @@ SetThreshold = function(dfm,getStandard=TRUE) {
   dfm
   
 }
+
 Set.Feeding.Data<-function(dfm){
   if(is.null(dfm$BaselineData))
     stop("Baseline must be calculated")
   
   newData<-dfm$BaselineData
   newData2<-dfm$BaselineData
+  
   for(i in 1:12) {
     tmp<-Set.Feeding.Data.Well(dfm,i)
     cname <-paste("W",i,sep="")
     newData[,cname]<-tmp[,1]
     newData2[,cname]<-tmp[,2]
   }
+  
   dfm$LickData<-newData
   dfm$EventData<-newData2
+  
+  ## Can only adjust after getting original licks
+  ## to find overlap, then correct and recalculate
+  if(dfm$Parameters$Correct.For.Dual.Feeding==TRUE){
+    stored.baseline.data<-dfm$BaselineData
+    dfm<-Adjust.Baseline.For.Dual.Feeding.DFM(dfm)
+    for(i in 1:12) {
+      tmp<-Set.Feeding.Data.Well(dfm,i)
+      cname <-paste("W",i,sep="")
+      newData[,cname]<-tmp[,1]
+      newData2[,cname]<-tmp[,2]
+    }
+    
+    dfm$BaselineData <- stored.baseline.data 
+    dfm$LickData<-newData
+    dfm$EventData<-newData2  
+  }
+  
   dfm  
 }
+
+
+
+Adjust.Baseline.For.Dual.Feeding.DFM<-function(dfm){
+  if(dfm$Parameters$Chamber.Size!=2)
+    stop("This function is for two-well chambers only")
+  rd<-dfm$LickData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]
+  rd2<-dfm$BaselineData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]
+  chamber.sets<-dfm$Parameters$Chamber.Sets
+  for(i in 1:6) {
+    w1<-chamber.sets[i,1]
+    w2<-chamber.sets[i,2]
+    l1<-rd[,w1]
+    l2<-rd[,w2]
+    both<-l1&l2
+    
+    if(sum(both)>0){
+      cat(paste("Dual feeding signal detected in DFM",dfm$ID," Chamber",i,". QC for feeding and bleeding!\n",sep=""))
+      l1<-rd2[,w1]
+      l2<-rd2[,w2]
+    
+      smaller.1<-both & (l1<l2)
+      smaller.2<-both & (l2<l1)
+      same<-both & (l2==l1)
+    
+      rd2[smaller.1,w1]<-0
+      rd2[smaller.2,w2]<-0
+      rd2[same,w1]<-0
+      rd2[same,w2]<-0
+    }
+    
+  }
+  
+  dfm$BaselineData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]<-rd2
+  dfm
+}
+
+
 Set.Feeding.Data.Well<-function(dfm,well){
   ## Get all possible feeding Licks
   thresh<-Thresholds.Well(dfm,well)
@@ -102,6 +161,8 @@ Set.Feeding.Data.Well<-function(dfm,well){
   
   data.frame(FeedingLicks,Events)
 }
+
+
 Set.Tasting.Data<-function(dfm){
   if(is.null(dfm$BaselineData))
     stop("Baseline must be calculated")

@@ -195,51 +195,6 @@ DFMClassV2.LinkFiles<-function(id,parameters,range=c(0,0)) {
   }
   data 
 }
-## This function will look for consecutive entries in the
-## RawData$Sec column whose difference is larger than it
-## should be based on the Samples.Per.Sec parameter.
-FindDataBreaks<-function(dfm,multiplier=4,returnvals=TRUE){
-  Interval<-diff(dfm$RawData$Seconds)
-  Interval<-c(0,Interval)
-  thresh<-(1.0/dfm$Parameters$Samples.Per.Second)*multiplier
-  Index<-1:length(Interval)
-  Index<-Index[Interval>thresh]
-  Interval<-Interval[Interval>thresh]
-  if(returnvals==TRUE) {
-    if(length(Interval)==0)
-      c(NA)
-    else
-      cbind(Index,Interval,dfm$RawData[Index,])  
-  }
-  else {
-    if(length(Interval)==0)
-      c(NA)
-    else
-      c(1)
-  } 
-  
-}
-
-FindDataBreaksV3<-function(dfm,multiplier=4,returnvals=TRUE){
-  diffs<-diff(dfm$RawData$Index)
-  diffs<-c(0,diffs)
-  thresh<-1
-  Index<-1:length(diffs)
-  Index<-Index[diffs>thresh]
-  diffs<-diffs[diffs>thresh]
-  if(returnvals==TRUE) {
-    if(length(diffs)==0)
-      c(NA)
-    else
-      cbind(Index,diffs,dfm$RawData[Index,])  
-  }
-  else {
-    if(length(diffs)==0)
-      c(NA)
-    else
-      c(1)
-  } 
-}
 
 LastSampleData<-function(dfm){
   tmp<-BaselinedData(dfm)
@@ -313,6 +268,10 @@ ChangeParameterObject<-function(dfm,newP) {
   
   if(p$PI.Multiplier!=newP$PI.Multiplier){
     eventpi.flag<-TRUE
+  }
+  
+  if(p$Correct.For.Dual.Feeding != newP$Correct.For.Dual.Feeding){
+    threshold.flag<-TRUE
   }
   
   ## Now update the stats needed

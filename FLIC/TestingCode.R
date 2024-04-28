@@ -24,9 +24,9 @@ p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice
 
 
 
-dfm1<-DFMClass(1,p1)
+dfm1<-DFMClass(1,p2)
 dfm2<-DFMClass(2,p1)
-dfm3<-DFMClass(3,p1)
+dfm3<-DFMClass(3,p2)
 dfm2<-DFMClass(4,p1)
 
 

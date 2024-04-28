@@ -1,4 +1,5 @@
 source("DFM.R")
+source("QC.R")
 require(ggplot2)
 require(reshape2)
 require(gtools)

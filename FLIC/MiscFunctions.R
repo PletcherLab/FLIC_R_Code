@@ -2,53 +2,7 @@ require(ggplot2)
 require(stats)
 require(gridExtra)
 
-## Give filename to this function and it will do analyses of 
-## variance with and without DFM as a factor.  It will also plot
-## the data for each well for each treatment in each DFM to look for
-## consistency.
-QuickAOV.FeedingSummary<-function(datafile="FeedingSummary.csv"){
-  data<-read.csv(datafile)
-  data$Licks<-data$Licks^0.25
-  data$DFM<-factor(data$DFM)
-  
-  aov.1<-aov(Licks~Treatment,data=data)
-  print(summary(aov.1))
-  cat("\n********\n")
-  aov.2<-aov(Licks~DFM+Treatment,data=data)
-  print(summary(aov.2))
-  
-  g1<-ggplot(data,aes(x=DFM,y=Licks)) + geom_boxplot() + geom_jitter(aes(color=Treatment))
-  show(g1)
-  
-  
-  g2<-ggplot(data,aes(x=DFM,y=Licks, fill=Treatment)) + geom_boxplot(aes(fill=Treatment))
-  show(g2)
-}
 
-CheckForBleeding.DFM<-function(dfm,cutoff){
-  avg.matrix<-matrix(rep(NA,144),ncol=12)
-  for(i in 1:12) {
-    rd<-dfm$RawData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]
-    tmp<-rd[rd[,i]>cutoff,]
-    averages<-apply(tmp,2,mean)  
-    avg.matrix[i,]<-averages
-  }
-  avg.matrix[is.nan(avg.matrix)]<-0
-  result<-list(Matrix = avg.matrix)
-  rd<-dfm$RawData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]
-  result$AllData<-averages<-apply(rd,2,mean)  
-  colnames(result$Matrix)<-c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")
-  
-  ## Now for plotting
-  plot.matrix<-avg.matrix
-  for(i in 1:12){
-    plot.matrix[i,i]<-0
-  }
-  #filled.contour(t((avg.matrix)),asp=1.0,xlim=c(0,1),ylim=c(0,1), levels=c(0,5,10,15,20,25,30, 500))
-  filled.contour(t((plot.matrix)),asp=1.0,xlim=c(0,1),ylim=c(0,1),levels=c(0,5,10,15,20,25,30,500))
-  
-  result
-}
 
 PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
   tmp<-FeedingData.Well.Licks(dfm,well)
