@@ -134,6 +134,7 @@ DFMClassV3<-function(id,parameters,range=c(0,0)) {
       cat("Data lapses found. Use FindDataBreaks for details.")
       flush.console()      
     }
+    data<-CalculateProgressiveRatioTraining(data)
     data<-CalculateBaseline(data)  
     assign(st,data,pos=1)  
   }

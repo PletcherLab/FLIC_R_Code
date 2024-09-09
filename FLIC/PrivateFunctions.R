@@ -24,6 +24,29 @@ GetElapsedSeconds<-function(dfm){
   diffs<-diffs+(ms/1000)
   diffs
 }  
+
+CalculateProgressiveRatioTraining<-function(dfm){
+  newData<-dfm$RawData
+  # the number of samples in those minutes
+   
+  inTrainingData<-newData[,1:18]
+  ## Value to subtract is 8388608
+  ## or because I think the MCU divides all reported
+  ## numbers by 128, the number to subtract should be
+  ## 65536
+  for(i in 1:12) {
+    cname <-paste("W",i,sep="")
+    intraining<-newData[,cname]>40000
+    inTrainingData[,cname]<-intraining
+    newData[intraining,cname]<-newData[intraining,cname]-65536
+  }
+  
+  dfm$RawData=newData
+  dfm$InTrainingData=inTrainingData
+  dfm
+}
+
+
 CalculateBaseline=function(dfm){
   window.min=dfm$Parameters$Baseline.Window.Minutes
   newData<-dfm$RawData
@@ -43,6 +66,8 @@ CalculateBaseline=function(dfm){
   dfm<-SetThreshold(dfm)
   dfm
 }
+
+
 SetThreshold = function(dfm,getStandard=TRUE) {
   ## First set the threshold...
   if(is.null(dfm$BaselineData)) {
