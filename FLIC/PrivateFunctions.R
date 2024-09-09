@@ -32,7 +32,7 @@ CalculateProgressiveRatioTraining<-function(dfm){
   inTrainingData<-newData[,1:18]
   ## Value to subtract is 8388608
   ## or because I think the MCU divides all reported
-  ## numbers by 128, the number to subtract should be
+  ## numb by 128, the number to subtract should be
   ## 65536
   for(i in 1:12) {
     cname <-paste("W",i,sep="")
@@ -42,8 +42,28 @@ CalculateProgressiveRatioTraining<-function(dfm){
   }
   
   dfm$RawData=newData
-  dfm$InTrainingData=inTrainingData
+  dfm$InTrainingData=GetDoneTrainingInfo(inTrainingData)
   dfm
+}
+
+GetDoneTrainingInfo<-function(dfm){
+  data<-dfm$InTrainingData
+  # the number of samples in those minutes
+  
+  results<-data.frame(names(data)[7:18],matrix(rep(NA,12*2),ncol=2))
+  names(results)<-c("well","Minutes","Sample")
+  
+  for(i in 1:12) {
+    cname <-paste("W",i,sep="")
+    intrainingMin<-data$Minutes[data[,cname]]
+    intrainingSamp<-data$Sample[data[,cname]]
+    if(length(intrainingMin)!=0){
+      
+      results[i,2]<-max(intrainingMin)
+      results[i,3]<-max(intrainingSamp)  
+    }
+  }
+  results
 }
 
 

@@ -1,6 +1,6 @@
 source("PrivateFunctions.R")
 source("ParametersClass.R")
-
+source("MiscFunctions.R")
 
 
 DFMClass<-function(id,parameters,range=c(0,0)){
