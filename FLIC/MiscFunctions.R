@@ -4,25 +4,7 @@ require(gridExtra)
 
 
 
-GetDoneTrainingInfo<-function(dfm){
-  data<-dfm$InTrainingData
-  # the number of samples in those minutes
-  
-  results<-data.frame(names(data)[7:18],matrix(rep(NA,12*2),ncol=2))
-  names(results)<-c("well","Minutes","Sample")
-  
-  for(i in 1:12) {
-    cname <-paste("W",i,sep="")
-    intrainingMin<-data$Minutes[data[,cname]]
-    intrainingSamp<-data$Sample[data[,cname]]
-    if(length(intrainingMin)!=0){
-      
-      results[i,2]<-max(intrainingMin)
-      results[i,3]<-max(intrainingSamp)  
-    }
-  }
-  results
-}
+
 
 
 PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
