@@ -5,7 +5,7 @@ source("FLICUserFunctions.R")
 source("MiscFunctions.R")
 
 p1<-ParametersClass.SingleWell()
-monitors<-c(1,3)
+monitors<-c(12,14)
 results<-Feeding.Summary.Monitors.BySingleEvents(monitors,p1,events=c(2,5))
 
 

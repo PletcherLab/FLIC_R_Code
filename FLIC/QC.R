@@ -40,16 +40,17 @@ CheckForSimultaneousFeeding.DFM<-function(dfm){
     both<-l1&l2
     
     if(sum(both)>0){
+      higher.in.left<-sum(rd2[both,w1]>rd2[both,w2])
       tmp<-rd2[both,]
       tmp2<-tmp[,c(w1,w2)]
       tmp3<-apply(tmp2,1,min)
-      lick.matrix[i,]<-c(sum(l1),sum(l2),sum(both),max(tmp3))
+      lick.matrix[i,]<-c(sum(l1),sum(l2),sum(both),max(tmp3),higher.in.left)
     }
     else {
-      lick.matrix[i,]<-c(sum(l1),sum(l2),0,0)
+      lick.matrix[i,]<-c(sum(l1),sum(l2),0,0,0)
     }
   }
-  colnames(lick.matrix)<-c("Col1","Col2","Both","MaxMin")
+  colnames(lick.matrix)<-c("Col1","Col2","Both","MaxMin","HigherInCol1")
   rownames(lick.matrix)<-c("Row1","Row2","Row3","Row4","Row5","Row6")
   
   lick.matrix
