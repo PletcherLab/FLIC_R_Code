@@ -46,8 +46,7 @@ CalculateProgressiveRatioTraining<-function(dfm){
   dfm
 }
 
-GetDoneTrainingInfo<-function(dfm){
-  data<-dfm$InTrainingData
+GetDoneTrainingInfo<-function(data){
   # the number of samples in those minutes
   
   results<-data.frame(names(data)[7:18],matrix(rep(NA,12*2),ncol=2))
