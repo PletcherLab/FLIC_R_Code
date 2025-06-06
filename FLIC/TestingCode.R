@@ -5,8 +5,9 @@ source("FLICUserFunctions.R")
 source("MiscFunctions.R")
 
 
-p1<-ParametersClass.SingleWell()
-dfm1<-DFMClass(1,p1)
+p1<-ParametersClass.TwoWell()
+p1$Feeding.Threshold<-10
+dfm2<-DFMClass(2,p1)
 
 
 

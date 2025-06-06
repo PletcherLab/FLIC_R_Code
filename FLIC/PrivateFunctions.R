@@ -151,6 +151,8 @@ Adjust.Baseline.For.Dual.Feeding.DFM<-function(dfm){
   rd<-dfm$LickData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]
   rd2<-dfm$BaselineData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]
   chamber.sets<-dfm$Parameters$Chamber.Sets
+  Chamber<-c(NA)
+  dual.feeding.data<-data.frame(Chamber,dfm$BaselineData[1,])
   for(i in 1:6) {
     w1<-chamber.sets[i,1]
     w2<-chamber.sets[i,2]
@@ -171,10 +173,18 @@ Adjust.Baseline.For.Dual.Feeding.DFM<-function(dfm){
       rd2[smaller.2,w2]<-0
       rd2[same,w1]<-0
       rd2[same,w2]<-0
+      
+      tmp<-dfm$BaselineData[both,]
+      Chamber<-rep(i,nrow(tmp))
+      tmp2<-data.frame(Chamber,tmp)
+      
+      ## Now append to dual.feeding.data
+      dual.feeding.data<-rbind(dual.feeding.data,tmp2)
     }
     
   }
-  
+  dual.feeding.data<-dual.feeding.data[-1,]
+  dfm$DualFeedingData<-dual.feeding.data
   dfm$BaselineData[,c("W1","W2","W3","W4","W5","W6","W7","W8","W9","W10","W11","W12")]<-rd2
   dfm
 }
