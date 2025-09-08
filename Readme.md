@@ -52,4 +52,6 @@ Let us know if you have an interesting use for the FLIC or if you have a request
 
 ### Notes
 Portions of this code were used in the analyses presented in Weaver et al., eLife, 2023 (DOI: https://doi.org/10.7554/eLife.84537.3)
+The code was also used in article: Malita et al., *eLife* (2024);13:RP99999. DOI: https://doi.org/10.7554/eLife.99999
+
 
