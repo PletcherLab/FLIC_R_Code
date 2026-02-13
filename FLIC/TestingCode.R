@@ -4,6 +4,90 @@ rm(list=ls())
 source("FLICUserFunctions.R")
 source("MiscFunctions.R")
 
+
+p1<-ParametersClass.TwoWell()
+p1$Feeding.Threshold<-10
+dfm1<-DFMClass(1,p1)
+
+
+tmp<-GetLightsInfo(dfm1)
+C1<-tmp[tmp$W1==TRUE,]
+C5<-tmp[tmp$W5==TRUE,]
+C9<-tmp[tmp$W9==TRUE,]
+
+plot(diff(C1$Minutes))
+
+
+
+tmp<-data.frame(dfm1$RawData$Minutes,signal,cumlicks,lights)
+
+lights<-GetLightsInfo(dfm)
+
+breaking.test<-function(dfm,well,lights){
+  cname <- paste("W", well, sep = "")
+  fdw<-cumsum(dfm$LickData[,cname])
+  l<-lights[,c("Minutes",cname)]
+  result<-cbind(l,fdw)
+  names(result)<-c("Minutes","Lights","CumLicks")
+  end.training<-dfm1$InTrainingData$Minutes[dfm1$InTrainingData$well==cname]
+  print(end.training,)
+  ## Get rid of data before/during training
+  result<-result[result$Minutes>end.training,]
+  #result<-result[result$Lights,]  
+  result<-find_transition_rows(result,"Lights")
+  DeltaMinutes<-diff(result$Minutes)
+  DeltaMinutes<-c(0,DeltaMinutes)
+  DeltaLicks<-diff(result$CumLicks)
+  DeltaLicks<-c(0,DeltaLicks)
+  result<-data.frame(result,DeltaMinutes,DeltaLicks)
+  result
+}
+
+
+
+find_transition_rows <- function(data, column_name) {
+  # Check if the column exists in the data frame
+  if (!column_name %in% names(data)) {
+    stop(paste("Column '", column_name, "' not found in the data frame", sep = ""))
+  }
+  
+  # Get the column values
+  values <- data[[column_name]]
+  
+  # Check if the column contains logical values
+  if (!is.logical(values)) {
+    stop(paste("Column '", column_name, "' must contain logical (TRUE/FALSE) values", sep = ""))
+  }
+  
+  # Find transition points where the value changes from the previous row
+  # We compare each value with the previous value (shifted by 1)
+  transitions <- c(FALSE, values[-1] != values[-length(values)])
+  
+  # Return the rows where transitions occur
+  return(data[transitions, , drop = FALSE])
+}
+
+# Example usage:
+# # Create sample data
+# sample_data <- data.frame(
+#   id = 1:10,
+#   status = c(TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE, TRUE)
+# )
+# 
+# # Find transition rows
+# transition_rows <- find_transition_rows(sample_data, "status")
+# print(transition_rows)
+
+
+tmp2<-tmp[tmp$lights==TRUE,]
+names(tmp2)<-c("Minutes","Signal","CumLicks","Light")
+Diff<-c(0,diff(tmp2$CumLicks))
+tmp2<-data.frame(tmp2,Diff)
+
+
+
+
+
 p1<-ParametersClass.SingleWell()
 monitors<-c(12,14)
 results<-Feeding.Summary.Monitors.BySingleEvents(monitors,p1,events=c(2,5))
@@ -24,7 +108,7 @@ p.choice.list<-list(p.choice.two,p.choice.one,p.choice.two,p.choice.one,p.choice
 
 
 
-dfm1<-DFMClass(1,p2)
+dfm1<-DFMClass(1,p1)
 dfm2<-DFMClass(2,p1)
 dfm3<-DFMClass(3,p2)
 dfm2<-DFMClass(4,p1)

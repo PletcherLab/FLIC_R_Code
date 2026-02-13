@@ -1,10 +1,10 @@
 ## These are functions for quality control.
+
+
 ## Give filename to this function and it will do analyses of 
 ## variance with and without DFM as a factor.  It will also plot
 ## the data for each well for each treatment in each DFM to look for
 ## consistency.
-
-
 QuickAOV.FeedingSummary<-function(datafile="FeedingSummary.csv"){
   data<-read.csv(datafile)
   data$Licks<-data$Licks^0.25

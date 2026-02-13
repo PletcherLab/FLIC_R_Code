@@ -4,6 +4,9 @@ require(gridExtra)
 
 
 
+
+
+
 PlotLicksandLight.Well<-function(dfm,well,range=c(0,0),TransformLicks=TRUE){
   tmp<-FeedingData.Well.Licks(dfm,well)
   SumLicks<-cumsum(tmp)

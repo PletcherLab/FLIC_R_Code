@@ -22,6 +22,7 @@ library(ggplot2)
 library(stats)
 library(gridExtra)
 library(reshape2)
+library(gtools)
 attach("FLICFunctions",pos=2)
 ```
 
