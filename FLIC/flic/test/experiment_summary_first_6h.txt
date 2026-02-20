@@ -1,0 +1,477 @@
+FLIC experiment summary
+======================
+
+Config: /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/flic_config.yaml
+Data dir: /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData
+Requested range minutes: (0.0, 360.0)
+Parallel: True
+Executor: threads
+QC report dir: /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/test/qc_reports_first_6h
+Loaded DFMs: [1, 2, 3, 4, 5, 6, 7, 8]
+Treatments: ['Paired_Chrim', 'Paired_WCS', 'Unpaired_Chrim', 'Unpaired_WCS']
+
+Global params
+------------
+baseline_window_minutes: 3
+chamber_size: 2
+correct_for_dual_feeding: False
+feeding_event_link_gap: 5
+feeding_minevents: 1
+feeding_minimum: 10
+feeding_threshold: 10
+pi_direction: 'left'
+samples_per_second: 5
+tasting_maximum: 10
+tasting_minevents: 1
+tasting_minimum: 0
+
+Experimental design (DFM/Chamber -> Treatment)
+--------------------------------------------
+ DFM  Chamber      Treatment
+   1        3   Paired_Chrim
+   1        5   Paired_Chrim
+   2        4   Paired_Chrim
+   2        6   Paired_Chrim
+   3        3   Paired_Chrim
+   3        5   Paired_Chrim
+   4        4   Paired_Chrim
+   4        6   Paired_Chrim
+   5        1   Paired_Chrim
+   6        2   Paired_Chrim
+   7        1   Paired_Chrim
+   8        2   Paired_Chrim
+   1        1     Paired_WCS
+   2        2     Paired_WCS
+   3        1     Paired_WCS
+   4        2     Paired_WCS
+   5        3     Paired_WCS
+   5        5     Paired_WCS
+   6        4     Paired_WCS
+   6        6     Paired_WCS
+   7        3     Paired_WCS
+   7        5     Paired_WCS
+   8        4     Paired_WCS
+   8        6     Paired_WCS
+   1        4 Unpaired_Chrim
+   1        6 Unpaired_Chrim
+   2        3 Unpaired_Chrim
+   2        5 Unpaired_Chrim
+   3        4 Unpaired_Chrim
+   3        6 Unpaired_Chrim
+   4        3 Unpaired_Chrim
+   4        5 Unpaired_Chrim
+   5        2 Unpaired_Chrim
+   6        1 Unpaired_Chrim
+   7        2 Unpaired_Chrim
+   8        1 Unpaired_Chrim
+   1        2   Unpaired_WCS
+   2        1   Unpaired_WCS
+   3        2   Unpaired_WCS
+   4        1   Unpaired_WCS
+   5        4   Unpaired_WCS
+   5        6   Unpaired_WCS
+   6        3   Unpaired_WCS
+   6        5   Unpaired_WCS
+   7        4   Unpaired_WCS
+   7        6   Unpaired_WCS
+   8        3   Unpaired_WCS
+   8        5   Unpaired_WCS
+
+DFM details
+-----------
+DFM 1
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM1_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM1_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM1_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'left'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 2
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM2_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM2_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM2_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'left'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 3
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM3_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM3_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM3_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'right'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 4
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM4_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM4_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM4_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'right'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 5
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM5_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM5_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM5_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'left'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 6
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM6_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM6_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM6_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'left'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 7
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM7_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM7_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM7_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'right'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+DFM 8
+- version: 3
+- raw rows: 107999
+- source_files:
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM8_0.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM8_1.csv
+  - /home/spletch/GithubLocal/FLIC_R_Code/FLIC/flic/TestData/DFM8_2.csv
+- actual range minutes: (0.004905333333333333, 359.9982386666667)
+- params:
+  - chamber_size: 2
+  - pi_direction: 'right'
+  - correct_for_dual_feeding: False
+  - baseline_window_minutes: 3
+  - feeding_threshold: 10
+  - feeding_minimum: 10
+  - tasting_minimum: 0
+  - tasting_maximum: 10
+  - feeding_minevents: 1
+  - tasting_minevents: 1
+  - samples_per_second: 5
+  - feeding_event_link_gap: 5
+  - chamber_sets: [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+
+Overall actual loaded range (minutes): (0.004905333333333333, 359.9982386666667)
+
+QC summary
+----------
+DFM 1
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  1072.0   978.0   0.0                 0.0                 0.0
+  Chamber2   578.0   371.0   0.0                 0.0                 0.0
+  Chamber3   297.0  1144.0   0.0                 0.0                 0.0
+  Chamber4   181.0  1239.0   0.0                 0.0                 0.0
+  Chamber5  1122.0  2874.0   0.0                 0.0                 0.0
+  Chamber6  1079.0  3118.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=151.63359639233371
+  all_data (mean signal per well):
+  W1     0.737896
+  W2     1.279197
+  W3     0.418596
+  W4     0.394513
+  W5     0.174011
+  W6     1.413545
+  W7     0.171946
+  W8     0.965055
+  W9     0.508421
+  W10    2.879656
+  W11    0.516199
+  W12    3.011769
+
+DFM 2
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  1214.0  2369.0   0.0                 0.0                 0.0
+  Chamber2   313.0  1790.0   0.0                 0.0                 0.0
+  Chamber3   541.0  2197.0   0.0                 0.0                 0.0
+  Chamber4   269.0   829.0   0.0                 0.0                 0.0
+  Chamber5  2396.0  7253.0   0.0                 0.0                 0.0
+  Chamber6   474.0  9575.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=151.071083172147
+  all_data (mean signal per well):
+  W1      0.825461
+  W2      2.973546
+  W3      0.213770
+  W4      2.107455
+  W5      0.351975
+  W6      2.368207
+  W7      0.139381
+  W8      1.013824
+  W9      1.861554
+  W10     7.136529
+  W11     0.314003
+  W12    10.292299
+
+DFM 3
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  3084.0  3616.0   0.0                 0.0                 0.0
+  Chamber2  4602.0  2086.0   0.0                 0.0                 0.0
+  Chamber3  2529.0  1238.0   0.0                 0.0                 0.0
+  Chamber4     0.0     0.0   0.0                 0.0                 0.0
+  Chamber5  4373.0  1056.0   0.0                 0.0                 0.0
+  Chamber6  1534.0   284.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=165.10301411674934
+  all_data (mean signal per well):
+  W1     4.154029
+  W2     3.001009
+  W3     5.095575
+  W4     1.213196
+  W5     2.958851
+  W6     0.844295
+  W7     0.011954
+  W8     0.003074
+  W9     5.074501
+  W10    0.597931
+  W11    1.700905
+  W12    0.142668
+
+DFM 4
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  1301.0   870.0   0.0                 0.0                 0.0
+  Chamber2   461.0   277.0   0.0                 0.0                 0.0
+  Chamber3  2896.0   681.0   0.0                 0.0                 0.0
+  Chamber4   854.0   684.0   0.0                 0.0                 0.0
+  Chamber5  3331.0  1209.0   0.0                 0.0                 0.0
+  Chamber6   862.0   481.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=160.7321668909825
+  all_data (mean signal per well):
+  W1     1.267956
+  W2     0.410995
+  W3     0.414939
+  W4     0.136196
+  W5     2.817433
+  W6     0.355559
+  W7     0.660414
+  W8     0.305808
+  W9     2.613672
+  W10    0.687164
+  W11    1.134686
+  W12    0.330392
+
+DFM 5
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  1147.0  3373.0   0.0                 0.0                 0.0
+  Chamber2  1339.0  3536.0   0.0                 0.0                 0.0
+  Chamber3   482.0  5273.0   0.0                 0.0                 0.0
+  Chamber4   226.0  2100.0   0.0                 0.0                 0.0
+  Chamber5  1701.0  6258.0   0.0                 0.0                 0.0
+  Chamber6   557.0  6665.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=143.5133963750985
+  all_data (mean signal per well):
+  W1     0.812183
+  W2     3.613552
+  W3     0.827276
+  W4     2.995583
+  W5     0.321966
+  W6     5.834211
+  W7     0.173770
+  W8     2.224243
+  W9     1.357355
+  W10    6.385772
+  W11    0.418782
+  W12    5.953490
+
+DFM 6
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1     0.0     0.0   0.0                 0.0                 0.0
+  Chamber2   136.0  3639.0   0.0                 0.0                 0.0
+  Chamber3  2110.0  3627.0   0.0                 0.0                 0.0
+  Chamber4  2962.0  2137.0   0.0                 0.0                 0.0
+  Chamber5  2237.0  2348.0   0.0                 0.0                 0.0
+  Chamber6   504.0   470.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=161.3661697990927
+  all_data (mean signal per well):
+  W1     0.007759
+  W2     0.000880
+  W3     0.108047
+  W4     2.822517
+  W5     1.962907
+  W6     4.775405
+  W7     2.452902
+  W8     2.451550
+  W9     1.773822
+  W10    2.914703
+  W11    0.338503
+  W12    0.614589
+
+DFM 7
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  1945.0  1125.0   0.0                 0.0                 0.0
+  Chamber2  2928.0   403.0   0.0                 0.0                 0.0
+  Chamber3  3318.0  1977.0  59.0                17.0                 0.0
+  Chamber4  3652.0  1709.0   0.0                 0.0                 0.0
+  Chamber5  1417.0  1498.0   0.0                 0.0                 0.0
+  Chamber6  2149.0  3140.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=156.31708860759494
+  all_data (mean signal per well):
+  W1     2.414596
+  W2     0.791035
+  W3     3.484366
+  W4     0.303994
+  W5     2.810762
+  W6     1.139520
+  W7     3.103695
+  W8     1.078056
+  W9     1.134612
+  W10    0.626719
+  W11    2.594552
+  W12    2.667821
+
+DFM 8
+- integrity: rows=107999, elapsed_min=359.99333333333334, index_increments_by_one=True
+- data_breaks: count=0 (multiplier=4.0)
+- simultaneous feeding (two-well):
+            Licks1  Licks2  Both  MaxMinSignalAtBoth  HigherInCol1AtBoth
+  Chamber1  1215.0  1008.0   0.0                 0.0                 0.0
+  Chamber2  2227.0  1221.0   0.0                 0.0                 0.0
+  Chamber3  2212.0   528.0   0.0                 0.0                 0.0
+  Chamber4  1731.0   631.0   0.0                 0.0                 0.0
+  Chamber5  3147.0  1147.0   0.0                 0.0                 0.0
+  Chamber6   213.0    97.0   0.0                 0.0                 0.0
+- bleeding check (cutoff=50.0): max_matrix=135.41982665222102
+  all_data (mean signal per well):
+  W1     1.272030
+  W2     0.755405
+  W3     1.621709
+  W4     0.691293
+  W5     2.453588
+  W6     0.093047
+  W7     1.687932
+  W8     0.360337
+  W9     2.742581
+  W10    0.489477
+  W11    0.207854
+  W12    0.053565
+

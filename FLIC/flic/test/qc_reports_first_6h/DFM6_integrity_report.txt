@@ -1,0 +1,23 @@
+
+==============================
+DFM Integrity Report
+DFM ID: 6
+Rows in RawData: 107999
+==============================
+
+## Experiment timing
+Start time: 2025-04-21 12:19:00.294320+00:00
+End time:   2025-04-21 18:18:59.894320+00:00
+Elapsed:    359.993 minutes
+Elapsed (from Minutes column): 359.993 minutes
+
+## Error column details
+Found error-like column(s): Error
+
+Column: Error
+  Non-NA: 107999  NA: 0
+  Flagged entries: 0
+
+## Index increment check
+Index increments by exactly 1 for all consecutive rows.
+

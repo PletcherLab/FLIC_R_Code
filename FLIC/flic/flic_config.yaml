@@ -1,0 +1,100 @@
+global:
+  params:
+    # Full parameter list with two-well defaults (Parameters.two_well()).
+    baseline_window_minutes: 3
+    feeding_threshold: 10
+    feeding_minimum: 10
+    tasting_minimum: 0
+    tasting_maximum: 10
+    feeding_minevents: 1
+    tasting_minevents: 1
+    samples_per_second: 5
+    feeding_event_link_gap: 5
+    chamber_size: 2  
+    correct_for_dual_feeding: false
+    pi_direction: left
+
+# Directory containing DFM CSV files for the experiment.
+data_dir: TestData
+
+dfms:
+  1:
+    params:      
+      pi_direction: left
+    chambers:
+      1: Paired_WCS
+      2: Unpaired_WCS
+      3: Paired_Chrim
+      4: Unpaired_Chrim
+      5: Paired_Chrim
+      6: Unpaired_Chrim
+  2:
+    params:      
+      pi_direction: left
+    chambers:
+      1: Unpaired_WCS
+      2: Paired_WCS
+      3: Unpaired_Chrim
+      4: Paired_Chrim
+      5: Unpaired_Chrim
+      6: Paired_Chrim
+  3:
+    params:      
+      pi_direction: right
+    chambers:
+      1: Paired_WCS
+      2: Unpaired_WCS
+      3: Paired_Chrim
+      4: Unpaired_Chrim
+      5: Paired_Chrim
+      6: Unpaired_Chrim
+  4:
+    params:      
+      pi_direction: right
+    chambers:
+      1: Unpaired_WCS
+      2: Paired_WCS
+      3: Unpaired_Chrim
+      4: Paired_Chrim
+      5: Unpaired_Chrim
+      6: Paired_Chrim
+  5 :
+    params:      
+      pi_direction: left
+    chambers:
+      1: Paired_Chrim
+      2: Unpaired_Chrim
+      3: Paired_WCS
+      4: Unpaired_WCS
+      5: Paired_WCS
+      6: Unpaired_WCS
+  6:
+    params:      
+      pi_direction: left
+    chambers:
+      1: Unpaired_Chrim
+      2: Paired_Chrim
+      3: Unpaired_WCS
+      4: Paired_WCS
+      5: Unpaired_WCS
+      6: Paired_WCS
+  7:
+    params:      
+      pi_direction: right
+    chambers:
+      1: Paired_Chrim
+      2: Unpaired_Chrim
+      3: Paired_WCS
+      4: Unpaired_WCS
+      5: Paired_WCS
+      6: Unpaired_WCS
+  8:
+    params:      
+      pi_direction: right
+    chambers:
+      1: Unpaired_Chrim
+      2: Paired_Chrim
+      3: Unpaired_WCS
+      4: Paired_WCS
+      5: Unpaired_WCS
+      6: Paired_WCS
